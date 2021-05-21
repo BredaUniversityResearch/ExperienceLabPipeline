@@ -1,0 +1,11 @@
+All Raw Data, structured as required for the use with the Matlab Scripts.
+One folder per participant, the name must adhere to the example folder structure.
+These folders must contain all data (empatica files) of that participant
+
+Examples:
+- P01
+- P02
+- etc.
+
+
+This folder must also contain an .xlsx file called ParticipantData, this file must contain the Onsets and Offsets as specified in the example file.

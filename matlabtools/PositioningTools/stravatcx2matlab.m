@@ -1,0 +1,194 @@
+function out = stravatcx2matlab(cfg)
+%function out = stravatcx2matlab(cfg)
+%function to read Strava data (which can be used to record outdoor walking and
+%biking movement. This data can be collected using the strava app, and
+%downloaded as a TCX file from the strava website: https://support.strava.com/hc/en-us/articles/216918437-Exporting-your-Data-and-Bulk-Export#TCX
+%
+%The configuration options are:
+%cfg.stravafile = string specifying the file that contains the Strava data
+%                 in tcx fomat. This is the default strava format using
+%                 /export_tcx
+%cfg.originaltimezone = string specifying the Time Zone the data was measured in
+%cfg.newtimezone = string specifying the Time Zone it should be measured in
+%cfg.datafolder = string containing the full path to the folder with the
+%                 strava data. double backlashes have to be specified due 
+%                 to matlab-internal reasons
+%
+%for the strava measurements, please use the default strava file
+%- Retrieve the file via the link in strava, an include "/export_tcx" in the
+%  url
+%Wilco Boode 19-11-2018
+
+%set defaults
+if ~isfield(cfg, 'stravafile')
+    cfg.stravafile = 'strava.tcx';
+end
+if ~isfield(cfg, 'originaltimezone')
+    cfg.originaltimezone = 'GMT';
+end
+if ~isfield(cfg, 'newtimezone')
+    cfg.newtimezone = 'Europe/Amsterdam';
+end
+if ~isfield(cfg, 'datafolder')
+    error('strava2matlab: datafolder not specified');
+end
+
+%save the current directory, and open the datafolder containing the actual
+%data
+curdir = pwd;
+eval(sprintf('cd %s', cfg.datafolder));
+
+%read strava data from file, if file does not exist, look for other .tcx
+%files and suggest these instead
+if isfile(cfg.stravafile)
+    fid = fopen(cfg.stravafile);
+    file = textscan(fid, '%s');
+    file = file{1};
+    fclose(fid);
+else
+    fileList = dir('*.tcx');
+    disp(strcat(cfg.stravafile,' Not Found'));
+    if ~isempty(fileList)
+        for f=1:length(fileList)
+            
+            prompt = strcat('Do you want want to use "',fileList(f).name,'"? y/n [n]: ');
+            usenamefromlist = input(prompt,'s');
+            if isempty(usenamefromlist)
+                usenamefromlist = 'n';
+            end
+            
+            if usenamefromlist == 'y'
+                cfg.stravafile = fileList(f).name;
+                
+                fid = fopen(cfg.stravafile);
+                file = textscan(fid, '%s');
+                file = file{1};
+                fclose(fid);
+                break
+            end
+        end
+    else
+        error('Strava File Not Found');
+    end
+end
+
+%get starting time stamp
+data.initial_time_stamp = file(15);
+
+%Create data arrays with all necessary data from the files
+data.time = [];
+data.lat = [];
+data.long = [];
+data.altitude = [];
+data.distance = [];
+data.speed = [];
+
+%Cycle through the original data file, and catch the data 
+InTrack = false;
+k = 1;
+for i=1:length(file)
+    if contains(file(i), "<Track>")
+        InTrack = true;
+    end
+    if InTrack == true
+        if contains(file(i), "<Time>")
+            data.time = [data.time; {erase(file{i,1},["<Time>","</Time>"])}];
+        elseif contains(file(i), "<LatitudeDegrees>")
+            data.lat = [data.lat; str2double(erase(file{i,1},["<LatitudeDegrees>","</LatitudeDegrees>"]))];
+        elseif contains(file(i), "<LongitudeDegrees>")
+            data.long = [data.long; str2double(erase(file{i,1},["<LongitudeDegrees>","</LongitudeDegrees>"]))];
+        elseif contains(file(i), "<AltitudeMeters>")
+            data.altitude = [data.altitude; str2double(erase(file{i,1},["<AltitudeMeters>","</AltitudeMeters>"]))];
+        elseif contains(file(i), "<DistanceMeters>")
+            data.distance = [data.distance; str2double(erase(file{i,1},["<DistanceMeters>","</DistanceMeters>"]))];
+        elseif contains(file(i), "<Speed>")
+            data.speed = [data.speed; str2double(erase(file{i,1},["<Speed>","</Speed>"]))];
+            k = k+1;
+        end
+    end
+end
+
+data.mydatetime = [];
+
+%Set Easy to use DateTime Values
+nsamp = size(data.time,1);
+count = 1;
+for isamp=1:nsamp 
+    newdatetime = [data.mydatetime;datetime(extractBefore(data.time(isamp),"T") + " " +extractAfter(extractBefore(data.time(isamp),"Z"),"T"),'TimeZone',cfg.originaltimezone,'Format', 'yyyy-MM-dd HH:mm:ss' )];
+    newdatetime.TimeZone = cfg.newtimezone;
+    data.mydatetime = newdatetime;
+end
+
+% create new data structuresfor all output data
+time = [];
+mydatetime = [];
+lat = [];
+long = [];
+altitude = [];
+distance = [];
+speed = [];
+speed2 = [];
+power = [];
+
+nsamp = length(data.time);
+for isamp=1:nsamp 
+    mydatetime = [mydatetime;data.mydatetime(isamp)];
+    lat = [lat;data.lat(isamp)];
+    long = [long;data.long(isamp)];
+    altitude = [altitude;data.altitude(isamp)];
+    distance = [distance;data.distance(isamp)];
+    speed = [speed;data.speed(isamp)];
+    speed2 = [speed2;data.speed(isamp)*3.6];
+    time = [time;length(mydatetime)-1];
+    cfg = [];
+    cfg.timeinseconds = 1;
+    cfg.speed = data.speed(isamp)*3.6;
+    
+    if (isamp > 1)
+       cfg.verticalgain = data.altitude(isamp)- data.altitude(isamp-1);
+    end
+    
+    power = [power;calculatebikingpower(cfg)];
+
+    if (isamp < nsamp)      
+        d2s = 24*3600;
+        cur = datenum(data.mydatetime(isamp));
+        next = datenum(data.mydatetime(isamp+1));
+        tCur = d2s*datenum(data.mydatetime(isamp));
+        tNext = d2s*datenum(data.mydatetime(isamp+1));
+        tDiff = tNext-tCur;        
+        if tDiff > 1            
+            for tFill = 1:tDiff-1
+                    mydatetime = [mydatetime;data.mydatetime(isamp)+seconds(tFill)];
+                    lat = [lat;data.lat(isamp)];
+                    long = [long;data.long(isamp)];
+                    altitude = [altitude;data.altitude(isamp)];
+                    distance = [distance;data.distance(isamp)];
+                    speed = [speed;0];
+                    speed2 = [speed2;0];
+                    time = [time;length(mydatetime)-1];
+                    power = [power;calculatebikingpower(cfg)];
+            end
+        end
+    end
+end
+
+%create an altered / correct time stamp 
+initial_time_stamp = posixtime(mydatetime(1));
+initial_time_stamp_mat = mydatetime(1);
+%initial_time_stamp_mat = datestr(mydatetime(1));
+
+%make sure only the necessary data is collected int eh out struct
+out.initial_time_stamp = initial_time_stamp;
+out.initial_time_stamp_mat = initial_time_stamp_mat;
+out.fsample = 1;
+out.time = time;
+out.lat = lat;
+out.long = long;
+out.altitude = altitude;
+out.distance = distance;
+out.speed = speed;
+out.speed2 = speed2;
+out.power = power;
+out.datatype = "strava";
+end

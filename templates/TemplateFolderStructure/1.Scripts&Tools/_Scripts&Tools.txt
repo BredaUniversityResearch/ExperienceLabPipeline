@@ -1,0 +1,5 @@
+This folder must contain all scripts & tools used with this project.
+
+Examples:
+- Main matlab script
+- Additional toolboxes not part of the Lab's default matlabtools

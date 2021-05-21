@@ -1,0 +1,7 @@
+Processed data, structured as desired
+
+Examples:
+- One folder per participant with all exported data of that participant
+- One folder per data source with data of all participants in there
+
+Try to keep the folder depth minimal, no indefinite subfolder structures
