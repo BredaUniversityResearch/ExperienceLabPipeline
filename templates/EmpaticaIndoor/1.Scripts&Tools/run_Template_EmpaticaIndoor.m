@@ -342,6 +342,7 @@ for i=1:length(data_deconvolved)
         disp(strcat('Current Participant: ',num2str(participant)));
                
         % Load beacon data from x file into matlab
+        cfg = [];
         cfg.datafolder = [pdir,sprintf('\\0.RawData\\P%02d', participant),'\']; %location of the participant phone data
         cfg.beaconfile = "beacon.csv"; %name of the participant phone data
         cfg.beaconDataFolder = [pdir,'\0.RawData\']; %location of the beacondata, containing beaconmeta and beaconpositions
@@ -354,7 +355,7 @@ for i=1:length(data_deconvolved)
         cfg.strengthmin = 40; %minimum strength required to include a beacon
         cfg.strengthmax = 80; %maximum strength of a beacon
         cfg.txpower = -62; %general txpower of a beacon, for Exp Lab, this is considered -62
-        cfg.usegeodata = true; %do you want to calculate the lat lon position of the data (only possible for meter based calculations, preferably in The Netherlands)
+        cfg.usegeodata = false; %do you want to calculate the lat lon position of the data (only possible for meter based calculations, preferably in The Netherlands)
         cfg.lat = 53.212143;  %starting lat position
         cfg.lon = 6.566574; %starting lon position
         positioned_beacon = position_beacon(cfg,raw_beacon);
@@ -364,18 +365,27 @@ for i=1:length(data_deconvolved)
         cfg = [];
         cfg.onset = participanttable.('Start Time')(ptableindex);
         cfg.offset = participanttable.('Duration')(ptableindex);
-        cfg.usegeodata = true; %whether this data uses geodata or not
+        cfg.usegeodata = false; %whether this data uses geodata or not
         segmented_beacon = segment_beacon(cfg,positioned_beacon);
-        disp("segmented beacon for subject: " + participant)
-        
+        disp(strcat('segmented beacon for subject: ', num2str(participant)))
+
         % Resample beacon data to EDA data sample rate
         cfg = [];
         cfg.fsample = 4; %new sample rate to resample to
         cfg.stringNames = vertcat(); %names of string based data, this could be used for nearestBeacon data
-        cfg.doubleNames = vertcat("x","y","z","z_inv","lat","lon"); %names of double / number data, these are the positions
+        cfg.doubleNames = vertcat("x","y","z","z_inv"); %names of double / number data, these are the positions
         cfg.beaconNames = vertcat(segmented_beacon.beaconnames);
         resampled_beacon = resample_beacon(cfg,segmented_beacon);
-        disp('Resampled beacon data for subject: '+ participant);
+        disp(strcat('Resampled beacon data for subject: ', num2str(participant)))
+
+        % Create POI data based on the previously calculated datafiles
+        cfg = [];
+        cfg.datafolder = [pdir,'\0.RawData\']; %location of the participant phone data
+        cfg.poifile = "POIMeta.xlsx"; %name of the participant phone data
+        cfg.mapfile = "map.png";
+        cfg.mapmetafile = 'mapmeta.xlsx';
+        poi_beacons = getindoorpoi(cfg,resampled_beacon);
+        disp(strcat('Made POI of beacon data for subject: ', num2str(participant)))
         
         %Combine the data in a single structure, you can add or
         %remove data from these lists to change the output. data1names is the

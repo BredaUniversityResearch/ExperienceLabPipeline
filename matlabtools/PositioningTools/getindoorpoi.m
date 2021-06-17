@@ -40,7 +40,7 @@ if ~isfield(cfg, 'poifile')
 end
 if ~isfield(cfg, 'mapfile')
     warning('getindoorPOI: mapfile not specified, using default name');
-    cfg.mapfile = ["map.png"];
+    cfg.mapfile = "map.png";
 end
 if ~isfield(cfg, 'mapmetafile')
     warning('getindoorPOI: mapmetafile not specified, using default name');
