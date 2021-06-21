@@ -76,8 +76,23 @@ for i=1:height(participanttable)
         %checks and decide whether to add them or not based on the available data and folder
         %structure. For example, a pre-post check based on EDA data could be added
         setup.participant=participant;
-        setup.start_time = participanttable.('Start Time')(i);
-        setup.duration = participanttable.('Duration')(i);
+        
+        %DETECTED START_TIME and DURATION
+        %For automatic detection of in-out times based on the beacon data
+        cfg = [];
+        cfg.inbeacon = 3; %The value of the beacon triggering the In moment
+        cfg.outbeacon = 12; %The value of the beacon triggering the Out moment
+        cfg.datafolder = [pdir,sprintf('\\0.RawData\\P%02d', participant),'\']; %location of the participant phone data
+        cfg.beaconDataFolder = [pdir,'\0.RawData\']; %location of the beacondata, containing beaconmeta and beaconpositions
+        cfg.minstrength = 80; %lower = stronger signal (as its signal delay)       
+        detectedinout = getinoutfrombeacons(cfg);
+        setup.start_time = detectedinout.start_time;
+        setup.duration = detectedinout.duration;
+        
+        %MANUAL START TIME AND DURATION
+        %For manually setting in-out based on the ParticipantTable
+        %setup.start_time = participanttable.('Start Time')(i);
+        %setup.duration = participanttable.('Duration')(i);
         
         %add and sort the data to the combined output struct (AT LEAST 1 VARIABLE IS NECESSARY,
         %OTHERWISE THE SORT MIGHT NOT WORK AS INTENDED
@@ -146,13 +161,17 @@ for i=1:length(data_setup)
         % Import, Resample, and Segment all e4 data from empatica CSV files to matlab.
         cfg = []; % empty any existing configuration settings.
         cfg.datafolder = [pdir,sprintf('\\0.RawData\\P%02d', participant)];
-        cfg.trigger_time = participanttable.('Start Time')(ptableindex);
+        cfg.trigger_time = data_setup(i).start_time;
+        %cfg.trigger_time = participanttable.('Start Time')(ptableindex);
         cfg.pretrigger = 0;
-        cfg.posttrigger = participanttable.('Duration')(ptableindex);
+        %cfg.posttrigger = participanttable.('Duration')(ptableindex);
+        cfg.posttrigger = data_setup(i).duration;
         e4_full = e4full2matlab(cfg);
         
         %add the participant value to this field
         e4_full.participant=participant;
+        e4_full.start_time = data_setup(i).start_time;
+        e4_full.duration = data_setup(i).duration;
         
         %add the data to the combined output struct
         data_import(i) = e4_full;
@@ -198,7 +217,7 @@ for i=1:length(data_import)
     
     participant = data_import(i).participant;
     ptableindex = find(participanttable.('Participant') == participant);
-
+    
     %Check if the participant has to be included in the project, if so, check if the data has
     %allready been processed (when its in the processeddata folder), if so, then its added to the
     %overall output file, if not, then it will be added later
@@ -325,8 +344,8 @@ end
 for i=1:length(data_deconvolved)
     
     participant = data_deconvolved(i).participant;
-	ptableindex = find(participanttable.('Participant') == participant);
-
+    ptableindex = find(participanttable.('Participant') == participant);
+    
     %Check if the participant has to be included in the project, if so, check if the data has
     %allready been processed (when its in the processeddata folder), if so, then its added to the
     %overall output file, if not, then it will be added later
@@ -340,7 +359,7 @@ for i=1:length(data_deconvolved)
     
     if (addParticipant == true)
         disp(strcat('Current Participant: ',num2str(participant)));
-               
+        
         % Load beacon data from x file into matlab
         cfg = [];
         cfg.datafolder = [pdir,sprintf('\\0.RawData\\P%02d', participant),'\']; %location of the participant phone data
@@ -363,12 +382,12 @@ for i=1:length(data_deconvolved)
         
         % Segment Beacon Data
         cfg = [];
-        cfg.onset = participanttable.('Start Time')(ptableindex);
-        cfg.offset = participanttable.('Duration')(ptableindex);
+        cfg.onset = data_deconvolved(i).start_time %participanttable.('Start Time')(ptableindex);
+        cfg.offset = data_deconvolved(i).duration %participanttable.('Duration')(ptableindex);
         cfg.usegeodata = false; %whether this data uses geodata or not
         segmented_beacon = segment_beacon(cfg,positioned_beacon);
         disp(strcat('segmented beacon for subject: ', num2str(participant)))
-
+        
         % Resample beacon data to EDA data sample rate
         cfg = [];
         cfg.fsample = 4; %new sample rate to resample to
@@ -377,7 +396,7 @@ for i=1:length(data_deconvolved)
         cfg.beaconNames = vertcat(segmented_beacon.beaconnames);
         resampled_beacon = resample_beacon(cfg,segmented_beacon);
         disp(strcat('Resampled beacon data for subject: ', num2str(participant)))
-
+        
         % Create POI data based on the previously calculated datafiles
         cfg = [];
         cfg.datafolder = [pdir,'\0.RawData\']; %location of the participant phone data
@@ -517,17 +536,17 @@ for i=1:length(data_extra)
         
         data_edited = data_extra(i);
         
-        cfg = []; 
+        cfg = [];
         cfg.poifile = 'POIMeta.xlsx';
         cfg.datafolder = [pdir,'\0.RawData\'];
         cfg.mapfile = 'map.png';
-        cfg.mapmetafile = 'MapMeta.xlsx'; 
+        cfg.mapmetafile = 'MapMeta.xlsx';
         data = [];
         data.x = data_edited.x;
         data.z = data_edited.z_inv;
         poidata = getindoorpoi(cfg,data);
         disp('Got POI Data for subject: '+ participant)
-                
+        
         % Combine the imported and the deconvolved data in one structure
         cfg.data1names = {'poidata';'currentpoi'};
         combined_data = combine_data(poidata, data_edited, cfg);%
@@ -573,7 +592,10 @@ disp('Saved data_final to .mat file')
 % length for the entire participant (example 1x4556, or 4556x1)
 cfg = [];
 cfg.savename = 'Template_EmpaticaIndoor.csv';
-cfg.datanames = {'participant' 'initial_time_stamp' 'initial_time_stamp_mat' 'fsample' 'time'  'conductance' 'conductance_z' 'phasic' 'phasic_z' 'tonic' 'tonic_z' 'bvp' 'heartrate' 'temperature' 'setting' 'average' 'x' 'y' 'z' 'z_inv' 'lat' 'lon' 'currentpoi'};
+cfg.datanames = {'participant' 'initial_time_stamp' 'initial_time_stamp_mat' 'fsample' 'time'  'conductance' 'conductance_z' 'phasic' 'phasic_z' 'tonic' 'tonic_z' 'bvp' 'heartrate' 'temperature' 'setting' 'average' 'x' 'y' 'z' 'z_inv' 'currentpoi'};
 cfg.savelocation = [pdir,'\2.ProcessedData'];
 export2csv(cfg, data_final);
 disp('Saved data to .csv file')
+
+s = scatter(data_final(1).x,data_final(1).z, 2,data_final(1).time);
+cb = colorbar();
