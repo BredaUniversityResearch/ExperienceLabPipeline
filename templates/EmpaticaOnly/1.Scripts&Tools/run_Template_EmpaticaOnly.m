@@ -96,7 +96,7 @@ for i=1:height(participanttable)
         disp(strcat('Saved Participant ', num2str(participant),' Data to .mat file'))
         
         %Clear the non-required data.
-        clearvars -except pdir i participanttable data_setup  
+        clearvars -except pdir i loopname participanttable data_setup  
     end
 end
 % SAVE FINAL OUTPUT STRUCTURE
@@ -145,9 +145,9 @@ for i=1:length(data_setup)
         % Import, Resample, and Segment all e4 data from empatica CSV files to matlab.
         cfg = []; % empty any existing configuration settings.
         cfg.datafolder = [pdir,sprintf('\\0.RawData\\P%02d', participant)];
-        cfg.trigger_time = participanttable.('Start Time')(ptableindex);
+        cfg.trigger_time = data_setup(i).start_time;
         cfg.pretrigger = 0;
-        cfg.posttrigger = participanttable.('Duration')(ptableindex);
+        cfg.posttrigger = data_setup(i).duration;
         e4_full = e4full2matlab(cfg);
         
         %add the participant value to this field
@@ -167,7 +167,7 @@ for i=1:length(data_setup)
         disp(strcat('Saved Participant ', num2str(participant),' Data to .mat file'))
         
         %Clear the non-required data.
-        clearvars -except pdir i participanttable data_setup data_import        
+        clearvars -except pdir i loopname participanttable data_setup data_import        
     end
 end
 % SAVE FINAL OUTPUT STRUCTURE
@@ -233,7 +233,7 @@ for i=1:length(data_import)
         disp(strcat('Saved Participant ', num2str(participant),' Data to .mat file'))
         
         %Clear the non-required data.
-        clearvars -except pdir i participanttable data_setup data_import data_corrected       
+        clearvars -except pdir i loopname participanttable data_setup data_import data_corrected       
     end
 end
 % SAVE FINAL OUTPUT STRUCTURE
@@ -294,7 +294,7 @@ for i=1:length(data_corrected)
         disp(strcat('Saved Participant ', num2str(participant),' Data to .mat file'))
         
         %Clear the non-required data.
-        clearvars -except pdir i participanttable data_setup data_import data_corrected data_deconvolved             
+        clearvars -except pdir i loopname participanttable data_setup data_import data_corrected data_deconvolved             
     end
 end
 % SAVE FINAL OUTPUT STRUCTURE
@@ -359,7 +359,7 @@ for i=1:length(data_deconvolved)
         disp(strcat('Saved Participant ', num2str(participant),' Data to .mat file'))
         
         %Clear the non-required data.
-        clearvars -except pdir i participanttable data_extra data_setup data_import data_corrected data_deconvolved             
+        clearvars -except pdir i loopname participanttable data_extra data_setup data_import data_corrected data_deconvolved             
     end
 end
 % SAVE FINAL OUTPUT STRUCTURE
@@ -367,7 +367,7 @@ end
 save ([pdir,'\2.ProcessedData\data_extra.mat'], 'data_extra'); % save all phasic and tonic data to matlab file
 disp('Saved data_extra to .mat file')
 
-%% AVERAGING
+%% GRAND AVERAGING
 %Creating grand averages over the final output file. This adds a participant called -1, which
 %contains the grand average over all participants in the provided data structure.
 cfg = [];

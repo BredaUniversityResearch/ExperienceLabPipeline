@@ -411,7 +411,7 @@ for i=1:length(data_deconvolved)
         %default list for E4 Data, cfg.data2names is the default list for
         %outdoor data.
         cfg.data2names = {'initial_time_stamp';'initial_time_stamp_mat';'fsample';'time';'conductance';'conductance_z';'phasic';'phasic_z';'tonic';'tonic_z';'bvp';'heartrate';'temperature';'acceleration';'event';'orig';'analysis';'eventchan';'participant'};
-        data_position = combine_data(resampled_beacon, data_deconvolved(i), cfg);
+        data_position = combine_data(poi_beacons, data_deconvolved(i), cfg);
         
         %add the data to the combined output struct
         data_positioned(i) = data_position;
@@ -499,86 +499,15 @@ end
 save ([pdir,'\2.ProcessedData\data_extra.mat'], 'data_extra'); % save all phasic and tonic data to matlab file
 disp('Saved data_extra to .mat file')
 
-%% POI LOOP
-%This is an extra loop, showing how we can plugin more data tools into our pipeline. In this case,
-%we add an average for every participant, and add data from a predefined column in the
-%ParticipantData sheet.
-
-%define the data loop names, to (in the future) more easily add loops without manually altering the
-%names everywhere.
-p_loopname = loopname;
-loopname = 'data_poi';
-
-if isfile([pdir,'\2.ProcessedData\data_extra.mat'])
-    load([pdir,'\2.ProcessedData\data_extra.mat']);
-else
-    error('data_extra not Found, make sure you import before trying to edit data further');
-end
-
-for i=1:length(data_extra)
-    
-    participant = data_extra(i).participant;
-    ptableindex = find(participanttable.('Participant') == participant);
-    
-    %Check if the participant has to be included in the project, if so, check if the data has
-    %allready been processed (when its in the processeddata folder), if so, then its added to the
-    %overall output file, if not, then it will be added later
-    addParticipant = false;
-    if isfile([pdir,strcat('\2.ProcessedData\data_poi_',num2str(participant),'.mat')])
-        p_data = load([pdir,strcat('\2.ProcessedData\data_poi_',num2str(participant),'.mat')]);
-        data_poi(i) = p_data.data_edited;
-    else
-        addParticipant = true;
-    end
-    
-    if (addParticipant == true)
-        disp(strcat('Current Participant: ',num2str(participant)));
-        
-        data_edited = data_extra(i);
-        
-        cfg = [];
-        cfg.poifile = 'POIMeta.xlsx';
-        cfg.datafolder = [pdir,'\0.RawData\'];
-        cfg.mapfile = 'map.png';
-        cfg.mapmetafile = 'MapMeta.xlsx';
-        data = [];
-        data.x = data_edited.x;
-        data.z = data_edited.z_inv;
-        poidata = getindoorpoi(cfg,data);
-        disp('Got POI Data for subject: '+ participant)
-        
-        % Combine the imported and the deconvolved data in one structure
-        cfg.data1names = {'poidata';'currentpoi'};
-        combined_data = combine_data(poidata, data_edited, cfg);%
-        
-        data_edited = combined_data;
-        %add the data to the combined output struct
-        data_poi(i) = data_edited;
-        data_poi = nestedSortStruct(data_poi,{'participant'});
-        
-        % CLEAR AND SAVE
-        % save current results to file, this is done to make sure that any
-        % false participants do not cause a complete data loss for previous
-        % participants. Separate .mat files can later be combined by Marcel or
-        % Wilco.
-        save ([pdir,strcat('\2.ProcessedData\data_poi_',num2str(participant),'.mat')], 'data_edited');
-        disp(strcat('Saved Participant ', num2str(participant),' Data to .mat file'))
-        
-        %Clear the non-required data.
-        clearvars -except pdir i loopname p_loopname participanttable data_extra data_poi data_setup data_import data_corrected data_deconvolved data_positioned
-    end
-end
-% SAVE FINAL OUTPUT STRUCTURE
-% save combined results to file
-save ([pdir,'\2.ProcessedData\data_poi.mat'], 'data_poi'); % save all phasic and tonic data to matlab file
-disp('Saved data_poi to .mat file')
-
-%% AVERAGING
+%% GRAND AVERAGING
 %Creating grand averages over the final output file. This adds a participant called -1, which
 %contains the grand average over all participants in the provided data structure.
 cfg = [];
 cfg.datatypes = ["conductance" "phasic" "tonic" "conductance_z" "phasic_z" "tonic_z"];
-data_averaged = getgrandaverages(data_poi,cfg);
+data_averaged = getgrandaverages(data_extra,cfg);
+
+%% AVERAGING
+
 
 %% SAVE FINAL MAT
 % save final results to a matlab file
