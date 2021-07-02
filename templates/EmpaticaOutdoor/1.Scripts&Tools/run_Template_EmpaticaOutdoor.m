@@ -76,23 +76,11 @@ for i=1:height(participanttable)
         %checks and decide whether to add them or not based on the available data and folder
         %structure. For example, a pre-post check based on EDA data could be added
         setup.participant=participant;
-        
-        %DETECTED START_TIME and DURATION
-        %For automatic detection of in-out times based on the beacon data
-        cfg = [];
-        cfg.inbeacon = 3; %The value of the beacon triggering the In moment
-        cfg.outbeacon = 12; %The value of the beacon triggering the Out moment
-        cfg.datafolder = [pdir,sprintf('\\0.RawData\\P%02d', participant),'\']; %location of the participant phone data
-        cfg.beaconDataFolder = [pdir,'\0.RawData\']; %location of the beacondata, containing beaconmeta and beaconpositions
-        cfg.minstrength = 80; %lower = stronger signal (as its signal delay)
-        detectedinout = getinoutfrombeacons(cfg);
-        setup.start_time = detectedinout.start_time;
-        setup.duration = detectedinout.duration;
-        
+                   
         %MANUAL START TIME AND DURATION
         %For manually setting in-out based on the ParticipantTable
-        %setup.start_time = participanttable.('Start Time')(i);
-        %setup.duration = participanttable.('Duration')(i);
+        setup.start_time = participanttable.('Start Time')(i);
+        setup.duration = participanttable.('Duration')(i);
         
         %add and sort the data to the combined output struct (AT LEAST 1 VARIABLE IS NECESSARY,
         %OTHERWISE THE SORT MIGHT NOT WORK AS INTENDED
@@ -362,79 +350,39 @@ for i=1:length(data_deconvolved)
         
         %%  STRAVA
         % CHECK: Make sure the strava files are stored in the correct
-        % participant folders (strava.tcx)
-        
+        % participant folders (strava.tcx)    
         % Import Strava data from tcx files
         cfg = [];
         cfg.trigger_time = data_setup(i).start_time;
         cfg.pretrigger = 0;
         cfg.posttrigger = data_setup(i).duration;
-        cfg.fsample = e4_full.fsample; %sampling frequency used to resample the strava data,
-        cfg.datafolder = [pdir,sprintf('\\0.RawData\\P%02d', subject(i))]; %location of the strava data of this participant
+        cfg.fsample = data_deconvolved.fsample; %sampling frequency used to resample the strava data,
+        cfg.datafolder = [pdir,sprintf('\\0.RawData\\P%02d', participant)]; %location of the strava data of this participant
         cfg.stravafile = 'strava.tcx'; %name of the strava data (default = 'strava.tcx'
         raw_strava = stravatcx2matlab(cfg);
-        disp("imported Strava" + subject(i))
+        disp("imported Strava " + num2str(participant))
         
         % Cut the STRAVA data to the defined on/offset
         segmented_strava = segment_strava(cfg,raw_strava);
-        disp("segmented Strava" + subject(i))
+        disp("segmented Strava " + num2str(participant))
         
         % Resample the Strava data to the defined on/offset
         resampled_strava = resample_strava(cfg, segmented_strava);
-        disp("resampled strava" + subject(i))
+        disp("resampled strava " + num2str(participant))
         
-        % Load beacon data from x file into matlab
+        % Get the POI based on the GeoJson data
         cfg = [];
-        cfg.datafolder = [pdir,sprintf('\\0.RawData\\P%02d', participant),'\']; %location of the participant phone data
-        cfg.beaconfile = "beacon.csv"; %name of the participant phone data
-        cfg.beaconDataFolder = [pdir,'\0.RawData\']; %location of the beacondata, containing beaconmeta and beaconpositions
-        cfg.nullvalue = 10; %under which value (strength / power of beacon) should a beacon be discarded
-        raw_beacon = beacon2matlab_unix(cfg);
-        disp("imported beacon data for subject: " + participant)
-        
-        % Calculate position (x,y,x)
-        cfg = [];
-        cfg.strengthmin = 40; %minimum strength required to include a beacon
-        cfg.strengthmax = 80; %maximum strength of a beacon
-        cfg.txpower = -62; %general txpower of a beacon, for Exp Lab, this is considered -62
-        cfg.usegeodata = false; %do you want to calculate the lat lon position of the data (only possible for meter based calculations, preferably in The Netherlands)
-        cfg.lat = 53.212143;  %starting lat position
-        cfg.lon = 6.566574; %starting lon position
-        positioned_beacon = position_beacon(cfg,raw_beacon);
-        disp("Calculated 'exact' beacon position from beacon data for subject: " + participant)
-        
-        % Segment Beacon Data
-        cfg = [];
-        cfg.onset = data_deconvolved(i).start_time %participanttable.('Start Time')(ptableindex);
-        cfg.offset = data_deconvolved(i).duration %participanttable.('Duration')(ptableindex);
-        cfg.usegeodata = false; %whether this data uses geodata or not
-        segmented_beacon = segment_beacon(cfg,positioned_beacon);
-        disp(strcat('segmented beacon for subject: ', num2str(participant)))
-        
-        % Resample beacon data to EDA data sample rate
-        cfg = [];
-        cfg.fsample = 4; %new sample rate to resample to
-        cfg.stringNames = vertcat(); %names of string based data, this could be used for nearestBeacon data
-        cfg.doubleNames = vertcat("x","y","z","z_inv"); %names of double / number data, these are the positions
-        cfg.beaconNames = vertcat(segmented_beacon.beaconnames);
-        resampled_beacon = resample_beacon(cfg,segmented_beacon);
-        disp(strcat('Resampled beacon data for subject: ', num2str(participant)))
-        
-        % Create POI data based on the previously calculated datafiles
-        cfg = [];
-        cfg.datafolder = [pdir,'\0.RawData\']; %location of the participant phone data
-        cfg.poifile = "POIMeta.xlsx"; %name of the participant phone data
-        cfg.mapfile = "map.png";
-        cfg.mapmetafile = 'mapmeta.xlsx';
-        poi_beacons = getindoorpoi(cfg,resampled_beacon);
-        disp(strcat('Made POI of beacon data for subject: ', num2str(participant)))
-        
+        cfg.datafolder = [pdir,'\0.RawData\']; 
+        cfg.poifile = 'poi.geojson';
+        poi_strava = getoutdoorpoi(cfg, resampled_strava);
+        disp("made strava poi" + num2str(participant))        
+                     
         %Combine the data in a single structure, you can add or
         %remove data from these lists to change the output. data1names is the
         %default list for E4 Data, cfg.data2names is the default list for
         %outdoor data.
         cfg.data2names = {'initial_time_stamp';'initial_time_stamp_mat';'fsample';'time';'conductance';'conductance_z';'phasic';'phasic_z';'tonic';'tonic_z';'bvp';'heartrate';'temperature';'acceleration';'event';'orig';'analysis';'eventchan';'participant'};
-        data_position = combine_data(resampled_beacon, data_deconvolved(i), cfg);
+        data_position = combine_data(poi_strava, data_deconvolved(i), cfg);
         
         %add the data to the combined output struct
         data_positioned(i) = data_position;
@@ -528,7 +476,7 @@ disp('Saved data_extra to .mat file')
 %contains the grand average over all participants in the provided data structure.
 cfg = [];
 cfg.datatypes = ["conductance" "phasic" "tonic" "conductance_z" "phasic_z" "tonic_z"];
-data_averaged = getgrandaverages(data_poi,cfg);
+data_averaged = getgrandaverages(data_extra,cfg);
 
 %% SAVE FINAL MAT
 % save final results to a matlab file
@@ -541,11 +489,11 @@ disp('Saved data_final to .mat file')
 % Make sure all datanames are either single values, or arrays of the same
 % length for the entire participant (example 1x4556, or 4556x1)
 cfg = [];
-cfg.savename = 'Template_EmpaticaIndoor.csv';
-cfg.datanames = {'participant' 'initial_time_stamp' 'initial_time_stamp_mat' 'fsample' 'time'  'conductance' 'conductance_z' 'phasic' 'phasic_z' 'tonic' 'tonic_z' 'bvp' 'heartrate' 'temperature' 'setting' 'average' 'x' 'y' 'z' 'z_inv' 'currentpoi'};
+cfg.savename = 'Template_EmpaticaOutdoor.csv';
+cfg.datanames = {'participant' 'initial_time_stamp' 'initial_time_stamp_mat' 'fsample' 'time'  'conductance' 'conductance_z' 'phasic' 'phasic_z' 'tonic' 'tonic_z' 'bvp' 'heartrate' 'temperature' 'setting' 'average' 'lat' 'long' 'currentpoi'};
 cfg.savelocation = [pdir,'\2.ProcessedData'];
 export2csv(cfg, data_final);
 disp('Saved data to .csv file')
 
-s = scatter(data_final(1).x,data_final(1).z, 2,data_final(1).time);
+s = scatter(data_final(2).long,data_final(2).lat, 2,data_final(2).time);
 cb = colorbar();
