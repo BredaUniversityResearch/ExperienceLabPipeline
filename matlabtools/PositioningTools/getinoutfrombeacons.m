@@ -77,16 +77,43 @@ else
     beaconData = cfg.beacondata;
 end
 
+%Inex and get data from in/out beacon (OLD)
 inbeaconIndex = beaconData.beaconnames(find(beaconData.beaconMeta.('BeaconID') == cfg.inbeacon));
 outbeaconIndex = beaconData.beaconnames(find(beaconData.beaconMeta.('BeaconID') == cfg.outbeacon));
 
 indata = beaconData.beaconvalues.(inbeaconIndex);
 outdata = beaconData.beaconvalues.(outbeaconIndex);
 
+
+%Index and get data from beacons
+beaconMap = containers.Map();
+
+inbeaconsIndex = [];
+for i =1 : length(cfg.inbeacons)
+    inbeaconsIndex = [inbeaconsIndex ; beaconData.beaconnames(find(beaconData.beaconMeta.('BeaconID') == cfg.inbeacons(i)))];
+    beaconMap(string(cfg.inbeacons(i))) = beaconData.beaconnames(find(beaconData.beaconMeta.('BeaconID') == cfg.inbeacons(i)))
+end
+
+outbeaconsIndex = [];
+for i =1 : length(cfg.inbeacons)
+    outbeaconsIndex = [outbeaconsIndex ; beaconData.beaconnames(find(beaconData.beaconMeta.('BeaconID') == cfg.outbeacons(i)))];
+    beaconMap(string(cfg.outbeacons(i))) = beaconData.beaconnames(find(beaconData.beaconMeta.('BeaconID') == cfg.outbeacons(i)))
+end
+
+allbeaconsIndex = unique(vertcat(inbeaconsIndex,outbeaconsIndex))
+
+for k = keys(beaconMap)
+    k
+    beaconMap(k{1})
+    allbeaconsData.(beaconMap(k{1})) = beaconData.beaconvalues.(beaconMap(k{1}))
+end
+
 %% InOut Detection
 repeatdetection = 'y';
 while (repeatdetection == 'y')
     
+    %% Single In/Out beacon detection
+
     innandata = indata;
     innandata(innandata > cfg.minstrength) = NaN;
     [peaks,peakloc] = findpeaks(-innandata,'MinPeakProminence',cfg.prominence);
@@ -114,40 +141,93 @@ while (repeatdetection == 'y')
         cfg.checkdata = true;
     end
     
+    
+    %% NEW SECTION / Multi beacon Detection
+    % instead of just one beacon, we can take the seqence of nearestbeacons with values under the
+    % threshold, we then check at what moments beacon 1, followed by beacon 2 was triggered, and
+    % when beacon 2, followed by 1 were triggered. Then we checked whether middle-beacon was
+    % triggered in between. This list can be regexped to check where this is the case.
+    
+%121111233212111
+%The target sequence here is quite simple actually
+%12
+%Any numbers except 1, with minimal one 3
+%21
+%https://nl.mathworks.com/help/matlab/ref/regexp.html
+    
+    %0. make NaN list of size of beacons duration
+    %1. make lists of all peak moments
+    %2. combine, putting the peaks for all in/out beacons after another
+    %3. 
+    
+    %allbeaconsData
+    for k = keys(beaconMap)
+        allbeaconsData.(beaconMap(k{1}))(allbeaconsData.(beaconMap(k{1})) > cfg.minstrength) = NaN;
+        [peaks,peakloc] = findpeaks(-allbeaconsData.(beaconMap(k{1})),'MinPeakProminence',cfg.prominence);
+        
+    end
+    
+    %allbeaconsData
+
+    
     %% In Out Visualization
     if (cfg.checkdata == true)
         
         fig = figure;
+        
+        hold on
+        
+        xmin = 0;
+        xmax = length(beaconData.time);
+        yrange = max(indata)-min(indata);
+        ymin = clamp(min(indata) - (yrange/10),0,min(indata));
+        ymax = max(indata) + (yrange/10);
+
+        xlim([xmin xmax])
+        ylim([ymin ymax])
+        
+        rectangle('Position',[xmin ymin xmax-xmin cfg.minstrength-ymin], 'FaceColor', '#d4ffe0');
+        
         if (inbeaconIndex == outbeaconIndex)
             plot(beaconData.time,indata,'-k')
-            hold on
         else
             plot(beaconData.time,indata,'-b')
-            hold on
             plot (beaconData.time,outdata,'-r')
         end
         xline(inpeak,'--b')
         xline(outpeak,'--r')
-        %legend('In','Out')
+        
         text(inpeak+1, max(indata), 'In', 'Color', 'blue');
         text(outpeak+1, max(indata), 'Out', 'Color', 'red');
         
         hold off
         
         %% In Out Threshold Change Option
-        prompt = 'Do you want to change the threshold? y/n [n]: ';
-        repeatdetection = strtrim(input(prompt,'s'));
-        if isempty(repeatdetection)
-            repeatdetection = 'n';
-        end
-        
-        if repeatdetection == 'y'
-            disp(strcat("Original Treshold: ", num2str(cfg.minstrength)));
-            prompt = 'Set new Threshold: ';
-            cfg.minstrength = input(prompt);
-            disp("Restarting Detection");
-        else
-            disp("Finishing Detection");
+        repeatset = 0;
+        while repeatset == 0
+            
+            prompt = 'Do you want to change the threshold? y/n [n]: ';
+            repeatdetection = strtrim(input(prompt,'s'));
+            if isempty(repeatdetection)
+                repeatdetection = 'n';
+            end
+                        
+            if repeatdetection == 'y'
+                disp(strcat("Original Treshold: ", num2str(cfg.minstrength)));
+                prompt = 'Set new Threshold: ';
+                cfg.minstrength = input(prompt);
+                disp("Restarting Detection");
+                repeatset = 1;
+                
+            elseif repeatdetection == 'n'
+                disp("Finishing Detection");
+                repeatset = 1;
+                
+            else
+                disp("Invalid Input, ");
+                
+                repeatset = 0;
+            end
         end
         
         if ishandle(fig)
@@ -160,8 +240,8 @@ while (repeatdetection == 'y')
 end
 
 %% Set Out Values based on Inpeak and Outpeak
-out.duration = beaconData.time(outpeak)-beaconData.time(inpeak)
-out.start_time = char(beaconData.initial_time_stamp_mat + seconds(beaconData.time(inpeak)))
+out.duration = beaconData.time(outpeak)-beaconData.time(inpeak);
+out.start_time = char(beaconData.initial_time_stamp_mat + seconds(beaconData.time(inpeak)));
 
 end
 
