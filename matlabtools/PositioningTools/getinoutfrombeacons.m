@@ -102,6 +102,12 @@ end
 
 allbeaconsIndex = unique(vertcat(inbeaconsIndex,outbeaconsIndex))
 
+midbeaconIndex = [];
+midbeaconIndex = [midbeaconIndex ; beaconData.beaconnames(find(beaconData.beaconMeta.('BeaconID') == cfg.middlebeacon))];
+beaconMap(string(cfg.middlebeacon)) = beaconData.beaconnames(find(beaconData.beaconMeta.('BeaconID') == cfg.middlebeacon))
+
+allbeaconsIndex = unique(vertcat(allbeaconsIndex,midbeaconIndex))
+
 for k = keys(beaconMap)
     k
     beaconMap(k{1})
@@ -113,7 +119,7 @@ repeatdetection = 'y';
 while (repeatdetection == 'y')
     
     %% Single In/Out beacon detection
-
+    
     innandata = indata;
     innandata(innandata > cfg.minstrength) = NaN;
     [peaks,peakloc] = findpeaks(-innandata,'MinPeakProminence',cfg.prominence);
@@ -148,27 +154,36 @@ while (repeatdetection == 'y')
     % when beacon 2, followed by 1 were triggered. Then we checked whether middle-beacon was
     % triggered in between. This list can be regexped to check where this is the case.
     
-%121111233212111
-%The target sequence here is quite simple actually
-%12
-%Any numbers except 1, with minimal one 3
-%21
-%https://nl.mathworks.com/help/matlab/ref/regexp.html
+    %121111233212111
+    %The target sequence here is quite simple actually
+    %12
+    %Any numbers except 1, with minimal one 3
+    %21
+    %https://nl.mathworks.com/help/matlab/ref/regexp.html
     
     %0. make NaN list of size of beacons duration
     %1. make lists of all peak moments
     %2. combine, putting the peaks for all in/out beacons after another
-    %3. 
+    %3.
     
     %allbeaconsData
+    
+    fields = fieldnames (allbeaconsData);
+    allpeaks = NaN(1,length(allbeaconsData.(string(fields(1)))));
     for k = keys(beaconMap)
         allbeaconsData.(beaconMap(k{1}))(allbeaconsData.(beaconMap(k{1})) > cfg.minstrength) = NaN;
         [peaks,peakloc] = findpeaks(-allbeaconsData.(beaconMap(k{1})),'MinPeakProminence',cfg.prominence);
-        
+        allpeaks(peakloc) = cellfun(@str2num,k);
     end
     
+    allpeaksnonan = allpeaks
+    allpeaksnonan(isnan(allpeaksnonan)) = [];
     %allbeaconsData
-
+    
+    %GetInPeak
+    
+    
+    %GetOutPeak    
     
     %% In Out Visualization
     if (cfg.checkdata == true)
@@ -182,7 +197,7 @@ while (repeatdetection == 'y')
         yrange = max(indata)-min(indata);
         ymin = clamp(min(indata) - (yrange/10),0,min(indata));
         ymax = max(indata) + (yrange/10);
-
+        
         xlim([xmin xmax])
         ylim([ymin ymax])
         
@@ -211,7 +226,7 @@ while (repeatdetection == 'y')
             if isempty(repeatdetection)
                 repeatdetection = 'n';
             end
-                        
+            
             if repeatdetection == 'y'
                 disp(strcat("Original Treshold: ", num2str(cfg.minstrength)));
                 prompt = 'Set new Threshold: ';
