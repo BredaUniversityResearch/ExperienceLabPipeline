@@ -18,7 +18,7 @@ function out = getinoutfrombeacons(cfg)
 %   cfg.checkdata = true; %Do you wish to show and evaluate the data before accepting the in/out moments?
 %   cfg.minstrength = 80; %What is the minimal strength required to be a valid start/endpoint. Lower = stronger signal required (as its signal delay)
 %
-%Wilco, 16/76/2021
+%Wilco, 16/07/2021
 %
 %WARNING
 %Function is not yet extensively tested, and misses some documentation. Please consider this while
@@ -73,6 +73,9 @@ if (~isfield(cfg,'minstrength'))
     warning('minstrength not defined, using the default (80)');
     cfg.minstrength = 80;
 end
+if (~isfield(cfg,'colormaptype'))
+    cfg.datagradient = colormap(jet);
+end
 
 %% Import Data
 if (cfg.getdatafromfile)
@@ -120,7 +123,12 @@ for k = keys(beaconMap)
     allbeaconsData.(beaconMap(k{1})) = beaconData.beaconvalues.(beaconMap(k{1}));
 end
 
-%% InOut Detection
+%% InOut Multi beacon Detection
+% instead of just one beacon, we can take the seqence of nearestbeacons with values under the
+% threshold, we then check at what moments beacon 1, followed by beacon 2 was triggered, and
+% when beacon 2, followed by 1 were triggered. Then we checked whether middle-beacon was
+% triggered in between. This list can be regexped to check where this is the case.
+    
 repeatdetection = 'y';
 while (repeatdetection == 'y')
     
@@ -129,53 +137,6 @@ while (repeatdetection == 'y')
             close(fig)
         end
     end
-    
-    %% Single In/Out beacon detection Will be disabled when multi-detection works
-%     innandata = indata;
-%     innandata(innandata > cfg.minstrength) = NaN;
-%     [peaks,peakloc] = findpeaks(-innandata,'MinPeakProminence',cfg.prominence);
-%     if height(peakloc) == 0
-%         warning('No Input Peaks Found, using first timepoint');
-%         inpeak = beaconData.time(1)+1;
-%         cfg.checkdata = true;
-%     else
-%         inpeak = peakloc(1);
-%     end
-%     
-%     outnnandata = outdata;
-%     outnnandata(outnnandata > cfg.minstrength) = NaN;
-%     [peaks,peakloc] = findpeaks(-outnnandata,'MinPeakProminence',cfg.prominence);
-%     if height(peakloc) == 0
-%         warning('No Output Peaks Found, using last time point');
-%         outpeak = beaconData.time(height(beaconData.time))+1;
-%         cfg.checkdata = true;
-%     else
-%         outpeak = peakloc(height(peakloc));
-%     end
-%     
-%     if (outpeak < inpeak)
-%         warning('Out Time is before In Time');
-%         cfg.checkdata = true;
-%     end
-    
-    
-    %% NEW SECTION / Multi beacon Detection
-    % instead of just one beacon, we can take the seqence of nearestbeacons with values under the
-    % threshold, we then check at what moments beacon 1, followed by beacon 2 was triggered, and
-    % when beacon 2, followed by 1 were triggered. Then we checked whether middle-beacon was
-    % triggered in between. This list can be regexped to check where this is the case.
-    
-    %121111233212111
-    %The target sequence here is quite simple actually
-    %12
-    %Any numbers except 1, with minimal one 3
-    %21
-    %https://nl.mathworks.com/help/matlab/ref/regexp.html
-    
-    %0. make NaN list of size of beacons duration
-    %1. make lists of all peak moments
-    %2. combine, putting the peaks for all in/out beacons after another
-    %3.
     
     beaconsData = allbeaconsData;
     fields = fieldnames (beaconsData);
@@ -286,18 +247,24 @@ while (repeatdetection == 'y')
         xlim([xmin xmax]);
         ylim([ymin ymax]);
         
-        rectangle('Position',[xmin ymin xmax-xmin cfg.minstrength-ymin], 'FaceColor', '#d4ffe0');        
+        rectangle('Position',[xmin ymin xmax-xmin cfg.minstrength-ymin], 'FaceColor', '#f5f5f5');        
         
         %Visualize beacons in figure
         names = fieldnames(beaconsData);
+        customlegend = [];
         for i = 1:length(names)
-            plot(beaconData.time,beaconsData.(names{i}));
+            colorposition = int16((255/length(names)*i))
+            d(i) = plot(beaconData.time,beaconsData.(names{i}),'Color',cfg.datagradient(colorposition,:));
+            n = strcmp(beaconData.beaconnames, names(i));
+            dn(i) = strcat("Beacon: ",num2str(beaconData.beaconMeta.('BeaconID')(n)));
         end
-        for i = 1:length(allpeaks)
-            if allpeaks(i) == cfg.middlebeacon
-                xline(i,'--g');
-            end
-        end
+        
+        %Draws a line for every peak belonging to the middlebeacon, was quite distracting
+        %for i = 1:length(allpeaks)
+        %    if allpeaks(i) == cfg.middlebeacon
+        %        xline(i,'--k');
+        %    end
+        %end
         
         %Visualize In / Out Text
         t=[];
@@ -310,9 +277,8 @@ while (repeatdetection == 'y')
             xline(outpeaks(i),'--r');
         end
         
-        
-        %t(2) = text(outpeak+1, max(indata), 'Out', 'Color', 'red');
-        
+        legend(d(1:length(names)),dn);
+
         hold off
         
         %% In Out Threshold Change Option
@@ -369,7 +335,8 @@ if length(inpeaks) > 1
         [~,pickedpeak] = (min(abs(inpeaks - x)));
         
         li = xline(inpeaks(pickedpeak),'--b', 'LineWidth', 2);
-        
+        legend(d(1:length(names)),dn);
+
         prompt = 'Is this the correct IN peak? y/n [n]: ';
         peakcorrect = strtrim(input(prompt,'s'));
         if isempty(peakcorrect)
@@ -416,6 +383,7 @@ if length(outpeaks) > 1
         [~,pickedpeak] = (min(abs(outpeaks - x)));
         
         lo = xline(outpeaks(pickedpeak),'--r', 'LineWidth', 2);
+        legend(d(1:length(names)),dn);
         
         prompt = 'Is this the correct OUT peak? y/n [n]: ';
         peakcorrect = strtrim(input(prompt,'s'));
