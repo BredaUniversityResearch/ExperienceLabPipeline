@@ -19,6 +19,10 @@ function out  = getindoorpoi(cfg,data)
 %color if you want them to use the same POI, however they files need to be the same size, as they
 %will share metafiles for now.
 %cfg.mapmetafile    = the name of the xlsx file containing meta data on the map (sizes)
+%cfg.zname          = the name of the array to use for the z value (as matlab uses inversed order
+%from many other tools, including our beacon tools (0 = top)
+%cfg.colorleeway    = amount of leeway allowed in the RGB colors, to take compression artifacts into
+%account. This value is in RGB units
 %
 %Wilco 08/02/2021
 
@@ -52,6 +56,12 @@ end
 if ~isfield(data, 'z')
     error('getindoorPOI: Z value of data not defined');
 end
+if ~isfield(cfg, 'zname')
+    cfg.zname = 'z';
+end
+if ~isfield(cfg, 'colorleeway')
+    cfg.colorleeway = 5;
+end
 
 %%
 % Load map image, and define the scale values for map to real life scale 
@@ -67,8 +77,8 @@ z_max = mapmeta.z_max;
 z_size = abs(z_min - z_max);
 
 m_size = size(I);
-x_ppm = m_size(1) / x_size;
-z_ppm = m_size(2) / z_size;
+x_ppm = m_size(2) / x_size;
+z_ppm = m_size(1) / z_size;
 
 %%
 %Use the POITable to find all POI Color Areas on the map, and store the
@@ -78,8 +88,8 @@ poitable = readtable(strcat(cfg.datafolder,cfg.poifile));
 pois = [];
 for i = 1:height(poitable)
     %Make mask for current poi, and only keep the pixels with the colors of the
-    %current POI
-    mask = (I(:, :, 1) == poitable.r(i)) & (I(:, :, 2) == poitable.g(i)) & (I(:, :, 3) == poitable.b(i));
+    %current POI. Utilizes ColorLeeway to alow for offsets due to image compression
+    mask = (I(:, :, 1) >= poitable.r(i)-cfg.colorleeway & I(:, :, 1) <= poitable.r(i)+cfg.colorleeway) & (I(:, :, 2) >= poitable.g(i)-cfg.colorleeway & I(:, :, 2) <= poitable.g(i)+cfg.colorleeway) & (I(:, :, 3) >= poitable.b(i)-cfg.colorleeway & I(:, :, 3) <= poitable.b(i)+cfg.colorleeway);
     maskedRgbImage = bsxfun(@times, I, cast(mask, 'like', I));
     
     %Create a binary image from the masked image
@@ -111,7 +121,7 @@ for i = 1:length(poinames)
     %then save this in the POI inside field
     for k = 1:length(curpois)
         boundary = curpois{k};
-        [in,~] = inpolygon(data.x*x_ppm,data.z*z_ppm,boundary(:,2), boundary(:,1));
+        [in,~] = inpolygon(data.x*x_ppm,data.(cfg.zname)*z_ppm,boundary(:,2), boundary(:,1));
         
         pois.(curname).inside = max(in,pois.(curname).inside);
     end
