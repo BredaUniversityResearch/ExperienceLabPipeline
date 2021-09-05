@@ -13,7 +13,7 @@ function out = getinoutfrombeacons(cfg)
 %   cfg.beaconfile = 'beacon.csv'; %The name of the beacondata file of this participant
 %   cfg.getdatafromfile = true; %Whether the data should be retrieved from the
 %   cfg.beacondata = []; %If beacondata is not from file, then you can define your own beacondata. Requires the same structure as given by beacon2matlab_unix
-%   cfg.prominence = 0.5; %Defines the prominence level of the beacon for removing insensible peaks. Default = 0.5. https://nl.mathworks.com/help/signal/ug/prominence.html
+%   cfg.prominence = 0.5; %Defines the minimum size of the peak
 %   cfg.nullvalue = 10; %Under which value (strength / power of beacon) should a beacon value be discarded
 %   cfg.checkdata = true; %Do you wish to show and evaluate the data before accepting the in/out moments?
 %   cfg.minstrength = 80; %What is the minimal strength required to be a valid start/endpoint. Lower = stronger signal required (as its signal delay)

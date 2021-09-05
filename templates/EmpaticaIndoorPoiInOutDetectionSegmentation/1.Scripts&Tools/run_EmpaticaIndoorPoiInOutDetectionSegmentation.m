@@ -77,7 +77,8 @@ for i=1:height(participanttable)
         cfg.datafolder = [pdir,sprintf('\\0.RawData\\P%03d', participant),'\'] %location of the participant phone data
         cfg.beaconDataFolder = [pdir,'\0.RawData\']; %location of the beacondata, containing beaconmeta and beaconpositions
         cfg.minstrength = 85; %lower = stronger signal (as its signal delay)  
-        cfg.datagradient = colormap(jet);        
+        cfg.datagradient = colormap(jet);  
+        cfg.prominence = 2.5;
         detectedinout = getinoutfrombeacons(cfg);
         setup.start_time = detectedinout.start_time;
         setup.duration = detectedinout.duration;
