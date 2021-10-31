@@ -36,7 +36,7 @@ end
 %save the current directory, and open the datafolder containing the actual
 %data
 curdir = pwd;
-eval(sprintf('cd %s', cfg.datafolder));
+cd(cfg.datafolder)
 
 %read strava data from file, if file does not exist, look for other .tcx
 %files and suggest these instead
