@@ -31,7 +31,7 @@ function out = segment_data(cfg,data)
 % recommended
 % segment=struct('category',"",'categoryvalues',[],'value',"",'type',"");
 % segment.category = "color";
-% segment.categorycalculation = "equals"
+% TBD: segment.categorycalculation = "equals"
 % segment.categoryvalues = ["red" "blue" "green"];
 % segment.value = "phasic";
 % segment.type = "mean";
@@ -48,7 +48,7 @@ function out = segment_data(cfg,data)
 %
 % CategoryType:
 % equals = "value" = checking for the same string in the category
-% range = "3|5.25" = range between two numeric values, separated with a pipe symbol
+% TBD: range = "3|5.25" = range between two numeric values, separated with a pipe symbol
 % 
 % Wilco 05-07-2021
 
@@ -70,7 +70,7 @@ for i=1:length(cfg.segments)
     type = cfg.segments(i).type;
     
     if (type == "")
-        type = "mean"
+        type = "mean";
     end
     
     %check if data exists
@@ -97,7 +97,7 @@ for i=1:length(cfg.segments)
                         
                         for j=1:length(cfg.segments(i).categoryvalues)
                             run.categoryvalue = cfg.segments(i).categoryvalues(j);
-                            run.name = strcat(run.value,'_',run.type,'_',run.category,'_',string(run.categoryvalue));
+                            run.name = strcat(run.value,'_',run.type,'_',run.category,'_',string(j));
                             if exist('runs','var')
                                 runs(length(runs)+1) = run;
                             else
@@ -126,17 +126,12 @@ for i=1:length(cfg.segments)
     end
 end
 
-%% Check names
-
-
-
 %% Runs
 %Run all of the runs that should be viable
-xfor i=1:length(runs)
+for i=1:length(runs)
     
     %Get the full list of data for this run
     valuedata = data.(runs(i).value);
-    
     %If there is a category defined, then filter the valuedata
     if (runs(i).category ~= "")
         categorydata = data.(runs(i).category);
@@ -147,25 +142,22 @@ xfor i=1:length(runs)
     %Run the required calculation type over the value data
     switch runs(i).type
         case "mean"
-            result = mean(valuedata);
+            runs(i).result = mean(valuedata);
         case "median"
-            result = median(valuedata);
+            runs(i).result = median(valuedata);
         case "length"
-            result = length(valuedata);
+            runs(i).result = length(valuedata);
         case "unique"
-            result = length(unique(valuedata));
+            runs(i).result = length(unique(valuedata));
         case "sum"
-            result = sum(valuedata);
+            runs(i).result = sum(valuedata);
         case "max"
-            result = max(valuedata);
+            runs(i).result = max(valuedata);
         case "min"
-            result = min(valuedata);
+            runs(i).result = min(valuedata);
         otherwise
-            result = NaN;
+            runs(i).result = NaN;
     end
-    
-    %Store the result in a structure
-    results.(runs(i).name) = result;
 end
 
-out = results;
+out = runs;
