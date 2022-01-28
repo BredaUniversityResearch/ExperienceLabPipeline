@@ -31,6 +31,7 @@ function out = segment_data(cfg,data)
 % recommended
 % segment=struct('category',"",'categoryvalues',[],'value',"",'type',"");
 % segment.category = "color";
+% segment.categorycalculation = "equals"
 % segment.categoryvalues = ["red" "blue" "green"];
 % segment.value = "phasic";
 % segment.type = "mean";
@@ -39,12 +40,16 @@ function out = segment_data(cfg,data)
 % Types:
 % mean = the average value of the segmented value array (default)
 % median = the median of the segmented value array
-% amount = the total amount of indices in the segmented value array
+% length = the total amount of indices in the segmented value array
 % unique = the total amount of unique values in the segmented value array
 % sum = the sum of the segmented value array
 % max = the highest value in the segmented value array
 % min = the lowest value in the segmented value array
 %
+% CategoryType:
+% equals = "value" = checking for the same string in the category
+% range = "3|5.25" = range between two numeric values, separated with a pipe symbol
+% 
 % Wilco 05-07-2021
 
 %%
@@ -58,7 +63,8 @@ end
 %type etc evaluates whether the segment should be viable. It then creates a
 %long struct with all the runs to perform
 
-nonnumtypes = ["amount" "unique"];
+
+nonnumtypes = ["length" "unique"];
 for i=1:length(cfg.segments)
     value = cfg.segments(i).value;
     type = cfg.segments(i).type;
@@ -67,20 +73,28 @@ for i=1:length(cfg.segments)
         type = "mean"
     end
     
+    %check if data exists
     if isfield(data,(value))
-        %if max(contains(fieldnames(data),value))
+        %check if data is an actual array of values
         if ~isscalar(data.(value)) && (length(data.(value)) > 1) && ~ischar(data.(value))
-            if isnumeric(data.(value)) || ismember(type,nonnumtypes)
+            %check if data is accidentally non-numeric, but with a numeric type
+            if ~isnumeric(data.(value)) && ~ismember(type,nonnumtypes)            
+                warning(strcat('Value (',value,') and Type (',type,') is not a valid combination, SEGMENT WILL BE SKIPPED'));
+            else
                 run = [];
                 run.value = value;
                 run.type = type;
+                % check if category exists. If not then skip
                 if cfg.segments(i).category ~= ""
                     if isfield(data,cfg.segments(i).category)
                         run.category = cfg.segments(i).category;
+                        
+                        %check if the categoryvalues are defined, if not then use all unique values of this category 
                         if isempty(cfg.segments(i).categoryvalues)
                             cfg.segments(i).categoryvalues = unique(data.(cfg.segments(i).category));
                             warning('categoryvalues not provided, using unique values in category');
                         end
+                        
                         for j=1:length(cfg.segments(i).categoryvalues)
                             run.categoryvalue = cfg.segments(i).categoryvalues(j);
                             run.name = strcat(run.value,'_',run.type,'_',run.category,'_',string(run.categoryvalue));
@@ -102,9 +116,7 @@ for i=1:length(cfg.segments)
                     else
                         runs(1) = run;
                     end
-                end
-            else
-                warning(strcat('Value (',value,') and Type (',type,') is not a valid combination, SEGMENT WILL BE SKIPPED'));
+                end            
             end
         else
             warning(strcat('Value (',value,') is not a valid variable, segmenting non-array values or character arrays is not possible, SEGMENT WILL BE SKIPPED'));
@@ -114,9 +126,13 @@ for i=1:length(cfg.segments)
     end
 end
 
+%% Check names
+
+
+
 %% Runs
 %Run all of the runs that should be viable
-for i=1:length(runs)
+xfor i=1:length(runs)
     
     %Get the full list of data for this run
     valuedata = data.(runs(i).value);
@@ -134,7 +150,7 @@ for i=1:length(runs)
             result = mean(valuedata);
         case "median"
             result = median(valuedata);
-        case "amount"
+        case "length"
             result = length(valuedata);
         case "unique"
             result = length(unique(valuedata));
