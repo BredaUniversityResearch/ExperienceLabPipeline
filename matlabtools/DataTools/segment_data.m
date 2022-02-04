@@ -31,7 +31,7 @@ function out = segment_data(cfg,data)
 % recommended
 % segment=struct('category',"",'categoryvalues',[],'value',"",'type',"");
 % segment.category = "color";
-% TBD: segment.categorycalculation = "equals"
+% segment.categorycalculation = "equals"
 % segment.categoryvalues = ["red" "blue" "green"];
 % segment.value = "phasic";
 % segment.type = "mean";
@@ -45,11 +45,12 @@ function out = segment_data(cfg,data)
 % sum = the sum of the segmented value array
 % max = the highest value in the segmented value array
 % min = the lowest value in the segmented value array
+% peaks = the amount of peaks found in the segmented value array (min .1 prominence)
 %
 % CategoryType:
 % equals = "value" = checking for the same string in the category
-% TBD: range = "3|5.25" = range between two numeric values, separated with a pipe symbol
-% 
+% range = "3|5.25" = range between two numeric values, separated with a pipe symbol
+%
 % Wilco 05-07-2021
 
 %%
@@ -63,60 +64,72 @@ end
 %type etc evaluates whether the segment should be viable. It then creates a
 %long struct with all the runs to perform
 
-
+runs = [];
 nonnumtypes = ["length" "unique"];
 for i=1:length(cfg.segments)
+    if ~isfield(cfg.segments(i),'categorycalculation')
+        cfg.segments(i).categorycalculation = "equals";
+    end
+    if ~isfield(cfg.segments(i),'type')
+        cfg.segments(i).type = "mean";
+    end
+    
     value = cfg.segments(i).value;
     type = cfg.segments(i).type;
-    
-    if (type == "")
-        type = "mean";
-    end
+    categorycalculation = cfg.segments(i).categorycalculation;
     
     %check if data exists
     if isfield(data,(value))
         %check if data is an actual array of values
         if ~isscalar(data.(value)) && (length(data.(value)) > 1) && ~ischar(data.(value))
             %check if data is accidentally non-numeric, but with a numeric type
-            if ~isnumeric(data.(value)) && ~ismember(type,nonnumtypes)            
+            if ~isnumeric(data.(value)) && ~ismember(type,nonnumtypes)
                 warning(strcat('Value (',value,') and Type (',type,') is not a valid combination, SEGMENT WILL BE SKIPPED'));
             else
                 run = [];
                 run.value = value;
                 run.type = type;
+                run.categorycalculation = categorycalculation;
+                
                 % check if category exists. If not then skip
                 if cfg.segments(i).category ~= ""
                     if isfield(data,cfg.segments(i).category)
                         run.category = cfg.segments(i).category;
                         
-                        %check if the categoryvalues are defined, if not then use all unique values of this category 
-                        if isempty(cfg.segments(i).categoryvalues)
-                            cfg.segments(i).categoryvalues = unique(data.(cfg.segments(i).category));
-                            warning('categoryvalues not provided, using unique values in category');
-                        end
                         
-                        for j=1:length(cfg.segments(i).categoryvalues)
-                            run.categoryvalue = cfg.segments(i).categoryvalues(j);
-                            run.name = strcat(run.value,'_',run.type,'_',run.category,'_',string(j));
-                            if exist('runs','var')
-                                runs(length(runs)+1) = run;
-                            else
-                                runs(1) = run;
-                            end
+                        % check if the categorycalculation is  range or equal
+                        switch categorycalculation
+                            case "range"
+                                if isempty(cfg.segments(i).categoryvalues)
+                                    cfg.segments(i).categoryvalues = unique(data.(cfg.segments(i).category));
+                                    warning('categoryvalues not provided, skipping segment');
+                                    break;
+                                end
+                                
+                                for j=1:length(cfg.segments(i).categoryvalues)
+                                    run.categoryvalue = str2double(split(cfg.segments(i).categoryvalues(j),'|'));
+                                    run.name = strcat(run.value,'_',run.type,'_',run.category,'_',string(j));
+                                    runs = [runs;run];
+                                end
+                                
+                            otherwise
+                                %check if the categoryvalues are defined, if not then use all unique values of this category
+                                if isempty(cfg.segments(i).categoryvalues)
+                                    cfg.segments(i).categoryvalues = unique(data.(cfg.segments(i).category));
+                                    warning('categoryvalues not provided, using unique values in category');
+                                end
+                                
+                                %create a run element with the value to use, and name of the run
+                                for j=1:length(cfg.segments(i).categoryvalues)
+                                    run.categoryvalue = cfg.segments(i).categoryvalues(j);
+                                    run.name = strcat(run.value,'_',run.type,'_',run.category,'_',string(j));
+                                    runs = [runs;run];
+                                end
                         end
                     else
                         warning(strcat('Category (',cfg.segments(i).category,') does not exist, SEGMENT WILL BE SKIPPED'));
                     end
-                else
-                    run.category = "";
-                    run.categoryvalue = "";
-                    run.name = strcat(run.value,'_',run.type);
-                    if exist('runs','var')
-                        runs(length(runs)+1) = run;
-                    else
-                        runs(1) = run;
-                    end
-                end            
+                end
             end
         else
             warning(strcat('Value (',value,') is not a valid variable, segmenting non-array values or character arrays is not possible, SEGMENT WILL BE SKIPPED'));
@@ -132,11 +145,25 @@ for i=1:length(runs)
     
     %Get the full list of data for this run
     valuedata = data.(runs(i).value);
+    
     %If there is a category defined, then filter the valuedata
     if (runs(i).category ~= "")
         categorydata = data.(runs(i).category);
-        inlist = find(categorydata == runs(i).categoryvalue);
+        
+        switch runs(i).categorycalculation
+            case "range"
+                inlist = find(categorydata>=runs(i).categoryvalue(1) & categorydata<=runs(i).categoryvalue(2));                
+            otherwise
+                inlist = find(categorydata == runs(i).categoryvalue);                
+        end
+        
         valuedata = valuedata(inlist);
+    end
+    
+    if isempty(valuedata)
+        warning(strcat('Run (',runs(i).name,') is empty, RUN WILL OUTPUT NAN'));
+        runs(i).type = NaN;
+        break;
     end
     
     %Run the required calculation type over the value data
@@ -155,8 +182,11 @@ for i=1:length(runs)
             runs(i).result = max(valuedata);
         case "min"
             runs(i).result = min(valuedata);
+        case "peaks"
+            runs(i).result = length(findpeaks(valuedata,'MinPeakProminence',0.1));
         otherwise
             runs(i).result = NaN;
+            warning(strcat('RunType (',runs(i).type,') is not a valid type, RUN WILL OUTPUT NAN'));
     end
 end
 
