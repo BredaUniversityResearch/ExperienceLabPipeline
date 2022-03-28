@@ -221,7 +221,7 @@ while (repeatremoval == 'y')
                     continue
                 end
 
-                artifact = struct('start',data.time(leftborder),'end',data.time(rightborder));
+                artifact = struct('starttime',data.time(leftborder),'endtime',data.time(rightborder));
 
                 if exist('artifacts','var')
                     artifacts(length(artifacts)+1) = artifact;
@@ -278,7 +278,7 @@ while (repeatremoval == 'y')
                     continue
                 end
 
-                artifact = struct('start',data.time(leftborder),'end',data.time(rightborder));
+                artifact = struct('starttime',data.time(leftborder),'endtime',data.time(rightborder));
 
                 if exist('artifacts','var')
                     artifacts(length(artifacts)+1) = artifact;
