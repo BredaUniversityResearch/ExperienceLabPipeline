@@ -63,11 +63,13 @@ for isamp=1: length(beaconData.time)
     lowestbeacon = "NaN";
     for jsamp=1:length(beacons)
         beacon = beacons{jsamp,1};
-        value = beaconData.(beacon)(isamp);
+        value = beaconData.beaconvalues.(beacon)(isamp);
         if isnan(lowestvalue)
-            lowestvalue = value;
-            lowestbeacon = beacon;
-        elseif value < lowestvalue && value > strengthmin && value < strengthmax
+            if value > cfg.strengthmin && value < cfg.strengthmax
+                lowestvalue = value;
+                lowestbeacon = beacon;
+            end
+        elseif value < lowestvalue && value > cfg.strengthmin && value < cfg.strengthmax
             lowestvalue = value;
             lowestbeacon = beacon;
         end
@@ -77,35 +79,39 @@ for isamp=1: length(beaconData.time)
 end
 
 %Retrieve & stire the X,Y,Z,Z_Inv of the nearest beacon, based on the beacon name
-lPosition.X = NaN(length(lBeacon),1);
-lPosition.Y = NaN(length(lBeacon),1);
-lPosition.Z = NaN(length(lBeacon),1);
-lPosition.Z_Inv = NaN(length(lBeacon),1);
+lPosition.x = NaN(length(lBeacon),1);
+lPosition.y = NaN(length(lBeacon),1);
+lPosition.z = NaN(length(lBeacon),1);
+lPosition.z_inv= NaN(length(lBeacon),1);
 lBeaconID = NaN(length(lBeacon),1);
 for isamp=1: length(lBeacon)
     beacon = sscanf(string(lBeacon(isamp)),'b%d_%d');
-    for jsamp=1: length(beaconData.beaconMeta.ID)
-        if beaconData.beaconMeta.Major(jsamp,1) == beacon(1,1)
-            if beaconData.beaconMeta.Minor(jsamp,1) == beacon(2,1)
-                lBeaconID(isamp,1) = beaconData.beaconMeta.ID(jsamp,1);
-                lPosition.X(isamp,1) = beaconData.beaconMeta.X(jsamp,1);
-                lPosition.Y(isamp,1) = beaconData.beaconMeta.Y(jsamp,1);
-                lPosition.Z(isamp,1) = beaconData.beaconMeta.Z(jsamp,1);
-                lPosition.Z_Inv(isamp,1) = beaconData.beaconMeta.Z_Inv(jsamp,1);
-                break;
+    if isempty(beacon)
+    
+    else
+        for jsamp=1: length(beaconData.beaconMeta.BeaconID)
+            if beaconData.beaconMeta.Major(jsamp,1) == beacon(1,1)
+                if beaconData.beaconMeta.Minor(jsamp,1) == beacon(2,1)
+                    lBeaconID(isamp,1) = beaconData.beaconMeta.BeaconID(jsamp,1);
+                    lPosition.x(isamp,1) = beaconData.beaconMeta.x(jsamp,1);
+                    lPosition.y(isamp,1) = beaconData.beaconMeta.y(jsamp,1);
+                    lPosition.z(isamp,1) = beaconData.beaconMeta.z(jsamp,1);
+                    lPosition.z_inv(isamp,1) = beaconData.beaconMeta.z_inv(jsamp,1);
+                    break;
+                end
             end
         end
     end
 end
 
 if cfg.usegeodata == true
-    lat = NaN(length(lPosition.X),1);
-    lon = NaN(length(lPosition.X),1);
-    
-    for isamp=1: length(lPosition.X)
-        ll = meter2latlon(cfg.lat,cfg.lon,lPosition.X(isamp,1),lPosition.Z(isamp,1));
+    lat = NaN(length(lPosition.x),1);
+    lon = NaN(length(lPosition.x),1);
+
+    for isamp=1: length(lPosition.x)
+        ll = meter2latlon(cfg.lat,cfg.lon,lPosition.x(isamp,1),lPosition.z(isamp,1));
         lat(isamp,1) = ll.lat;
-        lon(isamp,1) = ll.lon;        
+        lon(isamp,1) = ll.lon;
     end
 end
 
@@ -114,10 +120,10 @@ out = beaconData;
 out.nearestBeacon = lBeacon;
 out.nearestBeaconID = lBeaconID;
 if cfg.exportPosition == true
-    out.x = lPosition.X;
-    out.y = lPosition.Y;
-    out.z = lPosition.Z;
-    out.z_inv = lPosition.Z_Inv;
+    out.x = lPosition.x;
+    out.y = lPosition.y;
+    out.z = lPosition.z;
+    out.z_inv = lPosition.z_inv;
 end
 if cfg.usegeodata == true
     out.lat = lat;
