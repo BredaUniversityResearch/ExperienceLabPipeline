@@ -34,7 +34,12 @@ function out  = beacon2matlab_unix(cfg)
 %                   (Higher is more aggresive smoothing, default = 0.2)
 %cfg.smoothingMethod = The method which is applied for smoothing. The
 %                   methods can be found in the smoothdata() function.
-% Wilco Boode: 31-01-2018
+%cfg.movemean =     whether you want to use a moving mean to get smoother 
+%                   data (default = true)
+%cfg.movemeanduration = duration of the moving mean factor. longer duration
+%                   equals a smoother dataset, but can cause missed
+%                   touchpoints for short visits (default = 60);
+% Wilco Boode: 15-04-2020
 
 %PLACE EXACT DESCRIPTION FOR MATLAB PROGRAMMERS HERE
 
@@ -69,6 +74,12 @@ end
 if ~isfield(cfg, 'smoothingmethod')
     cfg.smoothingmethod = 'gaussian';
 end
+if ~isfield(cfg, 'movemean')
+    cfg.movemean = true;
+end
+if ~isfield(cfg, 'movemeanduration')
+    cfg.movemeanduration = 60;
+end
 
 %save the current directory, and open the datafolder containing the actual
 %data
@@ -83,6 +94,7 @@ positionTable = readtable(strcat(cfg.beaconDataFolder,cfg.beaconPositions));
 positionTable.Major = NaN(length(positionTable.BeaconID),1);
 positionTable.Minor = NaN(length(positionTable.BeaconID),1);
 positionTable.UUID = string(NaN(length(positionTable.BeaconID),1));
+positionTable.cBeacon = string(NaN(length(positionTable.BeaconID),1));
 
 %Read and Store Metadata from Beacons
 metaTable = readtable(strcat(cfg.beaconDataFolder,cfg.beaconMeta));
@@ -92,6 +104,7 @@ for isamp=1: height(metaTable)
             positionTable.Major(jsamp,1) = metaTable.Major(isamp);
             positionTable.Minor(jsamp,1) = metaTable.Minor(isamp);
             positionTable.UUID(jsamp,1) = metaTable.UUID(isamp);
+            positionTable.cBeacon(jsamp,1) = string(char("b"+string(metaTable.Major(isamp))+"_"+string(metaTable.Minor(isamp))));
             break
         end
     end
@@ -164,7 +177,7 @@ end
 beacons = flip(rot90(beacons));
 
 %go through all organized beacons, inverse data, remove 0 values, then
-%smoothen and remove values too low for proper position data.
+%smoothen using smoothdata, and movmean and remove values too low for proper position data.
 for isamp=1:length(beacons)
     beacon = beacons{isamp,1};
     new = bData.(beacon);
@@ -172,6 +185,9 @@ for isamp=1:length(beacons)
     newM(newM == 0) = NaN;
     if cfg.smoothen == true
         newM = smoothdata(newM,cfg.smoothingmethod,'omitnan','SmoothingFactor',cfg.smoothingfactor);
+    end
+    if cfg.movemean == true
+        newM = movmean(newM,60,'omitnan');
     end
     newM(newM< cfg.nullvalue) = NaN;
 	beaconvalues.(beacon) = newM;        
