@@ -31,6 +31,7 @@ function out  = position_beacon(cfg, beaconData)
 %Wilco Boode: 11-11-2019
 %PLACE EXACT DESCRIPTION FOR MATLAB PROGRAMMERS HERE
 
+%% Configuration Check
 if ~isfield(cfg, 'coefficient')
     cfg.coefficient = [2.840314667 6.67786743 -0.455822126];
 end
@@ -58,6 +59,8 @@ end
 
 beacons = beaconData.beaconnames;
 
+
+%% Nearest Beacon
 %Get the nearest beacon name & value of the beaconData sample
 %For every timepoint in beaconData, cycle through all beacons (based on
 %beaconName), and if the value is lower than the lowest stored value, then
@@ -83,6 +86,8 @@ for isamp=1: length(beaconData.time)
     lBeacon(isamp,1) = lowestbeacon;%= [lBeacon,lowestbeacon];
 end
 
+
+%% Weighted Beacon
 %Loop over nearest beacon list
 %Per timepoint store all beacon names within a predefined strengthrange (of
 %the first beacon)
@@ -121,6 +126,8 @@ for isamp=1: length(beaconData.time)
             lWeight(jsamp) = w2/(length(lDistance)-1);
         end
     end
+     
+    disp(lWeight);
     
     x=0;
     y=0;
@@ -149,6 +156,8 @@ for isamp=1: length(beaconData.time)
     aPosition.Z_Inv(isamp,1) = z_inv;
 end
 
+%% GeoData
+
 if cfg.usegeodata == true
     lat = NaN(length(aPosition.X),1);
     lon = NaN(length(aPosition.X),1);
@@ -166,6 +175,9 @@ end
 %get a per-beacon percentage (100- that number, since lower = better)
 %create X,Y,Z,Z_Inv = 0
 %To X,Y,Z,Z_Inv add beaconposition*percentage
+
+
+%% Output
 
 out = beaconData;
 %out.beaconMeta = beaconData.beaconMeta;
