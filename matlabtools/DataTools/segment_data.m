@@ -8,27 +8,18 @@ function out = segment_data(cfg,data)
 %not, then the function will automatically generate categoryvalues from the
 %unique elements in the array
 %- If the category array is not defined, then no categories will be used
-%- You can include multiple segments into a single call
+%- You can include multiple segments into a single call (Not fully tested yet)
 %- The segment struct must be pre-defined, as indicated in the Example CFG
 %
 % Configuration options are:
-% cfg.segments           : structure containing the segment values shown in
-% the example cfg
-% cfg.segments.value           : The name of the value array (for example,
-% "phasic"), this array will be used to calculate the output of this
-% segment
-% cfg.segments.type            : The type of calculation you wish to
-% perform over the segment, options are listed at the bottom of this page.
-% If no type is provided, then mean is used as default
-% cfg.segments.category        : The name of the category array (for
-% example, "current_poi"), this array is used to filter the value array and
-% must be of the same length as the value array
-% cfg.segments.categoryvalues  : The individual values used to filter the
-% category array. If this is not defined, then a list is created based on
-% the unique values of the category array
+% cfg.segments                      : structure containing the segment values shown in the example cfg
+% cfg.segments.value                : The name of the value array (for example, "phasic"), this array will be used segment to calculate the output of this
+% cfg.segments.type                 : The type of calculation you wish to perform over the segment, options are listed at the bottom of this page. If no type is provided, then mean is used as default
+% cfg.segments.category             : The name of the category array (for example, "current_poi"), this array is used to filter the value array and must be of the same length as the value array
+% cfg.segments.categoryvalues       : The individual values used to filter the category array. If this is not defined, then a list is created based on the unique values of the category array
+% cfg.segments.categorycalculation  : Whether the calculation should check if values are equal, or within a range
 %
-% Example CFG: The struct required all variables, pre-setup is therefore
-% recommended
+% Example CFG: The struct required all variables, pre-setup is therefore recommended
 % segment=struct('category',"",'categoryvalues',[],'value',"",'type',"");
 % segment.category = "color";
 % segment.categorycalculation = "equals"
@@ -48,25 +39,31 @@ function out = segment_data(cfg,data)
 % peaks = the amount of peaks found in the segmented value array (min .1 prominence)
 %
 % CategoryType:
-% equals = "value" = checking for the same string in the category
-% range = "3|5.25" = range between two numeric values, separated with a pipe symbol
+% equals = ["value1" "value2"  "value3"]= checking for the same string in the category
+% range = ["0|300";"300|600";"600|900"] = range between two numeric values, separated with a pipe symbol
 %
-% Wilco 05-07-2021
+% Wilco -7=-2-2022
 
-%%
-% Check Values
+%% Check Values
+% This sections checks if the necessary top level data is available
 if ~isfield(cfg, 'segments')
     error('SEGMENTS are not defined');
 end
+if isempty(data)
+    error('DATA is empty');
+end
 
-%% Check If Segments Are Viable
+%% Validate Segments and Categories
 %This section goes over all segments, and based on their category, value,
 %type etc evaluates whether the segment should be viable. It then creates a
-%long struct with all the runs to perform
+%struct with all the runs (individiual calculations) to perform.
 
+%setup runs
 runs = [];
+%define values that do not require a numerical datatype
 nonnumtypes = ["length" "unique"];
 for i=1:length(cfg.segments)
+    %Check if necessary data exists, if not, use the default options
     if ~isfield(cfg.segments(i),'categorycalculation')
         cfg.segments(i).categorycalculation = "equals";
     end
@@ -139,7 +136,7 @@ for i=1:length(cfg.segments)
     end
 end
 
-%% Runs
+%% Run Calculations
 %Run all of the runs that should be viable
 for i=1:length(runs)
     
