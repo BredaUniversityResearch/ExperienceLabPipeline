@@ -163,8 +163,8 @@ while (repeatremoval == 'y')
         end
 
 
-    %% ARTIFACT DETECTION
-    % semi-automatic artifact detection and correction
+        %% ARTIFACT DETECTION
+        % semi-automatic artifact detection and correction
     else % perform artifact detection and correction
         detected = 0;
         data_orig = data; %keep track of original data for final plot
@@ -300,7 +300,12 @@ while (repeatremoval == 'y')
     %% ARTIFACT CORRECTION
     % Open the correction app, and allow user to select artifacts to correct
     if exist('artifacts','var')
-        ArtifactApp = ArtifactCorrectionApp(data.conductance,artifacts,data.time,cfg.validationdata);
+        appcfg = [];
+        if isfield(cfg, 'prepostvisualization')
+            appcfg.prepostduration = cfg.prepostvisualization;
+        end
+
+        ArtifactApp = ArtifactCorrectionApp(data.conductance,artifacts,data.time,cfg.validationdata,appcfg);
 
         waitfor(ArtifactApp,'closeapplication',1)
 
