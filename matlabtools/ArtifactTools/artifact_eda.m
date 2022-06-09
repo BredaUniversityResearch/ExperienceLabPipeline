@@ -32,6 +32,7 @@ function out = artifact_eda(cfg, data)
 % cfg.manual_endtime    : integer defining end of user-defined artifact(in seconds from beginning of file).
 %
 % cfg.validationdata    : data used for checking or proving the validity or accuracy of the eda signal. Must be an array of number values of the same sample length as the EDA data file
+% cfg.artifactprepostvis: determines in seconds how much time should be shown around the artifact in the replacement app
 % cfg.blockreplacement  : determines whether block based artifact replacement should be conducted, can be set to "pre", "post", "both"
 % cfg.replacementartifacts  : the data array containing the artifactdata used for pre - correction replacement. Post-correction replacement, and non-existing replacement data require the python package and connection to be functional
 % cfg.replacementcfg    : option so set custom cfg options for blockreplacement function (must adhere to the cfg options of the artifact_replacement function)
@@ -65,6 +66,10 @@ end
 if ~isfield(cfg, 'interp_method')
     cfg.interp_method = 'linear';
     disp('Interpolation method has not been defined. Assuming linear interpolation for artifact correction');
+end
+
+if ~isfield(cfg, 'blockreplacement')
+    cfg.blockreplacement = "none";
 end
 
 if ~isfield(cfg, 'blockreplacement')
@@ -305,7 +310,16 @@ while (repeatremoval == 'y')
             appcfg.prepostduration = cfg.prepostvisualization;
         end
 
-        ArtifactApp = ArtifactCorrectionApp(data.conductance,artifacts,data.time,cfg.validationdata,appcfg);
+        artifactcfg = [];
+        artifactcfg.artifacts = artifacts;
+        artifactcfg.time = data.time;
+        if isfield(cfg, 'validationdata')
+            artifactcfg.validation = cfg.validationdata;
+        end
+        if isfield(cfg, 'artifactprepostvis')
+            artifactcfg.prepostduration = cfg.artifactprepostvis;
+        end
+        ArtifactApp = ArtifactCorrectionApp(data.conductance,artifactcfg);
 
         waitfor(ArtifactApp,'closeapplication',1)
 
