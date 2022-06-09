@@ -346,58 +346,61 @@ while (repeatremoval == 'y')
     out = data; % copy corrected data to output struct
     out.conductance_z = zscore(out.conductance); % replace old z-transformed data to new (after correction) z-transformed data
     close;%(99);
-    if detected ==1
-        figure;
-        subplot(graphCount,1,1), plot(data_orig.time, data_orig.conductance, out.time, out.conductance) % the original data
-        title('Original data (blue = before artifact correction, red = after artifact correction)');
-        subplot(graphCount,1,2), plot(out.time, out.conductance); % the corrected data
-        title('Data after artifact correction.');
-        if isfield(cfg, 'validationdata')
-            subplot(graphCount,1,3), plot(data.time, cfg.validationdata, 'Color', [0.1, 0.5, 0.1])
-            title('Validation Data');
-        end
-    else
-        warning('No artifacts detected. Consider lowering the threshold.');
-        pause;
-    end
 
-
-    prompt = 'Do you want repeat the removal process? y/n [n]: ';
-    repeatremoval = input(prompt,'s');
-    if isempty(repeatremoval)
-        repeatremoval = 'n';
-    end
-
-    if repeatremoval == 'y'
-        prompt = 'Do you want change the treshold? y/n [n]: ';
-        changetreshold = input(prompt,'s');
-        if isempty(changetreshold)
-            changetreshold = 'n';
+    if strcmp(cfg.manual,'no')
+        if detected ==1
+            figure;
+            subplot(graphCount,1,1), plot(data_orig.time, data_orig.conductance, out.time, out.conductance) % the original data
+            title('Original data (blue = before artifact correction, red = after artifact correction)');
+            subplot(graphCount,1,2), plot(out.time, out.conductance); % the corrected data
+            title('Data after artifact correction.');
+            if isfield(cfg, 'validationdata')
+                subplot(graphCount,1,3), plot(data.time, cfg.validationdata, 'Color', [0.1, 0.5, 0.1])
+                title('Validation Data');
+            end
+        else
+            warning('No artifacts detected. Consider lowering the threshold.');
+            pause;
         end
 
-        if changetreshold == 'y'
-            disp(strcat("Original Treshold: ", num2str(cfg.threshold)));
-            prompt = 'Set new Threshold: ';
-            newthreshold = input(prompt);
 
-            prompt = strcat('Do you want change the treshold from: ', num2str(cfg.threshold), ' to: ',num2str(newthreshold), '? y/n [y]: ');
-            acceptnewthreshold = input(prompt,'s');
-            if isempty(acceptnewthreshold)
-                acceptnewthreshold = 'y';
+        prompt = 'Do you want repeat the removal process? y/n [n]: ';
+        repeatremoval = input(prompt,'s');
+        if isempty(repeatremoval)
+            repeatremoval = 'n';
+        end
+
+        if repeatremoval == 'y'
+            prompt = 'Do you want change the treshold? y/n [n]: ';
+            changetreshold = input(prompt,'s');
+            if isempty(changetreshold)
+                changetreshold = 'n';
             end
 
-            if acceptnewthreshold == 'y'
-                cfg.threshold = newthreshold;
-                disp(strcat('Threshold changed to: ', num2str(cfg.threshold)));
-            else
-                disp("Threshold Unchanged");
+            if changetreshold == 'y'
+                disp(strcat("Original Treshold: ", num2str(cfg.threshold)));
+                prompt = 'Set new Threshold: ';
+                newthreshold = input(prompt);
+
+                prompt = strcat('Do you want change the treshold from: ', num2str(cfg.threshold), ' to: ',num2str(newthreshold), '? y/n [y]: ');
+                acceptnewthreshold = input(prompt,'s');
+                if isempty(acceptnewthreshold)
+                    acceptnewthreshold = 'y';
+                end
+
+                if acceptnewthreshold == 'y'
+                    cfg.threshold = newthreshold;
+                    disp(strcat('Threshold changed to: ', num2str(cfg.threshold)));
+                else
+                    disp("Threshold Unchanged");
+                end
             end
+
+            data = out;
+
+            disp("Restarting Artifact Removal");
+        else
+            disp("Finishing Artifact Removal");
         end
-
-        data = out;
-
-        disp("Restarting Artifact Removal");
-    else
-        disp("Finishing Artifact Removal");
     end
 end
