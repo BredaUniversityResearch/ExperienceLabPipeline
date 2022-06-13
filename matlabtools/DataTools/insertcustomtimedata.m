@@ -2,6 +2,7 @@ function out = insertcustomtimedata(cfg, data)
 %function out = insertcustomtimedata(cfg, data)
 %Grabs an xlsx file, and allows the user to define custom time periods to
 %add manual data to the participant using the long format. 
+%WHAT DOES IT OUTPUT
 %
 %XLSX file structure requires the following columns
 % Participant = Participant number as an integer (1)
@@ -16,8 +17,8 @@ function out = insertcustomtimedata(cfg, data)
 %CFG options
 % cfg.customdatafile = datapath to an excel file with the correct structure
 % cfg.datatypes = struct with desired datatypes to add, using the following format
-%       datatypes(i).name = name of the data type
-%       datatypes(i).type = type of data (text, integer, float)
+%       datatypes(i).name = Column name of the data type
+%       datatypes(i).type = Type of data (string, integer, float)
 %
 % Wilco Boode 10/06/2022
 
@@ -47,6 +48,8 @@ for isamp=1:length(cfg.datatypes)
     %check the desired data type and add a 1 dimensional array to the
     %struct of that type
     if strcmp(cfg.datatypes(isamp).type,"string")
+        newdata.(cfg.datatypes(isamp).name) = strings(length(data.time),1);
+    elseif strcmp(cfg.datatypes(isamp).type,"text")
         newdata.(cfg.datatypes(isamp).name) = strings(length(data.time),1);
     elseif strcmp(cfg.datatypes(isamp).type,"integer")
         newdata.(cfg.datatypes(isamp).name) = zeros(length(data.time),1,'int8');
