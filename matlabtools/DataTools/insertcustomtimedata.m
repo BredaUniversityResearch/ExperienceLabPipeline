@@ -68,10 +68,10 @@ pindex = find(newdatatable.Participant == data.participant);
 
 %loop over every row / instance, and grab the time range
 for isamp=1:length(pindex)
-    tstart = etime(datevec(newdatatable.("Start Time")(isamp)),datevec(data.initial_time_stamp_mat));
-    tend = tstart+newdatatable.Duration(isamp);
+    tstart = etime(datevec(newdatatable.("Start Time")(pindex(isamp))),datevec(data.initial_time_stamp_mat));
+    tend = tstart+newdatatable.Duration(pindex(isamp));
     tindex = find(data.time >= tstart & data.time <= tend);
-    tindex = data.time(min(tindex):max(tindex));
+    %tindex = data.time(min(tindex):max(tindex));
 
     %populate the range in the newdata elements with the corresponding values from the table
     dnames = fieldnames(newdata);
