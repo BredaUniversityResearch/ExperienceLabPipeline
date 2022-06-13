@@ -62,19 +62,25 @@ for isamp=1:length(cfg.datatypes)
     end
 end
 
+%provide an error if the datatype correlations cannot be found
+if isempty(newdata)
+    error('NONE OF THE INDICATED DATAYPES CAN BE FOUND, PLEASE CHECK THE PROVIDED TYPES, AND THE DATAFILE, TO SEE IF THE COLUMN NAMES ARE CORRECT');
+end
+
 %% POPULATE STRUCTURE
 %find the rows containing data for this participant
 pindex = find(newdatatable.Participant == data.participant);
+dnames = fieldnames(newdata);
 
 %loop over every row / instance, and grab the time range
 for isamp=1:length(pindex)
+    %get the start & end time, then determine the correct range based on
+    %the time ara in the original data 
     tstart = etime(datevec(newdatatable.("Start Time")(pindex(isamp))),datevec(data.initial_time_stamp_mat));
     tend = tstart+newdatatable.Duration(pindex(isamp));
     tindex = find(data.time >= tstart & data.time <= tend);
-    %tindex = data.time(min(tindex):max(tindex));
 
     %populate the range in the newdata elements with the corresponding values from the table
-    dnames = fieldnames(newdata);
     for jsamp=1:length(dnames)
         newdata.(dnames{jsamp})(min(tindex):max(tindex)) = newdatatable.(dnames{jsamp})(pindex(isamp));
     end
