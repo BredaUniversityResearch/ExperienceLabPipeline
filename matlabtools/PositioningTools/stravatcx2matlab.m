@@ -17,7 +17,12 @@ function out = stravatcx2matlab(cfg)
 %for the strava measurements, please use the default strava file
 %- Retrieve the file via the link in strava, an include "/export_tcx" in the
 %  url
-%Wilco Boode 19-11-2018
+%Wilco Boode 17/06/2022
+
+%during the latest update, the full importer has been replaced by the
+%matlab XML import functions. Also, the way data is being altered into a
+%linear structure has been overhauled to better catch possible missing
+%datapoints.
 
 %set defaults
 if ~isfield(cfg, 'stravafile')
@@ -41,10 +46,7 @@ cd(cfg.datafolder)
 %read strava data from file, if file does not exist, look for other .tcx
 %files and suggest these instead
 if isfile(cfg.stravafile)
-    fid = fopen(cfg.stravafile);
-    file = textscan(fid, '%s');
-    file = file{1};
-    fclose(fid);
+    file = readstruct(cfg.stravafile,'FileType','xml');
 else
     fileList = dir('*.tcx');
     disp(strcat(cfg.stravafile,' Not Found'));
@@ -60,10 +62,7 @@ else
             if usenamefromlist == 'y'
                 cfg.stravafile = fileList(f).name;
                 
-                fid = fopen(cfg.stravafile);
-                file = textscan(fid, '%s');
-                file = file{1};
-                fclose(fid);
+                file = readstruct(cfg.stravafile,'FileType','xml');
                 break
             end
         end
@@ -72,123 +71,62 @@ else
     end
 end
 
-%get starting time stamp
-data.initial_time_stamp = file(15);
+data.initial_time_stamp_mat = file.Activities.Activity.Lap.StartTimeAttribute;
+data.initial_time_stamp_mat = replace(data.initial_time_stamp_mat,"T"," ");
+data.initial_time_stamp_mat = replace(data.initial_time_stamp_mat,"Z","");
+data.initial_time_stamp_mat = datetime(data.initial_time_stamp_mat,'TimeZone',cfg.originaltimezone,'Format', 'yyyy-MM-dd HH:mm:ss' );
+data.initial_time_stamp_mat = string(data.initial_time_stamp_mat);
 
 %Create data arrays with all necessary data from the files
-data.time = [];
-data.lat = [];
-data.long = [];
-data.altitude = [];
-data.distance = [];
-data.speed = [];
-
-%Cycle through the original data file, and catch the data 
-InTrack = false;
-k = 1;
-for i=1:length(file)
-    if contains(file(i), "<Track>")
-        InTrack = true;
-    end
-    if InTrack == true
-        if contains(file(i), "<Time>")
-            data.time = [data.time; {erase(file{i,1},["<Time>","</Time>"])}];
-        elseif contains(file(i), "<LatitudeDegrees>")
-            data.lat = [data.lat; str2double(erase(file{i,1},["<LatitudeDegrees>","</LatitudeDegrees>"]))];
-        elseif contains(file(i), "<LongitudeDegrees>")
-            data.long = [data.long; str2double(erase(file{i,1},["<LongitudeDegrees>","</LongitudeDegrees>"]))];
-        elseif contains(file(i), "<AltitudeMeters>")
-            data.altitude = [data.altitude; str2double(erase(file{i,1},["<AltitudeMeters>","</AltitudeMeters>"]))];
-        elseif contains(file(i), "<DistanceMeters>")
-            data.distance = [data.distance; str2double(erase(file{i,1},["<DistanceMeters>","</DistanceMeters>"]))];
-        elseif contains(file(i), "<Speed>")
-            data.speed = [data.speed; str2double(erase(file{i,1},["<Speed>","</Speed>"]))];
-            k = k+1;
-        end
-    end
+trackdata = file.Activities.Activity.Lap.Track.Trackpoint;
+offsets = zeros(length(trackdata),1);
+for i = 1:length(trackdata)
+    t=trackdata(i).Time;
+    t=replace(t,"T"," ");
+    t=replace(t,"Z","");
+    t=datetime(t);
+    offset = etime(datevec(t),datevec(datetime(data.initial_time_stamp_mat)));
+    offsets(i)=offset;
 end
 
-data.mydatetime = [];
+data.time = linspace(0,max(offsets),max(offsets)+1);
+data.lat = NaN(max(offsets)+1,1);
+data.long = NaN(max(offsets)+1,1);
+data.altitude = NaN(max(offsets)+1,1);
+data.distance = NaN(max(offsets)+1,1);
+data.speed = zeros(max(offsets)+1,1);
+data.speed2 = zeros(max(offsets)+1,1);
+data.power = zeros(max(offsets)+1,1);
 
-%Set Easy to use DateTime Values
-nsamp = size(data.time,1);
-count = 1;
-for isamp=1:nsamp 
-    newdatetime = [data.mydatetime;datetime(extractBefore(data.time(isamp),"T") + " " +extractAfter(extractBefore(data.time(isamp),"Z"),"T"),'TimeZone',cfg.originaltimezone,'Format', 'yyyy-MM-dd HH:mm:ss' )];
-    newdatetime.TimeZone = cfg.newtimezone;
-    data.mydatetime = newdatetime;
+for i = 1:length(trackdata)
+    data.lat(offsets(i)+1) = trackdata(i).Position.LatitudeDegrees;
+    data.long(offsets(i)+1) = trackdata(i).Position.LongitudeDegrees;
+    data.altitude(offsets(i)+1) = trackdata(i).AltitudeMeters;
+    data.distance(offsets(i)+1) = trackdata(i).DistanceMeters;
 end
 
-% create new data structuresfor all output data
-time = [];
-mydatetime = [];
-lat = [];
-long = [];
-altitude = [];
-distance = [];
-speed = [];
-speed2 = [];
-power = [];
+data.lat = fillmissing(data.lat,'previous');
+data.long = fillmissing(data.long,'previous');
+data.altitude = fillmissing(data.altitude,'previous');
+data.distance = fillmissing(data.distance,'previous');
 
-nsamp = length(data.time);
-for isamp=1:nsamp 
-    mydatetime = [mydatetime;data.mydatetime(isamp)];
-    lat = [lat;data.lat(isamp)];
-    long = [long;data.long(isamp)];
-    altitude = [altitude;data.altitude(isamp)];
-    distance = [distance;data.distance(isamp)];
-    speed = [speed;data.speed(isamp)];
-    speed2 = [speed2;data.speed(isamp)*3.6];
-    time = [time;length(mydatetime)-1];
-    cfg = [];
-    cfg.timeinseconds = 1;
-    cfg.speed = data.speed(isamp)*3.6;
-    
-    if (isamp > 1)
-       cfg.verticalgain = data.altitude(isamp)- data.altitude(isamp-1);
-    end
-    
-    power = [power;calculatebikingpower(cfg)];
-
-    if (isamp < nsamp)      
-        d2s = 24*3600;
-        cur = datenum(data.mydatetime(isamp));
-        next = datenum(data.mydatetime(isamp+1));
-        tCur = d2s*datenum(data.mydatetime(isamp));
-        tNext = d2s*datenum(data.mydatetime(isamp+1));
-        tDiff = tNext-tCur;        
-        if tDiff > 1            
-            for tFill = 1:tDiff-1
-                    mydatetime = [mydatetime;data.mydatetime(isamp)+seconds(tFill)];
-                    lat = [lat;data.lat(isamp)];
-                    long = [long;data.long(isamp)];
-                    altitude = [altitude;data.altitude(isamp)];
-                    distance = [distance;data.distance(isamp)];
-                    speed = [speed;0];
-                    speed2 = [speed2;0];
-                    time = [time;length(mydatetime)-1];
-                    power = [power;calculatebikingpower(cfg)];
-            end
-        end
-    end
-end
-
-%create an altered / correct time stamp 
-initial_time_stamp = posixtime(mydatetime(1));
-initial_time_stamp_mat = mydatetime(1);
-%initial_time_stamp_mat = datestr(mydatetime(1));
+newdatetime = datetime(data.initial_time_stamp_mat,'TimeZone',cfg.originaltimezone,'Format', 'yyyy-MM-dd HH:mm:ss' );
+newdatetime.TimeZone = cfg.newtimezone;
+data.initial_time_stamp_mat = string(newdatetime);
+data.initial_time_stamp = posixtime(datetime(data.initial_time_stamp_mat));
 
 %make sure only the necessary data is collected int eh out struct
-out.initial_time_stamp = initial_time_stamp;
-out.initial_time_stamp_mat = initial_time_stamp_mat;
+out.initial_time_stamp = data.initial_time_stamp;
+out.initial_time_stamp_mat = data.initial_time_stamp_mat;
 out.fsample = 1;
-out.time = time;
-out.lat = lat;
-out.long = long;
-out.altitude = altitude;
-out.distance = distance;
-out.speed = speed;
-out.speed2 = speed2;
-out.power = power;
+out.time = data.time;
+out.lat = data.lat;
+out.long = data.long;
+out.altitude = data.altitude;
+out.distance = data.distance;
+out.speed = data.speed;
+out.speed2 = data.speed2;
+out.power = data.power;
 out.datatype = "strava";
+
 end
