@@ -69,8 +69,8 @@ load batchmode_protocol.mat; % automatically-generated file (by Ledalab) with an
 %% add phasic SCR data to data struct. 
 %eval(sprintf('cd %s', curdir));
 
-out.phasic = analysis.phasicData;
-out.tonic = analysis.tonicData;
+out.phasic = analysis.phasicData';
+out.tonic = analysis.tonicData';
 out.analysis = analysis; % keep analysis info and all other output details
 out.analysis.fileinfo = fileinfo; % keep file generation log
 out.analysis.batchmode_protocol = protocol;
@@ -90,8 +90,8 @@ else
     save(strcat(cfg.tempdir, '\matData'), 'data'); % write temporary file that Ledalab needs to read the data
     Ledalab(strcat(cfg.tempdir, '\'), 'open', 'mat', 'analyze', 'CDA', 'optimize', 6, 'export_scrlist', [0.05 1]);
     load(strcat(cfg.tempdir, '\matData')) %load analysis results into workspace
-    out.phasic_z = analysis.phasicData;
-    out.tonic_z = analysis.tonicData;
+    out.phasic_z = analysis.phasicData';
+    out.tonic_z = analysis.tonicData';
     eval(sprintf('delete %s\\matData.mat', cfg.tempdir));
     eval(sprintf('delete batchmode_protocol.mat'));
     eval(sprintf('delete matData_scrlist.mat'));
@@ -100,7 +100,7 @@ end
 
 
 %% create an event channel, useful for plotting
-out.eventchan = zeros(1, numel(out.phasic));
+out.eventchan = zeros(1, numel(out.phasic))';
 for i=1:numel(out.eventchan)
     if ~isfield(out, 'event') %check if there are any events in the file
         for j=1:numel(out.event) % for all events in the file

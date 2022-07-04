@@ -80,8 +80,8 @@ for i=1:height(participanttable)
         %DETECTED START_TIME and DURATION
         %For automatic detection of in-out times based on the beacon data
         cfg = [];
-        cfg.inbeacon = 3; %The value of the beacon triggering the In moment
-        cfg.outbeacon = 12; %The value of the beacon triggering the Out moment
+        cfg.inbeacons = 3; %The value of the beacon triggering the In moment
+        cfg.outbeacons = 12; %The value of the beacon triggering the Out moment
         cfg.datafolder = [pdir,sprintf('\\0.RawData\\P%02d', participant),'\']; %location of the participant phone data
         cfg.beaconDataFolder = [pdir,'\0.RawData\']; %location of the beacondata, containing beaconmeta and beaconpositions
         cfg.minstrength = 80; %lower = stronger signal (as its signal delay)       
@@ -236,7 +236,7 @@ for i=1:length(data_import)
         cfg = []; % empty any existing configuration settings.
         cfg.timwin    = 20; % define the timewindow for artifact detection (default = 20)
         cfg.threshold  = 4; % define the threshold for artifact detection (default = 5)
-        cfg.validationdata = data_import(i).acceleration(1:end,4); % data visualized under artifacts for validating the artifact (acceleration data)
+        cfg.validationdata = data_import(i).acceleration(1:end,3); % data visualized under artifacts for validating the artifact (acceleration data)
         %cfg.blockreplacement = "post"; % add replacement for blocks detected by the MIT EdaExplorer, can be "pre" "post" or "both"
         e4_corrected = artifact_eda(cfg, data_import(i));
         disp(strcat('Corrected Eda Data for subject: ', num2str(participant)))

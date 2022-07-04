@@ -127,7 +127,7 @@ for isamp=1: length(beaconData.time)
         end
     end
      
-    disp(lWeight);
+    %disp(lWeight);
     
     x=0;
     y=0;

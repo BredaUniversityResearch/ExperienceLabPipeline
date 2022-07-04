@@ -112,9 +112,11 @@ end
 %allbeaconsIndex = unique(vertcat(inbeaconsIndex,outbeaconsIndex));
 
 %get the index of the middle beacons
-midbeaconIndex = [];
-midbeaconIndex = [midbeaconIndex ; beaconData.beaconnames(find(beaconData.beaconMeta.('BeaconID') == cfg.middlebeacon))];
-beaconMap(string(cfg.middlebeacon)) = beaconData.beaconnames(find(beaconData.beaconMeta.('BeaconID') == cfg.middlebeacon));
+if isfield(cfg,'middlebeacon')
+    midbeaconIndex = [];
+    midbeaconIndex = [midbeaconIndex ; beaconData.beaconnames(find(beaconData.beaconMeta.('BeaconID') == cfg.middlebeacon))];
+    beaconMap(string(cfg.middlebeacon)) = beaconData.beaconnames(find(beaconData.beaconMeta.('BeaconID') == cfg.middlebeacon));
+end
 
 %allbeaconsIndex = unique(vertcat(allbeaconsIndex,midbeaconIndex));
 
@@ -195,10 +197,12 @@ while (repeatdetection == 'y')
         if (max(outpeaks)<inpeaks(i))
             remove = true;
         end
-        
+
         comingpeaks = allpeaks(i:length(allpeaks));
-        if ~any(comingpeaks(:) == cfg.middlebeacon)
-            remove = true;
+        if isfield(cfg,'middlebeacon')
+            if ~any(comingpeaks(:) == cfg.middlebeacon)
+                remove = true;
+            end
         end
         
         if remove == false
@@ -218,10 +222,12 @@ while (repeatdetection == 'y')
         end
         
         pastpeaks = allpeaks(1:outpeaks(i));
-        if ~any(pastpeaks(:) == cfg.middlebeacon)
-            remove = true;
+        if isfield(cfg,'middlebeacon')
+
+            if ~any(pastpeaks(:) == cfg.middlebeacon)
+                remove = true;
+            end
         end
-        
         if remove == false
             finaloutpeaks = [finaloutpeaks;outpeaks(i)];
         end
