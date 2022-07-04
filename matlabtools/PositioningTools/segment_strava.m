@@ -92,14 +92,14 @@ end
 
 %add all data to an output
 out = data;
-out.time = newtime;
-out.lat = newlat;
-out.long = newlong;
-out.altitude = newaltitude;
-out.distance = newdistance;
-out.speed = newspeed;
-out.speed2 = newspeed2;
-out.power = newpower;
+out.time = newtime';
+out.lat = newlat';
+out.long = newlong';
+out.altitude = newaltitude';
+out.distance = newdistance';
+out.speed = newspeed';
+out.speed2 = newspeed2';
+out.power = newpower';
 out.initial_time_stamp_mat = datestr(datetime(cfg.trigger_time)-seconds(cfg.pretrigger));
 out.initial_time_stamp = posixtime(datetime(cfg.trigger_time)-seconds(cfg.pretrigger));
 end

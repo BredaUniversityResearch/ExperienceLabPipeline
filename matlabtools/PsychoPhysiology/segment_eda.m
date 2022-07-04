@@ -91,17 +91,17 @@ end
 
 out = data;
 out.time = newtime;
-out.conductance = newconductance;
+out.conductance = newconductance';
 if numel(newconductance_z) > 0 % create z-transformed conductance if it didn't already exist
-    out.conductance_z = newconductance_z; 
+    out.conductance_z = newconductance_z'; 
 else
     out.conductance_z = zscore(out.conductance);
 end
-if numel(newphasic) > 0; out.phasic = newphasic; end
-if numel(newphasic_z) > 0; out.phasic_z = newphasic_z; end
-if numel(newtonic) > 0; out.tonic = newtonic; end
-if numel(newtonic_z) > 0; out.tonic_z = newtonic_z; end
-if numel(neweventchan) > 0; out.eventchan = neweventchan; end
+if numel(newphasic) > 0; out.phasic = newphasic'; end
+if numel(newphasic_z) > 0; out.phasic_z = newphasic_z'; end
+if numel(newtonic) > 0; out.tonic = newtonic'; end
+if numel(newtonic_z) > 0; out.tonic_z = newtonic_z'; end
+if numel(neweventchan) > 0; out.eventchan = neweventchan'; end
 out.initial_time_stamp_mat = datestr(datetime(cfg.trigger_time)-seconds(cfg.pretrigger));
 out.initial_time_stamp = data.initial_time_stamp + pretrigger;
 out.event = newevent;

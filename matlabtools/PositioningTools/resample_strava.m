@@ -65,12 +65,12 @@ end
 
 out = data;
 out.fsample = cfg.fsample;
-out.time = newtime;
-out.lat = rot90(fliplr(newlat));
-out.long = rot90(fliplr(newlong));
-out.altitude = rot90(fliplr(newaltitude));
-out.distance = rot90(fliplr(newdistance));
-out.speed = rot90(fliplr(newspeed));
-out.speed2 = rot90(fliplr(newspeed2));
-out.power = rot90(fliplr(newpower));
+out.time = newtime';
+out.lat = newlat;
+out.long = newlong;
+out.altitude = newaltitude;
+out.distance = newdistance;
+out.speed = newspeed;
+out.speed2 = newspeed2;
+out.power = newpower;
 end

@@ -89,7 +89,7 @@ for i = 1:length(trackdata)
     offsets(i)=offset;
 end
 
-data.time = linspace(0,max(offsets),max(offsets)+1);
+data.time = linspace(0,max(offsets),max(offsets)+1)';
 data.lat = NaN(max(offsets)+1,1);
 data.long = NaN(max(offsets)+1,1);
 data.altitude = NaN(max(offsets)+1,1);

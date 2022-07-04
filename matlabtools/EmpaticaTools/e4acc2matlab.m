@@ -43,7 +43,7 @@ data.fsample = accRaw(2);
 nsamp = length(accRaw)-2;
 %generate a matrix with all zeroes for the entirety of the acc file, third
 %line for the accumulated ACC value
-data.acc = zeros([nsamp 4]);
+data.acc = zeros([nsamp 3]);
 data.directionalforce = zeros([nsamp 1]);
 %generate the timelist for the acc data 
 data.time = rot90(flip(linspace(0,(nsamp/data.fsample)-(1/data.fsample),nsamp)));
@@ -54,7 +54,7 @@ for isamp=1:nsamp
     data.acc(isamp,1) = accRaw(isamp+2,1);
     data.acc(isamp,2) = accRaw(isamp+2,2);
     data.acc(isamp,3) = accRaw(isamp+2,3);
-    data.acc(isamp,4) = sqrt(data.acc(isamp,1)^2+data.acc(isamp,2)^2+data.acc(isamp,3)^2);
+    %data.acc(isamp,4) = sqrt(data.acc(isamp,1)^2+data.acc(isamp,2)^2+data.acc(isamp,3)^2);
     data.directionalforce(isamp,1) = sqrt(data.acc(isamp,1)^2+data.acc(isamp,2)^2+data.acc(isamp,3)^2);
 end
 

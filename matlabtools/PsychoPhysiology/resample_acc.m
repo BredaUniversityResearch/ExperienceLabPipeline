@@ -26,7 +26,7 @@ end
 %uses the default Matlab resampling function to resample the data from the
 %data fsample to the desired fsample rate
 acceleration = resample(data.acceleration,data.time,cfg.fsample,1,1);
-directionalforce = resample(data.acceleration,data.time,cfg.fsample,1,1);
+directionalforce = resample(data.directionalforce,data.time,cfg.fsample,1,1);
 
 
 %calculate the total duration of the data, then generate an array of time
