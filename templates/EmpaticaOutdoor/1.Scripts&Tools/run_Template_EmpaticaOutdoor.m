@@ -224,7 +224,7 @@ for i=1:length(data_import)
         cfg = []; % empty any existing configuration settings.
         cfg.timwin    = 20; % define the timewindow for artifact detection (default = 20)
         cfg.threshold  = 4; % define the threshold for artifact detection (default = 5)
-        cfg.validationdata = data_import(i).acceleration(1:end,4); % data visualized under artifacts for validating the artifact (acceleration data)
+        cfg.validationdata = data_import(i).acceleration(1:end,3); % data visualized under artifacts for validating the artifact (acceleration data)
         %cfg.blockreplacement = "post"; % add replacement for blocks detected by the MIT EdaExplorer, can be "pre" "post" or "both"
         e4_corrected = artifact_eda(cfg, data_import(i));
         disp(strcat('Corrected Eda Data for subject: ', num2str(participant)))

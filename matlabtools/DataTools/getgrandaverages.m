@@ -35,7 +35,7 @@ for field = 1:length(fields)
     fieldname = string(fields(field));
     averagesstruct.(fieldname) = NaN;
     if ~isempty(intersect(cfg.datatypes,fieldname))
-        averagesstruct.(fieldname) = m_data.(fieldname);
+        averagesstruct.(fieldname) = m_data.(fieldname)';
     end
 end 
 
