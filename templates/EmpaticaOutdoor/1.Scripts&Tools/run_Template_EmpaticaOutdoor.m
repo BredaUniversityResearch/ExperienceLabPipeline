@@ -363,7 +363,8 @@ for i=1:length(data_deconvolved)
         disp("imported Strava " + num2str(participant))
         
         % Cut the STRAVA data to the defined on/offset
-        segmented_strava = segment_strava(cfg,raw_strava);
+        cfg.allowoutofbounds = 'true';
+        segmented_strava = segment_generic(cfg,raw_strava);
         disp("segmented Strava " + num2str(participant))
         
         % Resample the Strava data to the defined on/offset
