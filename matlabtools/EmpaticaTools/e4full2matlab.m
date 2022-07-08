@@ -132,24 +132,26 @@ if max(contains(cfg.exclude,'EVENTS')) == 0
 end
 
 %%
-%Segment all imported data
+%USE LAST STARTTIME IN CASE NO STARTTIME IS THERE
+%USE FIRST ENDTIME IN CASE NO ENDTIME IS DEFINED
+
 if max(contains(cfg.exclude,'ACC')) == 0
-    segmented_acc = segment_acc(cfg,raw_acc);
+    segmented_acc = segment_generic(cfg,raw_acc);
     disp("segmented ACC")
 end
 
 if max(contains(cfg.exclude,'BVP')) == 0
-    segmented_bvp  = segment_bvp(cfg, raw_bvp);
+    segmented_bvp  = segment_generic(cfg, raw_bvp);
     disp("segmented BVP")
 end
 
 if max(contains(cfg.exclude,'EDA')) == 0
-    segmented_eda = segment_eda(cfg, raw_eda);
+    segmented_eda = segment_generic(cfg, raw_eda);
     disp("segmented EDA")
 end
 
 if max(contains(cfg.exclude,'HR')) == 0
-    segmented_hr  = segment_hr(cfg, raw_hr);
+    segmented_hr  = segment_generic(cfg, raw_hr);
     disp("segmented HR")
 end
 
@@ -159,7 +161,7 @@ if max(contains(cfg.exclude,'IBI')) == 0
 end
 
 if max(contains(cfg.exclude,'TEMP')) == 0
-    segmented_temp  = segment_temp(cfg, raw_temp);
+    segmented_temp  = segment_generic(cfg, raw_temp);
     disp("segmented TEMP")
 end
 
@@ -167,6 +169,7 @@ if max(contains(cfg.exclude,'EVENTS')) == 0
     segmented_events  = segment_event(cfg, raw_events);
     disp("segmented EVENTS")
 end
+
 %%
 %Resample all segmented data
 if max(contains(cfg.exclude,'ACC')) == 0
