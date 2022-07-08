@@ -27,6 +27,14 @@ function out = segment_generic (cfg,data)
 %           variables to analyze ["conductance";"phasic"]. If this is not
 %           defined, then all variables with the same length as the
 %           time-series data will be segmented.
+%cfg.allowoutofbounds = (OPTIONAL) true , detemines whether data is allowed to
+%           be segmented outside the actual time-range available, this will
+%           by default use the last / first value in the array. And can be
+%           customized
+%cfg.outofboundsstring = overflow value used by string based out of bounds 
+%           arrays    
+%cfg.outofboundsnumeric = overflow value used by numeric based out of bounds 
+%           arrays   
 %
 %Data Requirements
 %data.time = an array with time-series data. does not need to be linear.
@@ -38,6 +46,7 @@ function out = segment_generic (cfg,data)
 %           overwritten in the final output with the new starttime.
 %data.initial_time_stamp = starttime in second based unix time. Will be
 %           overwritten in the final output with the new starttime unix time.
+%
 %
 % Wilco 27-06-2022
 
@@ -55,12 +64,12 @@ end
 %% SET ADDITIONAL CFG VALUES
 if ~isfield(cfg,'allowoutofbounds')
     cfg.allowoutofbounds = 'false';
-    if ~isfield(cfg,'outofboundsstring')
-        cfg.outofboundsstring = ""; %fill in text to use for out of bound strings
-    end
-    if ~isfield(cfg,'outofboundsdouble')
-        cfg.outofboundsdouble = zeros; %fill in value to use for out of bound strings. Optionally, use "bound" to use the last available value
-    end
+    %if ~isfield(cfg,'outofboundsstring')
+    %    cfg.outofboundsstring = ""; %fill in text to use for out of bound strings
+    %end
+    %if ~isfield(cfg,'outofboundsnumeric')
+    %    cfg.outofboundsnumeric = zeros; %fill in value to use for out of bound strings. Optionally, use "bound" to use the last available value
+    %end
 end
 
 %% SET TIME VARIABLE
