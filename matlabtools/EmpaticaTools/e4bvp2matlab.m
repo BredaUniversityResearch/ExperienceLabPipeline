@@ -9,10 +9,14 @@ function out = e4bvp2matlab(cfg)
 %                     are stored. Note that for matlab-internal reasons you
 %                     have to specify double backslashes in the path. For
 %                     example 'c:\\data\\marcel\\europapark\\raw\\s01'
+% cfg.timezone      = string specifying the timezone the data was collected
+%                     in, your local timezone will be used  if you dont
+%                     specify anything. You can find all possible timezones
+%                     by running the following command: timezones 
 %
 % Note that it is recommended to use the default configuration options for 
 % cfg.edafile unless you have a good reason to deviate from that.
-% Wilco Boode, 07-01-2020
+% Wilco Boode, 11-07-2022
 
 %Save current Folder Location
 curdir = pwd;
@@ -27,6 +31,12 @@ end
 if ~isfield(cfg, 'datafolder')
     error('empatica2matlab: datafolder not specified');
 end
+%check whether a timezone is specific, if not give warning and use local /
+%current
+if ~isfield(cfg, 'timezone')
+    cfg.timezone = datetime('now', 'TimeZone', 'local').TimeZone;
+    warning(strcat('TimeZone not specified. Using local TimeZone: ',cfg.timezone));
+end
 
 % read eda data from file
 bvpRaw = csvread(cfg.bvpfile);
@@ -35,7 +45,7 @@ bvpRaw = csvread(cfg.bvpfile);
 data.initial_time_stamp = bvpRaw(1);
 
 %make initial time stamp human-readable
-data.initial_time_stamp_mat = datestr(unixmillis2datenum(data.initial_time_stamp*1000));
+data.initial_time_stamp_mat = datetime(data.initial_time_stamp,'ConvertFrom','posixtime','TicksPerSecond',1,'Format','dd-MMM-yyyy HH:mm:ss.SSS','TimeZone',cfg.timezone);
 
 %get data sample from the bvp file
 data.fsample = bvpRaw(2);

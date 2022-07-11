@@ -12,10 +12,7 @@ function out = e4ibi2matlab(cfg)
 %
 % Note that it is recommended to use the default configuration options for
 % cfg.edafile unless you have a good reason to deviate from that.
-% Wilco Boode, 07-01-2020
-%
-% Update: Added isempty check (Line 38), as IBI from empaticas can be empty with too
-% little data. Wilco Boode, 18/12/2020
+% Wilco Boode, 11-07-2022
 
 %Save current Folder Location
 curdir = pwd;
@@ -30,14 +27,20 @@ end
 if ~isfield(cfg, 'datafolder')
     error('empatica2matlab: datafolder not specified');
 end
+%check whether a timezone is specific, if not give warning and use local /
+%current
+if ~isfield(cfg, 'timezone')
+    cfg.timezone = datetime('now', 'TimeZone', 'local').TimeZone;
+    warning(strcat('TimeZone not specified. Using local TimeZone: ',cfg.timezone));
+end
 
 % read eda data from file
 ibiRaw = readtable(cfg.ibifile);
 
 % Since IBI can be empty in certain files, we must check for this
 if isempty(ibiRaw)
-    data.initial_time_stamp =datenum2unixmillis(cfg.trigger_time)
-    data.initial_time_stamp_mat = cfg.trigger_time;
+    data.initial_time_stamp = datenum2unixmillis(cfg.trigger_time);
+    data.initial_time_stamp_mat = datetime(data.initial_time_stamp,'ConvertFrom','posixtime','TicksPerSecond',1,'Format','dd-MMM-yyyy HH:mm:ss.SSS','TimeZone',cfg.timezone);
 
     data.ibi = [];
     data.time = [];
@@ -45,8 +48,8 @@ else
     %make initial time stamp in UNIX time Seconds
     data.initial_time_stamp = ibiRaw{1,1};
     %make initial time stamp human-readable
-    data.initial_time_stamp_mat = datestr(unixmillis2datenum(data.initial_time_stamp*1000));
-    
+    data.initial_time_stamp_mat = datetime(data.initial_time_stamp,'ConvertFrom','posixtime','TicksPerSecond',1,'Format','dd-MMM-yyyy HH:mm:ss.SSS','TimeZone',cfg.timezone);
+
     %get the total length of the datasamples
     nsamp = height(ibiRaw)-1;
     

@@ -1,4 +1,4 @@
-function out = e4eda2matlab(cfg)
+function out = e4event2matlab(cfg)
 % function to read in events from Empatica files.
 %
 % note that the output struct as defined by the function call needs to be
@@ -13,13 +13,15 @@ function out = e4eda2matlab(cfg)
 %                     are stored. Note that for matlab-internal reasons you
 %                     have to specify double backslashes in the path. For
 %                     example 'c:\\data\\marcel\\europapark\\raw\\s01'
+% cfg.timezone      = string specifying the timezone the data was collected
+%                     in, your local timezone will be used  if you dont
+%                     specify anything. You can find all possible timezones
+%                     by running the following command: timezones 
 %
 % Note that it is recommended to use the default configuration options for
 % cfg.edafile and cfg.timefile unless you have a good reason to deviate from that.
-% Wilco Boode 16/03/2020
-%
-%Added Try Catch on csvread, so that possible files provide a warning,
-%rather than an error. Wilco Boode, 18/12/2020
+% Wilco Boode, 11-07-2022
+
 
 % set defaults
 if ~isfield(cfg, 'tagsfile')
@@ -27,6 +29,12 @@ if ~isfield(cfg, 'tagsfile')
 end
 if ~isfield(cfg, 'datafolder')
     error('e4event2matlab: datafolder not specified');
+end
+%check whether a timezone is specific, if not give warning and use local /
+%current
+if ~isfield(cfg, 'timezone')
+    cfg.timezone = datetime('now', 'TimeZone', 'local').TimeZone;
+    warning(strcat('TimeZone not specified. Using local TimeZone: ',cfg.timezone));
 end
 
 %save the current directory, and open the datafolder containing the actual
@@ -49,7 +57,7 @@ data.event = [];
 % fill output structure with events
 for i= 1:numel(tagRaw)
     data.event(i).time_stamp = tagRaw(i)*1000;
-    data.event(i).time_stamp_mat = datestr(unixmillis2datenum(data.event(i).time_stamp));
+    data.event(i).time_stamp_mat = datetime(data.event(i).time_stamp,'ConvertFrom','posixtime','TicksPerSecond',1,'Format','dd-MMM-yyyy HH:mm:ss.SSS','TimeZone',cfg.timezone);
     data.event(i).nid = i;
     data.event(i).name = ['event' int2str(data.event(i).time_stamp)];
 end

@@ -15,7 +15,7 @@ function out = segment_ibi(cfg, data)
 % possible with short E4 files. Wilco Boode, 18/12/2020
 
 %calculate when the file must start (based on data timestamp & trigger_time)
-triggertime = seconds(datetime(cfg.trigger_time) - datetime(data.initial_time_stamp_mat))
+triggertime = seconds(datetime(cfg.trigger_time,'TimeZone',data.initial_time_stamp_mat.TimeZone) - datetime(data.initial_time_stamp_mat))
 pretrigger = triggertime-cfg.pretrigger;
 
 %check whether the posttrigger is defined, if not then the posttrigger will be equal
@@ -58,7 +58,7 @@ out = data;
 out.time = time;
 out.ibi = ibi;
 out.timeoff = cfg.pretrigger;
-out.initial_time_stamp_mat = datestr(datetime(cfg.trigger_time)-seconds(cfg.pretrigger));
+out.initial_time_stamp_mat = datetime(cfg.trigger_time)-seconds(cfg.pretrigger);
 out.initial_time_stamp = data.initial_time_stamp - pretrigger;
 out.orig = data.orig;
 out.datatype = data.datatype;

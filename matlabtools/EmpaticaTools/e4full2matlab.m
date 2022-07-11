@@ -19,6 +19,10 @@ function out = e4full2matlab(cfg)
 %cfg.posttrigger    =   Time in seconds defining the duration of the
 %                       participant / experiment after the trigger_time.
 %                       Used for segmenting the whole dataset.
+% cfg.timezone      = string specifying the timezone the data was collected
+%                     in, your local timezone will be used  if you dont
+%                     specify anything. You can find all possible timezones
+%                     by running the following command: timezones 
 %cfg.exclude        =   Data files to exclude from this tool
 %
 %WARNING:
@@ -31,7 +35,7 @@ function out = e4full2matlab(cfg)
 %the other datasets / arrays. This data will be segmented based on the
 %provided triggers
 %
-%Wilco Boode - 18/05/2020
+% Wilco Boode, 11-07-2022
 
 %Check all configuration options whether they are available, and if
 %necessary, provide a warning, error, or define the configuration option as
@@ -54,6 +58,10 @@ if ~isfield(cfg,'posttrigger')
 end
 if ~isfield(cfg,'exclude')
     cfg.exclude = {''};
+end
+if ~isfield(cfg, 'timezone')
+    cfg.timezone = datetime('now', 'TimeZone', 'local').TimeZone;
+    warning(strcat('TimeZone not specified. Using local TimeZone: ',cfg.timezone));
 end
 
 %%
@@ -132,8 +140,9 @@ if max(contains(cfg.exclude,'EVENTS')) == 0
 end
 
 %%
-%USE LAST STARTTIME IN CASE NO STARTTIME IS THERE
-%USE FIRST ENDTIME IN CASE NO ENDTIME IS DEFINED
+%FIRST DO RESAMPLE, THEN DO SEGMENT
+%CALCULATE MIN/MAX START/END TIME FROM ALL OTHER DATA, IN CASE ITS NOT
+%DEFINED, BUT ALSO TO ALREADY CALCULATE WHETHER THE RANGE IS EVEN POSSIBLE
 
 if max(contains(cfg.exclude,'ACC')) == 0
     segmented_acc = segment_generic(cfg,raw_acc);

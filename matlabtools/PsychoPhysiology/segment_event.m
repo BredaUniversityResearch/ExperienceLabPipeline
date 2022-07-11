@@ -37,7 +37,7 @@ if ~isempty(data.event)
     event = cell2struct(c,fields);
     
     for i=1:length(data.event)
-        data.event(i).time = seconds(datetime(data.event(i).time_stamp_mat)-datetime(cfg.trigger_time))
+        data.event(i).time = seconds(datetime(data.event(i).time_stamp_mat)-datetime(cfg.trigger_time,'TimeZone',data.event(i).time_stamp_mat.TimeZone))
         
         if data.event(i).time > -cfg.pretrigger && data.event(i).time < cfg.posttrigger
             event(length(event)+1) = data.event(i);
