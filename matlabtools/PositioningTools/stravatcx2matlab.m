@@ -32,7 +32,8 @@ if ~isfield(cfg, 'originaltimezone')
     cfg.originaltimezone = 'GMT';
 end
 if ~isfield(cfg, 'newtimezone')
-    cfg.newtimezone = 'Europe/Amsterdam';
+    cfg.newtimezone = datetime('now', 'TimeZone', 'local').TimeZone;
+    warning(strcat('TimeZone not specified. Using local TimeZone: ',cfg.newtimezone));
 end
 if ~isfield(cfg, 'datafolder')
     error('strava2matlab: datafolder not specified');
@@ -110,9 +111,9 @@ data.long = fillmissing(data.long,'previous');
 data.altitude = fillmissing(data.altitude,'previous');
 data.distance = fillmissing(data.distance,'previous');
 
-newdatetime = datetime(data.initial_time_stamp_mat,'TimeZone',cfg.originaltimezone,'Format', 'yyyy-MM-dd HH:mm:ss' );
+newdatetime = datetime(data.initial_time_stamp_mat,'TimeZone',cfg.originaltimezone,'Format', 'yyyy-MM-dd HH:mm:ss.SSS');
 newdatetime.TimeZone = cfg.newtimezone;
-data.initial_time_stamp_mat = string(newdatetime);
+data.initial_time_stamp_mat = newdatetime;%string(newdatetime);
 data.initial_time_stamp = posixtime(datetime(data.initial_time_stamp_mat));
 
 %make sure only the necessary data is collected int eh out struct
