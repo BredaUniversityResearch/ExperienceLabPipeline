@@ -79,20 +79,23 @@ for i=1:height(participanttable)
         
         %DETECTED START_TIME and DURATION
         %For automatic detection of in-out times based on the beacon data
-        cfg = [];
-        cfg.inbeacons = 3; %The value of the beacon triggering the In moment
-        cfg.outbeacons = 12; %The value of the beacon triggering the Out moment
-        cfg.datafolder = [pdir,sprintf('\\0.RawData\\P%02d', participant),'\']; %location of the participant phone data
-        cfg.beaconDataFolder = [pdir,'\0.RawData\']; %location of the beacondata, containing beaconmeta and beaconpositions
-        cfg.minstrength = 80; %lower = stronger signal (as its signal delay)       
-        detectedinout = getinoutfrombeacons(cfg);
-        setup.start_time = detectedinout.start_time;
-        setup.duration = detectedinout.duration;
+        %cfg = []; 
+        %cfg.inbeacons = [14 16]; %The value of the beacons triggering the In moment, in correct order
+        %cfg.outbeacons = [23 14];%The value of the beacon striggering the Out moment, in correct order
+        %cfg.middlebeacon = 12; %A beacon largely viewed inside the 
+        %cfg.datafolder = [pdir,sprintf('\\0.RawData\\P%03d', participant),'\']; %location of the participant phone data
+        %cfg.beaconDataFolder = [pdir,'\0.RawData\']; %location of the beacondata, containing beaconmeta and beaconpositions
+        %cfg.minstrength = 85; %lower = stronger signal (as its signal delay)  
+        %cfg.datagradient = colormap(jet);  
+        %cfg.prominence = 2.5;
+        %detectedinout = getinoutfrombeacons(cfg);
+        %setup.start_time = detectedinout.start_time;
+        %setup.duration = detectedinout.duration;
         
         %MANUAL START TIME AND DURATION
         %For manually setting in-out based on the ParticipantTable
-        %setup.start_time = participanttable.('Start Time')(i);
-        %setup.duration = participanttable.('Duration')(i);
+        setup.start_time = participanttable.('Start Time')(i);
+        setup.duration = participanttable.('Duration')(i);
         
         %add and sort the data to the combined output struct (AT LEAST 1 VARIABLE IS NECESSARY,
         %OTHERWISE THE SORT MIGHT NOT WORK AS INTENDED
@@ -380,14 +383,19 @@ for i=1:length(data_deconvolved)
         positioned_beacon = position_beacon(cfg,raw_beacon);
         disp("Calculated 'exact' beacon position from beacon data for subject: " + participant)
         
-        % Segment Beacon Data
+        % New Segmenter
         cfg = [];
-        cfg.onset = data_deconvolved(i).start_time %participanttable.('Start Time')(ptableindex);
-        cfg.offset = data_deconvolved(i).duration %participanttable.('Duration')(ptableindex);
-        cfg.usegeodata = false; %whether this data uses geodata or not
-        segmented_beacon = segment_beacon(cfg,positioned_beacon);
-        disp(strcat('segmented beacon for subject: ', num2str(participant)))
+        cfg.starttime  = data_deconvolved(i).start_time; %participanttable.('Start Time')(ptableindex);
+        cfg.duration = data_deconvolved(i).duration; %participanttable.('Duration')(ptableindex);
+        segmented_beacon = segment_generic(cfg,positioned_beacon);
         
+        % Segment Beacon Values in Nested Struct
+        beaconvalues = positioned_beacon.beaconvalues;
+        beaconvalues.time = positioned_beacon.time;
+        beaconvalues.initial_time_stamp_mat = positioned_beacon.initial_time_stamp_mat;
+        segmented_beaconvalues = segment_generic(cfg,beaconvalues);
+        segmented_beacon.beaconvalues = rmfield(segmented_beaconvalues,["time";"initial_time_stamp_mat";"initial_time_stamp"]);
+
         % Resample beacon data to EDA data sample rate
         cfg = [];
         cfg.fsample = 4; %new sample rate to resample to
@@ -505,9 +513,6 @@ disp('Saved data_extra to .mat file')
 cfg = [];
 cfg.datatypes = ["conductance" "phasic" "tonic" "conductance_z" "phasic_z" "tonic_z"];
 data_averaged = getgrandaverages(data_extra,cfg);
-
-%% AVERAGING
-
 
 %% SAVE FINAL MAT
 % save final results to a matlab file

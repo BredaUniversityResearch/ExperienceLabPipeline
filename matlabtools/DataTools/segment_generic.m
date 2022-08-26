@@ -111,8 +111,18 @@ for isamp = 1:length(vnames)
         continue
     end
 
-    %Check if the data is of the same length as time, then assume its time series data
-    if length(data.(curname)) == length(time)
+    %Check if the data is of the same length as time
+    try
+        equallength = length(data.(curname)) == length(time);
+    catch
+        if ~isequal(class(equallength),'Int')
+            display(strcat("Could not check length for: ",curname));
+            equallength = 0;
+        end
+    end
+
+    %Check the out put of equallength, then assume its time series data if its true / 1
+    if equallength
         variables = [variables;string(curname)];
     elseif isfield(cfg,'variables')
         warning(strcat("Variable *",curname,"* has the wrong length compared to the Time variable"))
@@ -212,7 +222,7 @@ out.time = newtime;
 
 %calculate new initial_time_stamp_mat & initial_time_stamp
 if isfield(data,'initial_time_stamp_mat')
-    %NEEDS TO NOT BE AN OFFSET FROM DATA.TIME, BUT USE THE STARTTIME VALUE,
+    %NEEDS TO NOT BE AN OFFSET FROM DATE TIME, BUT USE THE STARTTIME VALUE,
     %AS IT CAN BE A RANGE OUTSIDE OF THE DATA.TIME ARRAY
     out.initial_time_stamp_mat = datetime(data.initial_time_stamp_mat)+seconds(data.time(min(tindex)));
     %WAY OF DOING IT IN THE FUTURE, TO BETTER FACILITATE DIFFERENT TIMEZONES AND MILLISECOND DATA

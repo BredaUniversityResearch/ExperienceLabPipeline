@@ -1,7 +1,0 @@
-All output of the project
-
-Examples:
-- Final Results
-- PR Material
-- Infographics
-- Presentations

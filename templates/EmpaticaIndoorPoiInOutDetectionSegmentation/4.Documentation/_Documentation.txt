@@ -1,7 +1,0 @@
-Documentation to clarify elements of the project to others using these files.
-
-Examples:
-- Main conversations with the client
-- Maps / drawings
-- Notes from meetings
-- Additional information concerning the data collection
