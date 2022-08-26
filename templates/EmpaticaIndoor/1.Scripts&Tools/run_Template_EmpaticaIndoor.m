@@ -19,9 +19,9 @@ clear;
 
 %Get project directory, make sure the CURRENT FOLDER in MATLAB is the
 %1.Scripts&Tools folder inside the PROJECT FOLDER
-mydir  = pwd
-idcs   = strfind(mydir,'\')
-pdir = mydir(1:idcs(end)-1)
+mydir  = fileparts(matlab.desktop.editor.getActiveFilename);
+idcs   = strfind(mydir,'\');
+pdir = mydir(1:idcs(end)-1);
 
 %% TIMES & PARTICIPANTDATA
 % CHECK: Make sure that the ParticipantData.xlsx file is placed in the

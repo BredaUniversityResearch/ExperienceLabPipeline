@@ -39,6 +39,10 @@ function out  = beacon2matlab_unix(cfg)
 %cfg.movemeanduration = duration of the moving mean factor. longer duration
 %                   equals a smoother dataset, but can cause missed
 %                   touchpoints for short visits (default = 60);
+% cfg.timezone      = string specifying the timezone the data was collected
+%                     in, your local timezone will be used  if you dont
+%                     specify anything. You can find all possible timezones
+%                     by running the following command: timezones 
 % Wilco Boode: 15-04-2020
 
 %PLACE EXACT DESCRIPTION FOR MATLAB PROGRAMMERS HERE
@@ -79,6 +83,15 @@ if ~isfield(cfg, 'movemean')
 end
 if ~isfield(cfg, 'movemeanduration')
     cfg.movemeanduration = 60;
+end
+if ~isfield(cfg, 'movemeanduration')
+    cfg.movemeanduration = 60;
+end
+%check whether a timezone is specific, if not give warning and use local /
+%current
+if ~isfield(cfg, 'timezone')
+    cfg.timezone = datetime('now', 'TimeZone', 'local').TimeZone;
+    warning(strcat('TimeZone not specified. Using local TimeZone: ',cfg.timezone));
 end
 
 %save the current directory, and open the datafolder containing the actual
@@ -131,7 +144,8 @@ rData.TIME = beaconTable(:,7);
 
 beaconTable.TIME(1)
 initial_time_stamp = beaconTable.TIME(1);%str2double(cell2mat(beaconTable.TIME(1)));
-initial_time_stamp_mat = datetime(datestr(unixmillis2datenum(initial_time_stamp*1000), 'dd-mmm-yyyy HH:MM:SS'));
+initial_time_stamp_mat = datetime(initial_time_stamp,'ConvertFrom','posixtime','TicksPerSecond',1,'Format','dd-MMM-yyyy HH:mm:ss.SSS','TimeZone',cfg.timezone);
+%initial_time_stamp_mat = datetime(datestr(unixmillis2datenum(initial_time_stamp*1000), 'dd-mmm-yyyy HH:MM:SS'));
 txpower = beaconTable.TXPOWER(1);
 
 %Calculate the total duration (seconds) and create array of seconds(time)
