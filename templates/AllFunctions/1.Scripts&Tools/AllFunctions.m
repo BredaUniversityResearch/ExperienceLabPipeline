@@ -220,10 +220,10 @@ artifacts(2) = struct('starttime',11,'endtime',15);
 
 artifactcfg = [];
 artifactcfg.artifacts = artifacts; %put the artifacts in the cfg
-artifactcfg.time = raw_strava.time; %add the time array to the cfg
-artifactcfg.prepostduration = 15; %define the time before and after the artifact that should be shown in the zoomed artifact visualization
-%artifactcfg.validation = raw_strava.lat; %include data shown in a secondary plot for comparing against
-ArtifactApp = ArtifactCorrectionApp(raw_strava.distance,artifactcfg);
+%artifactcfg.time = e4_full.time; %add the time array to the cfg
+artifactcfg.artifactprepostvisualization = 15; %define the time before and after the artifact that should be shown in the zoomed artifact visualization
+%artifactcfg.validation = e4_full.directionalforce; %include data shown in a secondary plot for comparing against
+ArtifactApp = ArtifactCorrectionApp(e4_full.conductance,artifactcfg);
 
 waitfor(ArtifactApp,'closeapplication',1)
 
@@ -231,4 +231,3 @@ Corrected_Data = ArtifactApp.solution;
 delete(ArtifactApp);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-

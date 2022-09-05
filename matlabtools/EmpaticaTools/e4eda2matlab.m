@@ -24,7 +24,7 @@ cd(cfg.datafolder)
 %Check existence of eda File, if non-existent, then the default name will
 %be used.
 if ~isfield(cfg, 'edafile')
-    cfg.edafile = 'eda.csv';
+    cfg.edafile = 'EDA.csv';
 end
 %check whether the datafolder is specified, if not throw an error
 if ~isfield(cfg, 'datafolder')
