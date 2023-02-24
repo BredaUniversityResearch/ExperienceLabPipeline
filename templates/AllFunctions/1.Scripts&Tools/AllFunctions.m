@@ -217,10 +217,13 @@ poi_strava = getoutdoorpoi(cfg, resampled_strava);
 %Define all artifacts using starttime and endtime
 artifacts(1) = struct('starttime',2,'endtime',5);
 artifacts(2) = struct('starttime',11,'endtime',15);
+artifacts(3) = struct('starttime',245,'endtime',250);
+artifacts(4) = struct('starttime',1000,'endtime',1010);
+%artifacts=[];
 
 artifactcfg = [];
 artifactcfg.artifacts = artifacts; %put the artifacts in the cfg
-%artifactcfg.time = e4_full.time; %add the time array to the cfg
+artifactcfg.time = e4_full.time; %add the time array to the cfg
 artifactcfg.artifactprepostvisualization = 15; %define the time before and after the artifact that should be shown in the zoomed artifact visualization
 %artifactcfg.validation = e4_full.directionalforce; %include data shown in a secondary plot for comparing against
 ArtifactApp = ArtifactCorrectionApp(e4_full.conductance,artifactcfg);
