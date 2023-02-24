@@ -1,12 +1,15 @@
 function out = segment_generic (cfg,data)
-%function out = segment_generic (cfg,data)
+%% SEGMENT GENERIC
+% function out = segment_generic (cfg,data)
 %
+% *DESCRIPTION*
 %This function allows you to segment LINEAR time-series data based on a time
 %array, and a starttime & endtime/duration. The function can either cut
 %pre-determined variables, or cut all variables with the same length as the
 %time-series data, that are immediate fields (not subfields) of the provided
 %structure.
 %
+% *INPUT*
 %Configuration Options
 %cfg.time = (OPTIONAL) you can provide either the name of the variable
 %           containing time-series data ('timearray'), or the full time-series
@@ -48,6 +51,14 @@ function out = segment_generic (cfg,data)
 %           overwritten in the final output with the new starttime unix time.
 %
 %
+% *OUTPUT*
+%This function outputs the same data structure as put in, with as major
+%differentiator that the available arrays will be segmented based on the
+%provided starttime and endtime.
+%
+% *NOTES*
+%
+% *BY*
 % Wilco 27-06-2022
 
 %% SET POTENTIAL OTHER TIME CONFIGURATIONS
