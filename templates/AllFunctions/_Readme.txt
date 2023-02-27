@@ -1,12 +1,6 @@
-What:
-This is a template for the projects inside the project folder. 
-This initial section is a couple of lines on what the project is about.
+This folder contains scripts & examples of all matlab functions developed and used.
 
-When:
-Date Start / Date End
+Blocks of these functions can be copied and pasted, and if desired used within your own project.
 
-Folders:
-There is a .txt file in every folder explaining the content that should be in the folder
+Contrary to the Templates, these blocks do not create a ready to go matlab script to copy paste and run, instead it contains multiple segments, which can be run individually to show how the functions could be used
 
-Notes:
-Additional Information required by the viewer of this project

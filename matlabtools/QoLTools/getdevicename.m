@@ -64,7 +64,7 @@ for isamp=1:height(ParticipantData)
             if  regexp(ParticipantData.(DeviceNameField)(isamp),"(?i)^EL(?i)") == 1
                 DeviceName = sprintf('EL%04d', str2num(extractAfter(ParticipantData.(DeviceNameField)(isamp),2)));
             elseif  regexp(ParticipantData.(DeviceNameField)(isamp),"(?i)^Z(?i)") == 1
-                DeviceName = strcat('Z', str2num(extractAfter(ParticipantData.(DeviceNameField)(isamp),1)));
+                DeviceName = strcat("Z", extractAfter(ParticipantData.(DeviceNameField)(isamp),1));
             else
                 warning(strcat('DO NOT RECOGNIZE PREFIX, SKIPPING PARTICIPANT ON INDEX: ',num2str(isamp)));
                 missing = missing+1;
