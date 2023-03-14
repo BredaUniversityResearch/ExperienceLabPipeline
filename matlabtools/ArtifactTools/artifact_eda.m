@@ -36,7 +36,7 @@ function out = artifact_eda(cfg, data)
 % cfg.blockreplacement  : determines whether block based artifact replacement should be conducted, can be set to "pre", "post", "both"
 % cfg.replacementartifacts  : the data array containing the artifactdata used for pre - correction replacement. Post-correction replacement, and non-existing replacement data require the python package and connection to be functional
 % cfg.replacementcfg    : option so set custom cfg options for blockreplacement function (must adhere to the cfg options of the artifact_replacement function)
-
+%
 % Marcel, 29-12-2018
 % Wilco, 21-02-2022
 
