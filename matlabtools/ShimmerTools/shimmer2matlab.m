@@ -57,13 +57,13 @@ if ~isfield(cfg.columnname, 'eda')
     cfg.columnname.eda  = 'GSR_Skin_Conductance';
 end
 if ~isfield(cfg.columnname, 'acc_x')
-    cfg.columnname.acc_x  = 'Accel_LN_X'; 
+    cfg.columnname.acc_x  = 'X_CAL'; 
 end
 if ~isfield(cfg.columnname, 'acc_y')
-    cfg.columnname.acc_y  = 'Accel_LN_Y'; 
+    cfg.columnname.acc_y  = 'Y_CAL'; 
 end
 if ~isfield(cfg.columnname, 'acc_z')
-    cfg.columnname.acc_z  = 'Accel_LN_Z'; 
+    cfg.columnname.acc_z  = 'Z_CAL'; 
 end
 if ~isfield(cfg.columnname, 'unix')
     cfg.columnname.unix = 'Unix';
