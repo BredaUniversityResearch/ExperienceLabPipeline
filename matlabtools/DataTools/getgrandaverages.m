@@ -7,14 +7,14 @@ function out = getgrandaverages (cfg, data)
 %automatically fill up arrays that are too short with NaN values.
 %
 % *INPUT*
-%configuration
+%Configuration Options:
 %cfg.fields =       Array with string values, containing the names of all 
 %                   fields that you want to average
 %                   example: ["conductance" "phasic"]
 %cfg.originaldata = determines whether the output contains the original data
 %                   example: 0
 %                   default: 0 (no)
-%data
+%Data Structure:
 %data = x*1 struct;
 %
 % *OUTPUT*
@@ -30,12 +30,14 @@ function out = getgrandaverages (cfg, data)
 %
 %Wilco, 21-02-2022
 
+%% VARIABLE CHECK
 if ~isfield(cfg,'originaldata')
     cfg.originaldata = 0;
 end
 
 allfields = fieldnames(data);
 
+%% COMBINE ALL DATA IN A SHARED MATRIX AND MEAN OVER THAT MATRIX
 c_data = [];
 m_data = [];
 
@@ -43,12 +45,16 @@ for type = 1:length(cfg.fields)
     if max(contains(allfields,cfg.fields(type))) == 1
         longest = 0;
         c_data = [];
+
+        %Check the longers array in this field
         for p = 1:length(data)
             thislength = length(data(p).(cfg.fields(type)));
             if thislength > longest
                 longest = thislength;
             end
         end
+
+        %Combine all data of this field, and make of equal length using NaN       
         for p = 1:length(data)
             n_data = nan(1,longest);
             thislength = length(data(p).(cfg.fields(type)));
@@ -61,6 +67,7 @@ for type = 1:length(cfg.fields)
     end
 end
 
+%% CREATE FINAL STRUCTURE
 averagesstruct = struct();
 for field = 1:length(allfields)
     fieldname = string(allfields(field));
@@ -74,6 +81,7 @@ if isfield(averagesstruct,'participant')
     averagesstruct.participant = -1;
 end
 
+%% FUNCTION END
 if cfg.originaldata==1
     data(length(data)+1) = averagesstruct;
     out = data;

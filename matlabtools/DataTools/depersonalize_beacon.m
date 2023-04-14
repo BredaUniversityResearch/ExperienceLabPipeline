@@ -1,11 +1,16 @@
 function out = depersonalize_beacon(cfg)
+%% DEPERSONALIZE BEACON
+% function out = depersonalize_beacon (cfg)
+%
+% *DESCRIPTION*
 %This function is developed to help simplify the depersonalization process
 %of beacon data. It seraches for prefixed folders (P002), and
 %replaced files with a certain name (beacon.csv), with one where the first
 %line uses the folder name, rather than the originally provided participant
-%name.
+%name
 %
-%Configuration Options:
+% *INPUT*
+%Configuration Options
 %cfg.folderprefix = the prefix of participant folders. Is 'P' (for P002) by
 %   default
 %cfg.filecontains = will change files with a specific text in the name. Is
@@ -13,9 +18,16 @@ function out = depersonalize_beacon(cfg)
 %cfg.datafolder = the folder containing the participantfolders (0.RawData).
 %   Will open a folder picker by default.
 %
+% *OUTPUT*
+%Replaces the csv file with a depersonalized one, does not output any data
+%
+% *NOTES*
+%NA
+%
+% *BY*
 %Wilco Boode 13/05/2022
 
-%Set the default values
+%% VARIABLE CHECK
 if ~isfield(cfg,'folderprefix')
     cfg.folderprefix = 'P';
 end
@@ -27,11 +39,13 @@ if ~isfield(cfg,'datafolder')
     cfg.datafolder = uigetdir(pwd);
 end
 
+%% RETRIEVE FILES
 %Get the main folder foles and subfolders
 files = dir(cfg.datafolder);
 subFolders = files([files.isdir]);
 subFolderNames = {subFolders(3:end).name};
 
+%% DEPERSONALIZATION
 %Go over all subfolders, if they detect the indicated folder prefix, then
 %it will look for files with the filecontains, and trigger the
 %TextReplacement
@@ -49,9 +63,10 @@ for k = 1 : length(subFolderNames)
     end
 end
 
+%% REPLACEMENT FUNCTION
 %Get the file, replace the 8th item with the provided name, and save the
 %file using the original file name.
-    function out = replacetext(file,name)
+function out = replacetext(file,name)
         S = readlines(file);
         Sl = split(S{1},',');
         Sl{8} = strcat('"',name,'"');

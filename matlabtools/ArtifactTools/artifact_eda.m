@@ -1,7 +1,8 @@
 function out = artifact_eda(cfg, data)
-% function out = artifact_eda(cfg, data);
-% detects and corrects motion artifacts in EDA data.
+%% ARTIFACT EDA
+% function out = artifact_eda (cfg,data)
 %
+% *DESCRIPTION*
 % If cfg.manual is set to 'yes', artifact detection is skipped, and only a correction is performed (see the configuration options below.
 % If cfg.manual is not set to 'yes, both detection and correction is performed
 %
@@ -19,7 +20,8 @@ function out = artifact_eda(cfg, data)
 % ReplacementArtifacts function. You can specify whether you want to run an
 % additional Python Package (EdaExplorer) to identify and replace
 %
-% configuration options are:
+% *INPUT*
+% Configuration Options :
 % cfg.timwin            : integer, time (in seconds) of the moving time window in which to detect artifacts. Default = 20
 % cfg.threshold         : integer, zscore to be used as a threshiold for artifact detection. Default = 5;
 % cfg.interp_method     : string ('spline' or 'linear'), determines which interpolation method is used for correcting artifacts. default = 'linear'.
@@ -37,10 +39,19 @@ function out = artifact_eda(cfg, data)
 % cfg.replacementartifacts  : the data array containing the artifactdata used for pre - correction replacement. Post-correction replacement, and non-existing replacement data require the python package and connection to be functional
 % cfg.replacementcfg    : option so set custom cfg options for blockreplacement function (must adhere to the cfg options of the artifact_replacement function)
 %
+%
+% *OUTPUT*
+%The same as the input structure, but with the corrected conductance array
+%
+% *NOTES*
+%Very much developed around the EMPATICA data, might not work optimal with
+%other data types
+%
+% *BY*
 % Marcel, 29-12-2018
 % Wilco, 21-02-2022
 
-% set defaults
+%% VARIABLE CHECK
 if isfield (cfg, 'validationdata')
     graphCount = 3;
 else

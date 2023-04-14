@@ -1,4 +1,8 @@
 function out = averageovergpsposition(data,cfg)
+%% AVERAGE OVER GPS POSITION
+% function out = default_structure (cfg,data)
+%
+% *DESCRIPTION*
 % AverageOverGPSPosition averages ExpLab formatted participant data based
 % on their Lat and Long values. This function will output data in a way
 % which can more easily be used in software such as Kepler.gl, which cannot
@@ -11,20 +15,29 @@ function out = averageovergpsposition(data,cfg)
 % that point. This is output to create a list of averaged values with lan
 % long values based on the designated grid cell.
 %
-% required values are:
-% 
-% data =            a structure, containing all participants, where every 
-% participant has least the lat, long and at least 1 number based data type. 
-% all lists/arrays need to be of equal length.
-% cfg.datatypes =   a list containing the names of the data that should be
-% averaged, these need to be number based.
+% *INPUT*
+%Configuration Options
+%cfg.gridsize = (OPTIONAL) the size of the grid sections in meters
+%           default = 10;
+%cfg.datatypes =   a list containing the names of the data that should be
+%           averaged, these need to be number based.
 %
-% configuration options are:
-% 
-% cfg.gridsize =    the size of the grid sections in meters (default = 10)
+%Data Requirements
+%data = a structure, containing all participants, where every participant 
+%           has least the lat, long and at least 1 number based data type. 
+%           all lists/arrays need to be of equal length.
 %
+% *OUTPUT*
+%A structure containing all grid positions and their mean values per 
+%datatype.
+%
+% *NOTES*
+%NA
+%
+% *BY*
 % Wilco Boode, 16-04-2021
 
+%% VARIABLE CHECK
 %check whether the gridsize is specified
 if ~isfield(cfg, 'gridsize')
     cfg.gridsize = 10;
@@ -34,6 +47,7 @@ if ~isfield(cfg, 'datatypes')
     error('averageovergpsposition: datatypes not specified');
 end
 
+%% DEFINE GPS POSITIONS
 %define min and max lat/lon positions
 lat_min = NaN;
 lon_min = NaN;
@@ -65,13 +79,14 @@ for p =1:length(data)
     end
 end
 
-%laculate the size of the gps area in meters
+%calculate the size of the gps area in meters
 positionsize = latlon2meter(lat_min,lon_min,lat_max,lon_max);
 gridsize = cfg.gridsize;
 
 size_lat = abs(round(positionsize.lat/gridsize));
 size_lon = abs(round(positionsize.lon/gridsize));
 
+%% GENERATE MATRIX FOR EVERY DATATYPE AND POPULATE WITH DATA
 %generate a matrix containing a value for lat,lon, and every datatype in
 %the cfg.datatypes list
 mx =[];
@@ -105,6 +120,7 @@ for p =1:length(data)
     end
 end
 
+%% CREATE AND OUTPUT THE FINAL STRUCTURE
 %create a final structure containing all grid positions containing data
 d = 1;
 for x =1:size_lon

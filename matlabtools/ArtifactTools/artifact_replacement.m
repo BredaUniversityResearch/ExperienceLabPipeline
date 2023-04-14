@@ -1,25 +1,48 @@
 function out = artifact_replacement(cfg,data)
+%% ARTIFACT REPLACEMENT
+% function out = artifact_replacement (cfg,data)
+%
+% *DESCRIPTION*
 %This function allows you to provide an original dataset (array), array of
 %artifacts, and time, to visualize and replace the indicated artifact
-%periods by a series of options. This function is meant to work well with
-%the artifact2matlab, or artifactmat2matlab function, which provide an
-%array of possible artifacts using a python package. This function will
-%return a dataset containing the original data, the corrected data, and the
-%array of time.
+%periods by a series of options. 
+% 
+%This function will return the corrected data according to the provided
+%configuration options.
 %
-%Required is:
-%data.artifacts         An array (preferred -1 for artifacts items, and 0 or 1 for non-artifacts)
-%data.original          The original array of data, likely the original conductance file, however this can be any array
-%data.time              An array with timestamps to visualize the artifact time
+% *INPUT*
+%Configuration Options (ALL OPTIONAL)
+%cfg.autocorrect = Do you want the script to automatically use the selected method to correct? or use the GUI to correct?
+%           default = false
+%cfg.fillmethod = Linear, NaN, custom, startpos, endpos, then autocorrect is false, then this will determine the default slected fillmethod
+%           default = "linear"           
+%cfg.customvalue = Determines the default custom value used when setting fillmethod to custom
+%           default = 0;
+%cfg.artifactvalue = Determines which value in artifact file is the artifact, by default this is (and should be) -1
+%           default = -1;
+%cfg.duration = Not active at the moment, used for future expansion where sections of time can be corrected
+%           default = 5;
 %
-%Configuration Options:
-%cfg.autocorrect = false;   %Do you want the script to automatically use the selected method to correct? or use the GUI to correct?
-%cfg.fillmethod = "linear"; %Linear, NaN, custom, startpos, endpos, then autocorrect is false, then this will determine the default slected fillmethod
-%cfg.customvalue = 0;       %Determines the default custom value used when setting fillmethod to custom
-%cfg.artifactvalue = -1;    %Determines which value in artifact file is the artifact, by default this is (and should be) -1
-%cfg.duration = 5;          %Not active at the moment, used for future expansion where sections of time can be corrected
+%Data Requirements
+%data.artifacts = An array (preferred -1 for artifacts items, and 0 or 1 for non-artifacts)
+%data.original = The original array of data, likely the original conductance file, however this can be any array
+%data.time = An array with timestamps to visualize the artifact time
+%
+% *OUTPUT*
+%Struct with 2 arrays: 
+%   original = the original data provided
+%   time = the timedomain array provided
+%   correct = the data corrected according to the desired fillmethod
+%
+% *NOTES*
+%This function was specifically made to work with the artifact2matlab, or 
+%artifactmat2matlab function, which provide an array of possible artifacts 
+%using a python package.
+%
+% *BY*
+%Wilco Boode 14-04-2023
 
-%%
+%% VARIABLE CHECK
 %Set non-determined configuration options
 if ~isfield(cfg, 'autocorrect')
     cfg.autocorrect = false;
@@ -48,7 +71,8 @@ if ~isfield(data, 'time')
     data.time = linspace(1,(length(data.original)-1)/4,length(data.original));
     warning('artifact_replacement: time not specified, assuming 4hz');
 end
-%%
+
+%% CUT ARTIFACTS IN BLOCKS
 %This section cuts up the artifacts in blocks, allowing the correction to
 %replace all between a pre-set start and end point.
 
@@ -88,7 +112,7 @@ while i < length(data.artifacts)
     end
 end
 
-%%
+%% CREATE ARTIFACT ARRAY
 %This section will create an array for the corrected data, and replace the
 %artifact sections if the user indicates this is necessary.
 
@@ -129,7 +153,7 @@ for i=1:length(endpositions)
     end
 end
 
-%%
+%% FUNCTION END
 %Set output to provide the original data, the timeseries, and the corrected
 %data
 out.original = data.original;
@@ -137,6 +161,7 @@ out.time = data.time;
 out.corrected = correcteddata;
 end
 
+%% SEPARATE FUNCTION TO OPEN THE ARTIFACTREPLACEMENTWINDOW
 function openApp(time,original,correcteddata,startpos,endpos,current,total,method,value)
 myApp = (ArtifactReplacementWindow(time,original,correcteddata,startpos,endpos,current,total,method,value));
     while(myApp.resumetofunction == false)

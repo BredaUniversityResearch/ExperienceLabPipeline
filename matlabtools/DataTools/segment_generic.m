@@ -61,7 +61,24 @@ function out = segment_generic (cfg,data)
 % *BY*
 % Wilco 27-06-2022
 
-%% SET POTENTIAL OTHER TIME CONFIGURATIONS
+%% DEV INFO
+%cfg.starttime does not accept datetimes for some reason!
+% EXTRA INFO
+% format for millis based timestamping, probably needs to be adopted by all
+% our stuff, as we are getting into a stage where its necessary :(
+% datetime(data.initial_time_stamp_mat, 'Format', 'yyyy-MM-dd HH:mm:ss.SSS')+seconds(max(data.time));
+%
+% localization, we are currently doing just a simple to datetime, but that
+% will frack up if people in other locations / timezones run the data. So
+% we will need to add a location I imagine. Ewhhh
+% Default = amsterdam from now on I guess
+
+% TO ADD
+%option for out of bounds data, and a fill up with specific data type (zeroes ,  "" , self-provided, or last-available)
+%option for excludevariables, in case you want to do all but certain variables in the data file
+%maybe we make it variable dependent? (not sure if its a good idea, but allowing per variable fill options might be interesting) NO, SOUNDS HORRIBLE
+
+%% VARIABLE CHECK
 if isfield (cfg, 'trigger_time')
     cfg.starttime = string(cfg.trigger_time);
 end
@@ -72,7 +89,6 @@ if isfield (cfg, 'posttrigger')
     cfg.duration = cfg.posttrigger;
 end
 
-%% SET ADDITIONAL CFG VALUES
 if ~isfield(cfg,'allowoutofbounds')
     cfg.allowoutofbounds = 'false';
     %if ~isfield(cfg,'outofboundsstring')
@@ -303,17 +319,3 @@ if exist('postduration','var') || exist('preduration','var')
     end
 end
 end
-%% EXTRA INFO STUFF
-% format for millis based timestamping, probably needs to be adopted by all
-% our stuff, as we are getting into a stage where its necessary :(
-% datetime(data.initial_time_stamp_mat, 'Format', 'yyyy-MM-dd HH:mm:ss.SSS')+seconds(max(data.time));
-%
-% localization, we are currently doing just a simple to datetime, but that
-% will frack up if people in other locations / timezones run the data. So
-% we will need to add a location I imagine. Ewhhh
-% Default = amsterdam from now on I guess
-
-%% TO ADD
-%option for out of bounds data, and a fill up with specific data type (zeroes ,  "" , self-provided, or last-available)
-%option for excludevariables, in case you want to do all but certain variables in the data file
-%maybe we make it variable dependent? (not sure if its a good idea, but allowing per variable fill options might be interesting) NO, SOUNDS HORRIBLE

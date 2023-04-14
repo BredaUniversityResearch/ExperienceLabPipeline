@@ -1,27 +1,41 @@
 function out = resample_generic(cfg, data)
-%function out = resample_bvp(cfg, data)
-% function to resample the bvp data from the Empatica Devices (up or down)
+%% RESAMPLE GENERIC
+%function out = resample_generic(cfg, data)
 %
-% configuration options are:
+% *DESCRIPTION*
+% generic function to resample all data inside a struct. Allows you to
+% provide a struct, and resample all array data of equal length to a new
+% sample frequency. Assumes all data is of the same frequency, and only
+% takes arrays of same length!
 %
+% *INPUT*
+%Configuration Options
 % cfg.fsample       =   desired fsample, must be provided
 % cfg.valueList     =   provide the required datanames, these will be taken
 % and resampled from the data struct, then overwritten in the output
 %
+% *OUTPUT*
+%The same as the input struct, but with all array data re-structured
+%
+% *NOTES*
 % See the following page for more info on the resampling function
 % https://nl.mathworks.com/help/signal/ref/resample.html#bumhz33-beta
+% THIS FUNCTION IS STILL UNDER CONSTRUCTION, AND REQUIRES CAREFULL USE!!!
 %
+% *BY*
 % Wilco Boode, 20-11-2020
 
+%% VARIABLE CHECK
 %Check whether the desired fsample is defined, this value is mandatory
 if ~isfield (cfg,'fsample')
-    error('no sample frequency is defined for resample_bvp');
+    error('no sample frequency is defined');
 end
 %Deterine wheter any datavalues are provided, if not, give a warning
 if ~isfield (cfg,'valueList')
     warning('no data values provided');
 end
 
+%% TAKE ALL VARIABLES AND RESAMPLE THEM TO THE NEW FREQUENCY
 datanames = matlab.lang.makeValidName(cfg.valueList);
 datalength = 0;
 %uses the default Matlab resampling function to resample the data from the
@@ -37,9 +51,9 @@ end
 %calculate the total duration of the data, then generate an array of time
 %points
 tFinal = data.time(length(data.time));
-time = rot90(flip(linspace(0,tFinal,datalength)));
+time = transpose(linspace(0,tFinal,datalength));
 
-%only output the desired data
+%% FUNCTION END
 out = data;
 f = fieldnames(newdata);
 for i = 1:length(f)

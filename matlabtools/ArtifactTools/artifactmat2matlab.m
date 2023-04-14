@@ -1,17 +1,40 @@
 function out = artifactmat2matlab(cfg, data)
-% This function outputs the provided empatica data (can be matlab-altered)
-% and calls the artifact2matlab function to run the MIT artifact detection
-% in python (see artifact2matlab for more info).
+%% ARTIFACT MAT 2 MATLAB
+% function out = artifactmat2matlab (cfg,data)
 %
-% configuration options are:
+% *DESCRIPTION*
+%This function outputs the provided empatica data (can be matlab-altered)
+%and calls the artifact2matlab function to run the MIT artifact detection
+%in python (see artifact2matlab for more info).
 %
-% cfg.datafolder    = string containing the full path folder in which the data file
-%                     is stored, and pulled from, originally this is
-%                     C:/temp as its a temporary data file
-% data              = empatica e4 data, requires Conductance, temperature,
-% acceleration, fsample, and initial_time_stamp
+% *INPUT*
+%Configuration Options
+%cfg.datafolder = string containing the full path folder in which the data 
+%           file will be stored, and pulled from, originally this is
+%           C:/temp as its a temporary data file
+%
+%Data Requirements
+%data.conductance = 4hz array of conductance data
+%data.temperature = 4hz array of temperature data
+%data.acceleration = 3*x matrix of acceleration data
+%data.fsample = should be 4 for now, is hardcoded into 4hz frequency
+%data.initial_time_stamp = unixtimecode for starting time
+%
+% *OUTPUT*
+%A structure containing 3 arrays of equal length, 1 with time, 1 with
+%binaryArtifacts, 1 with multiclassArtifacts
+%
+% *NOTES*
+%WORK ONLY WITH EMPATICA DATA, THIS IS NOT COMPATIBLE WITH SHIMMER DATA
+%
+% *BY*
 % Wilco Boode, 20-03-2020
-%%
+
+%% DEV INFO
+%this function is currently heavily hardcoded for empatica data, checking
+%if this can be repurposed for generic detections would be desirable
+
+%% VARIABLE CHECK
 %check whether the datafolder is specified, if not throw an error
 if ~isfield(cfg, 'datafolder')
     cfg.datafolder = 'C:/temp';
@@ -21,7 +44,7 @@ end
 curdir = pwd;
 eval(sprintf('cd %s', cfg.datafolder));
 
-%%
+%% STRUCTURE AND STORE DATA IN DATAPATH
 %export e4 data to csv files readable for the artifact package
 %Create structure for eda data
 eda = rot90(flip(data.conductance));
@@ -49,7 +72,7 @@ writetable(array2table(eda),'EDA.csv','Delimiter',',','QuoteStrings',false, 'Wri
 writetable(array2table(temp),'TEMP.csv','Delimiter',',','QuoteStrings',false, 'WriteVariableNames',false);
 writetable(array2table(acc),'ACC.csv','Delimiter',',','QuoteStrings',false, 'WriteVariableNames',false);
 
-%%
+%% CALL ARTIFACT2MATLAB AND RETRIEVE OUTCOME
 
 %call and store the data from the artifact2matlab function
 artifactdata = artifact2matlab(cfg);
@@ -71,6 +94,7 @@ if (length(artifactdata.time) > length(data.time))
     end
 end
 
+%% FUNCTION END
 %set output to the final artifactdata structure
 out = artifactdata;
 end

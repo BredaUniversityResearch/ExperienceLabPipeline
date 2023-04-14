@@ -1,29 +1,40 @@
 function out = wlcc(cfg, data1, data2)
-% function out = wlcc(cfg, data1, data2)
+%% WINDOWED LAGGED CROSS CORRELATIONS
+% function out = wlcc (cfg,data1, data2)
+%
+% *DESCRIPTION*
 % computes windowed lagged cross-correlation between two EDA signals (data1 and data2
 % Output is one time series of correlation values
 %
-% configuration options are:
-%
+% *INPUT*
+%Configuration Options
 % cfg.window       = int, length in s of the sliding time windows (default = 8)
 % cfg.lag          = int, max lag in s (in both directions; default = 4)
 % cfg.deltawindow  = int, increment in s when moving to next window (determines 'sampling rate'  of output (time series of correlations; default = 2) 
 % cfg.deltalag     = int or float, size in s of the steps between time lag (default = 0.25)
 % cfg.datatype      = string specifying which EDA data to take from file. Can be 'conductance', 'conductance_z', 'phasic', 'phasic_z', 'tonic' or 'tonic_z' (default = phasic)
 %
-% wndowed cross-lagged correlation, smooting and local maximum peak-picking (cfg.selectmax = localmax) implementation from: Boker SM, Xu M, Rotondo JL, King K (2002). Psychol Methods 7(3):338–55
-% default settings for wlcc are based on Prochazkova, E., Sjak-Shie, E., Behrens, F., Lindh, D., & Kret, M. E. (2022). Nature human behaviour, 6(2), 269-278.
-% 31-05-2022 by Marcel.
-
 % undocumented option for selecting local maximum, doesn't work wel;l enough yet:
 % cfg.selectmax =   string specifying how the maximum correlation is chosen at each cross-lag. Can be either:
 %                   'max' , simply take the maximum correlation across all cross-lags (default)
 %                   'localmax', (under construction) find the local maximum that is closest to a zero-lag. Local maximum is defined as a peak flanked by cfg.localmaxnsmp (default = 2) sample points on either side. 
 % cfg.localmaxnsmp = int, number of 'flanker' samples used in identifying a local maximum when selecting option cfg.selectmax = 'localmax'. Default = 2
 % cfg.localmaxwin  = int, size in seconds of the window used to search for a local maximum peak (cfg.selectmax = localmax). Default = 2
+%
+% *OUTPUT*
+% function out = wlcc(cfg, data1, data2)
+% computes windowed lagged cross-correlation between two EDA signals (data1 and data2
+% Output is one time series of correlation values
+%
+% *NOTES*
+% windowed cross-lagged correlation, smooting and local maximum peak-picking (cfg.selectmax = localmax) implementation from: Boker SM, Xu M, Rotondo JL, King K (2002). Psychol Methods 7(3):338–55
+% default settings for wlcc are based on Prochazkova, E., Sjak-Shie, E., Behrens, F., Lindh, D., & Kret, M. E. (2022). Nature human behaviour, 6(2), 269-278.
+%
+% *BY*
+% Marcel 31-05-2022 
 
-%% select proper data, set defaults and do some checks
 
+%% VARIABLE CHECK
 % set defaults for parameters
 if ~isfield(cfg, 'window')
     cfg.window = 8;
@@ -153,10 +164,10 @@ while(left_edge*fsample + 2*cfg.lag*fsample + cfg.window*fsample < numel(signal1
         ileft_edge=ileft_edge+1;
     end
 end
+
+%% FUNCTION END
 out.cor = movmax(out.cor,5);
-
-
-
+end
 
 
 

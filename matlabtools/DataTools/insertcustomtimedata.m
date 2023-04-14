@@ -1,28 +1,47 @@
 function out = insertcustomtimedata(cfg, data)
-%function out = insertcustomtimedata(cfg, data)
-%Grabs an xlsx file, and allows the user to define custom time periods to
-%add manual data to the participant using the long format. 
-%WHAT DOES IT OUTPUT
+%% INSERT ADDITIONAL LONG DATA
+% function out = insertcustomtimedata (cfg,data)
 %
-%XLSX file structure requires the following columns
+% *DESCRIPTION*
+%Uses a long format xlsx file to insert data into an existing data
+%structure. Usefull if you have a data structure and an excel sheet with 
+%additional data for multiple participants, and need to inject the data 
+%from the excel sheet into the datastructure.
+%
+%Say i have a struct for a participant, and a final output excel where data
+%from all my participants is stored. If I need to inject data from this
+%excel sheet then I can use this function to do so based on Participant,
+%StartTime, and Duration variables
+%
+%
+% *INPUT*
+%Excel File Requirements (COLUMS REQUIRED)
 % Participant = Participant number as an integer (1)
 % Start Time = Starting time in datetime (12-Jan-2019 11:49:00)
 % Duration = How long the interaction takes in seconds (23)
 % {DataName} = Additional columns with data to add (integer, float/double, string) 
 %
-%DATA file requires the following variables
-% participant = Participant number as an integer (1) 
-% time = one dimensional array of double values [0.250;0.500;0.750;1.000]
-%
-%CFG options
+%Configuration Options
 % cfg.customdatafile = datapath to an excel file with the correct structure
 % cfg.datatypes = struct with desired datatypes to add, using the following format
 %       datatypes(i).name = Column name of the data type
 %       datatypes(i).type = Type of data (string, integer, float)
 %
+%Data Requirements
+%participant = Participant number as an integer (1) 
+%time = one dimensional array of double values [0.250;0.500;0.750;1.000]
+%
+% *OUTPUT*
+%The same structure as went in, but with the added data from the excel
+%sheet
+%
+% *NOTES*
+%N/A
+%
+% *BY*
 % Wilco Boode 10/06/2022
 
-%% CHECK REQUIRED CFG VALUES
+%% VARIABLE CHECK
 if ~isfield(cfg, 'datatypes')
     error(strcat("Column *datatypes* not defined, please provide datatypes"));
 end

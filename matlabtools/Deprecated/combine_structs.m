@@ -34,6 +34,8 @@ function out = combine_structs(cfg, datastruct1, datastruct2)
 % initial check on whether initial tme stamps and length of data segments
 % are equal. If not, throw an error
 
+error('THIS EXPLAB PIPELINE FUNCTION IS DEPRECATED, PLEASE MOVE TO COMBINE_DATA');
+
 if ~strcmpi(datastruct1.initial_time_stamp_mat, datastruct1.initial_time_stamp_mat)
     error('initial time stamps of input data do not match. use segment_xxx to solve this');
 end

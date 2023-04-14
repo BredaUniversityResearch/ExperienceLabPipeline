@@ -1,13 +1,17 @@
 function out = artifact2matlab(cfg)
-% function to read in Artifact data from the MIT Artifact detection function.
-% This function calles the edaexplorer Artifact detection function using
-% the Matlab to Python connection, and asks for the artifact detection
-% function to detect artifacts within a 5-second window. This output
-% provides: binaryArtifacts, which are artifact (-1), or no artifact (1), or multiclassArtifacts,
-% which can be a n artifact (-1) possible artifact (0) or no artifact (1)
+%% NAME OF FUNCTION
+% function out = default_structure (cfg,data)
 %
-% configuration options are:
+% *DESCRIPTION*
+%function to read in Artifact data from the MIT Artifact detection function.
+%This function calles the edaexplorer Artifact detection function using
+%the Matlab to Python connection, and asks for the artifact detection
+%function to detect artifacts within a 5-second window. This output
+%provides: binaryArtifacts, which are artifact (-1), or no artifact (1), or multiclassArtifacts,
+%which can be a n artifact (-1) possible artifact (0) or no artifact (1)
 %
+% *INPUT*
+%Configuration Options
 % cfg.artifactfile  = string specifying file that contains Artifact data in csv
 %                     format
 % cfg.datafolder    = string containing the full path folder in which the data file
@@ -19,13 +23,20 @@ function out = artifact2matlab(cfg)
 %                     output a json and csv file, default = ARTIFACT
 % cfg.artifactType  = device the data is from, 'e4','biosemi','q','misc',
 %                     default = e4
-
+%
+% *OUTPUT*
+%Description of the output this function provides, both type of data, and
+%potentialy the format it outputs
+%
+% *NOTES*
 % Note that it is recommended to use the default configuration options for 
 % cfg.artifactfile unless you have a good reason to deviate from that.
 % Citation for Artifact Classification: Taylor, S., Jaques, N., Chen, W., Fedor, S., Sano, A., & Picard, R. Automatic identification of artifacts in electrodermal activity data. In Engineering in Medicine and Biology Conference. 2015
+%
+% *BY*
 % Wilco Boode, 20-03-2020
 
-%%
+%% VARIABLE CHECK
 %Save current Folder Location
 curdir = pwd;
 eval(sprintf('cd %s', cfg.datafolder));
@@ -47,7 +58,7 @@ if ~isfield(cfg, 'artifactType')
     cfg.artifactType = 'e4';
 end
 
-%%
+%% PYTHON CONNECTION & START PYTHON FUNCTION
 %Load Python Classes
 mod = py.importlib.import_module('edaexplorer.ArtifactDetection_matlab');
 py.importlib.reload(mod);
@@ -55,7 +66,7 @@ py.importlib.reload(mod);
 %%retrieve artifact json from python function
 artifactData = py.edaexplorer.ArtifactDetection_matlab.GetArtifactDataFromFolder(cfg.datafolder,cfg.artifactName,cfg.artifactType);
 
-%%
+%% DECOODE AND STRUCTURE RETRIEVED ARTIFACTS
 %decode json into matlab structure
 artifactRaw = jsondecode(char(artifactData));
 
@@ -98,7 +109,7 @@ for i=1:totalSamples
     end    
 end
 
-%%
+%% FUNCTION END
 %output all data to the out structure
 out.initial_time_stamp = initial_time_stamp;
 out.initial_time_stamp_mat = initial_time_stamp_mat;

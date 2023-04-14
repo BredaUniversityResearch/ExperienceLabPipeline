@@ -89,14 +89,14 @@ for isamp=1: length(lBeacon)
     if isempty(beacon)
     
     else
-        for jsamp=1: length(beaconData.beaconMeta.BeaconID)
-            if beaconData.beaconMeta.Major(jsamp,1) == beacon(1,1)
-                if beaconData.beaconMeta.Minor(jsamp,1) == beacon(2,1)
-                    lBeaconID(isamp,1) = beaconData.beaconMeta.BeaconID(jsamp,1);
-                    lPosition.x(isamp,1) = beaconData.beaconMeta.x(jsamp,1);
-                    lPosition.y(isamp,1) = beaconData.beaconMeta.y(jsamp,1);
-                    lPosition.z(isamp,1) = beaconData.beaconMeta.z(jsamp,1);
-                    lPosition.z_inv(isamp,1) = beaconData.beaconMeta.z_inv(jsamp,1);
+        for jsamp=1: length(beaconData.beaconmeta.BeaconID)
+            if beaconData.beaconmeta.Major(jsamp,1) == beacon(1,1)
+                if beaconData.beaconmeta.Minor(jsamp,1) == beacon(2,1)
+                    lBeaconID(isamp,1) = beaconData.beaconmeta.BeaconID(jsamp,1);
+                    lPosition.x(isamp,1) = beaconData.beaconmeta.x(jsamp,1);
+                    lPosition.y(isamp,1) = beaconData.beaconmeta.y(jsamp,1);
+                    lPosition.z(isamp,1) = beaconData.beaconmeta.z(jsamp,1);
+                    lPosition.z_inv(isamp,1) = beaconData.beaconmeta.z_inv(jsamp,1);
                     break;
                 end
             end
