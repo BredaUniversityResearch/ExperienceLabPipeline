@@ -1,4 +1,8 @@
 function out = upsample_beacon(original, newfsample)
+warning('DEPRECATED, PLEASE DONT USE ANYMORE');
+%SHOULD BE COMPLETELY DEPRECATED AND REPLACED BY RESAMPLE_GENERIC OR
+%RESAMPLE_BEACON
+
 %original = segmented_position
 %newfsample = 7
 %fsample = original.fsample

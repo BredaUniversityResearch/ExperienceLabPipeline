@@ -369,7 +369,7 @@ for i=1:length(data_deconvolved)
         cfg.beaconfile = "beacon.csv"; %name of the participant phone data
         cfg.beaconDataFolder = [pdir,'\0.RawData\']; %location of the beacondata, containing beaconmeta and beaconpositions
         cfg.nullvalue = 10; %under which value (strength / power of beacon) should a beacon be discarded
-        raw_beacon = beacon2matlab_unix(cfg);
+        raw_beacon = beacon2matlab(cfg);
         disp("imported beacon data for subject: " + participant)
         
         % Calculate position (x,y,x)

@@ -1,10 +1,15 @@
 function out = stravatcx2matlab(cfg)
+%% STRAVA TCX 2 MATLAB
 %function out = stravatcx2matlab(cfg)
+%
+% *DESCRIPTION*
 %function to read Strava data (which can be used to record outdoor walking and
 %biking movement. This data can be collected using the strava app, and
-%downloaded as a TCX file from the strava website: https://support.strava.com/hc/en-us/articles/216918437-Exporting-your-Data-and-Bulk-Export#TCX
+%downloaded as a TCX file from the strava website: 
+% https://support.strava.com/hc/en-us/articles/216918437-Exporting-your-Data-and-Bulk-Export#TCX
 %
-%The configuration options are:
+% *INPUT*
+%Configuration Options
 %cfg.stravafile = string specifying the file that contains the Strava data
 %                 in tcx fomat. This is the default strava format using
 %                 /export_tcx
@@ -14,16 +19,33 @@ function out = stravatcx2matlab(cfg)
 %                 strava data. double backlashes have to be specified due 
 %                 to matlab-internal reasons
 %
+% *OUTPUT*
+%Single structure containing the following info:
+%fsample = 1;
+%time
+%lat
+%long
+%altitude
+%distance
+%speed = NA
+%speed2 = NA
+%power = NA
+%
+% *NOTES*
 %for the strava measurements, please use the default strava file
 %- Retrieve the file via the link in strava, an include "/export_tcx" in the
 %  url
+%
+% *BY*
 %Wilco Boode 17/06/2022
 
+%% DEV INFO
 %during the latest update, the full importer has been replaced by the
 %matlab XML import functions. Also, the way data is being altered into a
 %linear structure has been overhauled to better catch possible missing
 %datapoints.
 
+%% VARIABLE CHECK
 %set defaults
 if ~isfield(cfg, 'stravafile')
     cfg.stravafile = 'strava.tcx';
@@ -39,6 +61,7 @@ if ~isfield(cfg, 'datafolder')
     error('strava2matlab: datafolder not specified');
 end
 
+%% READ DATA
 %save the current directory, and open the datafolder containing the actual
 %data
 curdir = pwd;
@@ -78,6 +101,7 @@ data.initial_time_stamp_mat = replace(data.initial_time_stamp_mat,"Z","");
 data.initial_time_stamp_mat = datetime(data.initial_time_stamp_mat,'TimeZone',cfg.originaltimezone,'Format', 'yyyy-MM-dd HH:mm:ss' );
 data.initial_time_stamp_mat = string(data.initial_time_stamp_mat);
 
+%% CREATE STRUCTURE
 %Create data arrays with all necessary data from the files
 trackdata = file.Activities.Activity.Lap.Track.Trackpoint;
 offsets = zeros(length(trackdata),1);
@@ -99,6 +123,7 @@ data.speed = zeros(max(offsets)+1,1);
 data.speed2 = zeros(max(offsets)+1,1);
 data.power = zeros(max(offsets)+1,1);
 
+%% PLACE DATA IN STRUCTURE
 for i = 1:length(trackdata)
     data.lat(offsets(i)+1) = trackdata(i).Position.LatitudeDegrees;
     data.long(offsets(i)+1) = trackdata(i).Position.LongitudeDegrees;
@@ -116,6 +141,7 @@ newdatetime.TimeZone = cfg.newtimezone;
 data.initial_time_stamp_mat = newdatetime;%string(newdatetime);
 data.initial_time_stamp = posixtime(datetime(data.initial_time_stamp_mat));
 
+%% CREATE OUTPUT
 %make sure only the necessary data is collected int eh out struct
 out.initial_time_stamp = data.initial_time_stamp;
 out.initial_time_stamp_mat = data.initial_time_stamp_mat;

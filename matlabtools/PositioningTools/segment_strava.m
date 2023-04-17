@@ -1,4 +1,7 @@
 function out = segment_strava(cfg, data)
+%THIS FUNCTION SHOULD BE DEPRECATED BY NOW, PLEASE USE SEGMENT_GENERIC
+warning('THIS FUNCTION IS DEPRECATED AND SHOULD BE REPLACED BY SEGMENT_GENERIC!!!')
+
 % function out = segment_strava(cfg, data)
 % function to resegment the Strava data. Any time-points (pre-post trigger)
 % outside of the duration of the datasource will be filled with i=1, i=end,

@@ -1,9 +1,18 @@
 function out = shimmer2matlab(cfg)
-% function to read in eda data from Empatica files.
+%% SHIMMER 2 MATLAB
+% function out = shimmer2matlab(cfg)
 %
-% configuration options are:
+% *DESCRIPTION*
+% function to read in data from shimmer files.
+
 %
-% cfg.shimmerfile       = string specifying file that contains eda data in csv
+% *INPUT*
+%Information on the variables / data to feed into this function must
+%contain info about the expected / possible configuration settings, and
+%possibly a default / example variable
+%
+%Configuration Options
+% cfg.shimmerfile    = string specifying file that contains eda data in csv
 %                     format (numbers, not strings!). Default = shimmer.csv
 % cfg.datafolder    = string containing the full path folder in which empatica files
 %                     are stored. Note that for matlab-internal reasons you
@@ -13,16 +22,25 @@ function out = shimmer2matlab(cfg)
 %                     in, your local timezone will be used  if you dont
 %                     specify anything. You can find all possible timezones
 %                     by running the following command: timezones 
+%
+%Data Requirements
+%data.value1 = Description of a required variable in the data structure (if relevant)
+%           example = [0 0 0 -1 -1 -1 1 1 1 1 0 0];
+%
+% *OUTPUT*
+%A structure containing the shimmer data which could be identified
+%
+% *NOTES*
 % Note that it is recommended to use the default configuration options for 
 % cfg.edafile unless you have a good reason to deviate from that.
+%
+% *BY*
 % Wilco Boode, 19-09-2022
 
-
-%% TO DO:
+%% DEV INFO:
 % for creating the time array, and doing the restructuring, use the first and last unix timestamp, that way we know for certain we got the correct length, incase we have some skipping samples (which we shouldnt, bt just in case) 
 
-%%
-
+%% VARIABLE CHECK
 %Check existence of eda File, if non-existent, then the default name will
 %be used.
 if ~isfield(cfg, 'shimmerfile')
@@ -49,6 +67,7 @@ if ~isfield(cfg, 'fsample')
     warning(strcat('fsample not specified. Using default: ',mat2str(cfg.fsample)));
 end
 
+%% DATA FILE CHECK
 %check whether the data column names are specified, if not use default values
 if ~isfield(cfg, 'columnname')
     cfg.columnname = [];
@@ -130,6 +149,7 @@ for isamp = 1:length(columnnames)
     end
 end
 
+%% DATA RESTRUCTURING INTO MATLAB STRUCT
 
 %make initial time stamp in UNIX time Seconds
 data.initial_time_stamp = shimmerraw.(datacolumns.unix)(1)/1000;
@@ -147,7 +167,7 @@ timeorig = shimmerraw.(datacolumns.unix)/1000;
 timeorig = timeorig-timeorig(1);
 
 datapoints =  floor(max(timeorig) * cfg.fsample);
-data.time = rot90(flip(linspace(0,datapoints/cfg.fsample,datapoints+1)));
+data.time = transpose(linspace(0,datapoints/cfg.fsample,datapoints+1));
 
 %see whether eda column has been recognized, resample, and store this data
 if isfield(datacolumns, 'eda')

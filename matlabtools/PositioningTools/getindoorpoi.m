@@ -1,17 +1,17 @@
 function out  = getindoorpoi(cfg,data)
-%The getindoorpoi function can be used to measure wheter a datapoint is
+%% GET INDOOR POI
+% function out = getindoorpoi (cfg,data)
+%
+% *DESCRIPTION*
+%The getindoorpoi function can be used to check wheter a datapoint is
 %inside of a specific point of interest. This can be used in indoor
-%projects to calculate the measures of data based on their position.
+%projects to contextualize data based on their position.
 %The data required to run this process are MapMeta, POIMeta, and a Map. 
 %The current function calculates single dimension POIs, meaning there can
 %be no overlapping POIs, as there is only one map to draw on.
 %
-%Data
-%The data file can be the default EXP Lab participant structure. All it
-%requires is an X and a Z value, for the horizontal, and the depth data.
-%You can also send a data struct with only these two values
-%
-%CFG
+% *INPUT*
+%Configuration Options
 %cfg.datafolder     = the folder where the POI data files are stored
 %cfg.poifile        = the name of the poimetafile containing POI rgb values and name
 %cfg.mapfile        = the name of the map including the POI areas, should be a .png file. You can
@@ -22,19 +22,38 @@ function out  = getindoorpoi(cfg,data)
 %cfg.zname          = the name of the array to use for the z value (as matlab uses inversed order
 %from many other tools, including our beacon tools (0 = top)
 %cfg.colorleeway    = amount of leeway allowed in the RGB colors, to take compression artifacts into
-%account. This value is in RGB units
+%account. This value is in RGB units (so 5 = maximum 5 color points
+%difference in the RGB value allowed).
 %
+%Data Requirements
+%data.x = list / array with x position values
+%data.z = list / array with z position values, must be equal in length to
+%the data.x
+%The data file can be the default EXP Lab participant structure. All it
+%requires is an X and a Z value, for the horizontal, and vertical data.
+%You can also send a data struct with only these two values
+%
+% *OUTPUT*
+%The same structure as was provided, with an added variable for the
+%provided POIData, and the list with currentpoi values
+%
+% *NOTES*
+%NA
+%
+% *BY*
 %Wilco 08/02/2021
 
-%%
+%% DEV INFO
 %This function works by:
 %1. Getting a map image, and calculating the corresponing scale
 %2. Transforming the map into separate binary data files (black-white) masked by the colors of the
 %POIs
 %3. Getting the boundaries of every POI, allowing every POI to contain more than one area
 %4. Treating every boundary as a polygon to calculate whether the datapoints are inside these areas
+%
+%Would be nice to have: cfg.usemap - Option to either define map data, polygon data, or area data
 
-%%
+%% VARIABLE CHECK
 if ~isfield(cfg, 'datafolder')
     error('getindoorPOI: datafolder not specified');
 end
@@ -63,7 +82,7 @@ if ~isfield(cfg, 'colorleeway')
     cfg.colorleeway = 5;
 end
 
-%%
+%% LOAD MAP IMAGE
 % Load map image, and define the scale values for map to real life scale 
 I = imread(strcat(cfg.datafolder,cfg.mapfile));
 
@@ -80,7 +99,7 @@ m_size = size(I);
 x_ppm = m_size(2) / x_size;
 z_ppm = m_size(1) / z_size;
 
-%%
+%% CALCULATE POIs
 %Use the POITable to find all POI Color Areas on the map, and store the
 %pois on a per color basis
 poitable = readtable(strcat(cfg.datafolder,cfg.poifile));
@@ -104,7 +123,7 @@ for i = 1:height(poitable)
     pois.(cell2mat(poitable.name(i))).boundaries = B;    
 end
 
-%%
+%% CHECK ALL DATAPOINTS
 %Calculate which of the points are inside of the different POIs, and store
 %this in individual tables
      
@@ -126,7 +145,8 @@ for i = 1:length(poinames)
         pois.(curname).inside = max(in,pois.(curname).inside);
     end
 end
-%%
+
+%% CREATE OUTPUT
 %Create a list with the current POI, to create a list of easy to recognize POI values
      
 currentpoi = strings(length(data.x),1);
@@ -141,13 +161,9 @@ for i = 1:length(poinames)
     end
 end
 
-%%
+%% CREATE OUTPUT
 %create the output structure
 out = data;
 out.poidata = pois;
 out.currentpoi = currentpoi;
 end
-
-%%
-%FEATURE ENHANCEMENT OPTIONS
-%cfg.usemap - Option to either define map data, polygon data, or area data

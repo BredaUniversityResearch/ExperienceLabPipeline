@@ -1,4 +1,4 @@
-function matlab_time = unixtime2mat(unix_time);
+function matlab_time = unixtime2mat(unix_time)
 % unixtime2mat  Converts unix time stamps (seconds since Jan 1, 1970) to
 %               Matlab serial date number (decimal days since Jan 1 0000).
 %               

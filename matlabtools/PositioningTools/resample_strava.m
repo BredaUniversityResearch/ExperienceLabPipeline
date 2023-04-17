@@ -1,14 +1,28 @@
 function out = resample_strava(cfg, data)
+%% RESAMPLE STRAVA
 %function out = resample_strava(cfg, data)
 %
+% *DESCRIPTION*
 %This function can be used to resample the strava data. This is currently
 %still a self-written resampler, and should be replaced with the Matlab
 %build-in resample option at some point.
 %
-% configuration options are:
+% *INPUT*
+%Configuration Options
 % cfg.fsample       =   desired fsample, must be provided
 %
+% *OUTPUT*
+%Resampled strava data structure
+%
+% *NOTES*
+%NA
+%
+% *BY*
 % Wilco Boode 18/05/2020
+
+%% DEV INFO
+% this function should probably be deprecated and replaced by
+% resample_generic, to create one function that can detect data types
 
 %Check whether the desired fsample is defined, this value is mandatory
 if ~isfield (cfg,'fsample')

@@ -1,4 +1,5 @@
 function out = map_gps_position (cfg, data)
+%THIS FUNCTION IS BASICALLY DEPRECATED NOW WE USE KEPLER.GL
 
 %Width Visualization. Providing only the minwidth will set the width to
 %that size. For custom with, provide the data, min, and max

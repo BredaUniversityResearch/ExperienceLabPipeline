@@ -1,5 +1,8 @@
 function out = deconvolve_eda(cfg, data)
+%% DECONVOLVE EDA
 % function out = deconvolve_eda(cfg, data);
+%
+% *DESCRIPTION*
 % reads matlab-format SCR data (e.g. output from empatica2matlab, or from segment_empatica)
 % and decomposes this into tonic and phasic components by using the toolbox
 % Ledalab. Current implementation is a continuous decomposition analysis,
@@ -11,11 +14,28 @@ function out = deconvolve_eda(cfg, data)
 % error messages that say 'unable to open file' can be ignored, Ledalab
 % tries to read all files in cfg.tempdir but shouldn't (and can't)
 %
-% configuration options are:
-% cfg.tempdir   = string specifying location where temporary datafiles are stored (default = C:\temp)
+% *INPUT*
+%Configuration Options
+%cfg.tempdir   = string specifying location where temporary datafiles are stored (default = C:\temp)
 %
+% *OUTPUT*
+%The original data structure, including new variables for:
+%phasic, phasic_z, tonic, tonic_z, analysis
+%
+% *NOTES*
+%NA
+%
+% *BY*
 % Marcel Bastiaansen, 07-04-2018
 
+%% DEV INFO
+%tempdir is not checked, should check if its there, otherwise ledalab will
+%crash when folder is not available
+%Z score is currently running ledalab a second time. Should check if there
+%is any difference in z-scoring pre or post, perhaps we can NOT run ledalab
+%twice!
+
+%% VARIABLE CHECK
 % set defaults
 if ~isfield(cfg, 'tempdir')
     cfg.tempdir = 'C:\Temp';

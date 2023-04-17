@@ -1,14 +1,32 @@
 function out = segment_beacon(cfg,beaconData)
+%% SEGMENT BEACON
 %function out = segment_beacon(cfg,beaconData)
-% function to segment the beacon data
 %
+% *DESCRIPTION*
+%function to segment the beacon data
+%
+% *INPUT*
+%Configuration Options
 % configuration options are:
 % cfg.onset         = date string specifying the time point of interest (trigger point)ar
 % cfg.offset        = time in seconds after trigger point
 % cfg.usegeodata    = whether the data includes geodata (lat lon)
 % cfg.nearestBeacon = whether the data also included nearestBeacon data   
 %
+% *OUTPUT*
+%Segmented beacon data
+%
+% *NOTES*
+%Additional information about the function, for example if parts have been
+%retrieved from an online source
+%
+% *BY*
 % Wilco Boode 18/05/2020
+
+%% DEV INFO
+%This function is a remnant from a different era and should be replaced by
+%Segment_generic wherever possible. Might be good to just call
+%segment_generic from this one and let that one figure things out.
 
 onsetDifference = seconds(cfg.onset - beaconData.initial_time_stamp_mat);
 offsetDifference = -(beaconData.time(length(beaconData.time))-(cfg.offset+onsetDifference));

@@ -1,26 +1,14 @@
-function out = VisualizeIndoorData(data,cfg)
-%% EXAMPLE VALUES
-clear;
-cfg = [];
-data = 'G:\BUas\602012 - Experience Lab - Cxxxxxx - Markiezenhof - Cxxxxxx - Markiezenhof\EmpaticaProject\2.ProcessedData\data_final.mat';
-cfg.mapname = 'G:\BUas\602012 - Experience Lab - Cxxxxxx - Markiezenhof - Cxxxxxx - Markiezenhof\EmpaticaProject\1.Scripts&Tools\map2.png';
-cfg.mapmeta = 'G:\BUas\602012 - Experience Lab - Cxxxxxx - Markiezenhof - Cxxxxxx - Markiezenhof\EmpaticaProject\0.RawData\MapMeta.xlsx';
-cfg.transparency = 0.5;
-cfg.datatype = 'phasic';
-cfg.participants = 'all';
-cfg.participants = [1,4,7,28,34];
-cfg.gridsize = 2;
-cfg.calculation = @length;
-
-%% CONFIG INFO
+function out = VisualizeIndoorData(cfg,data)
+%% VISUALIZE INDOOR DATA
+% function out = VisualizeIndoorData (cfg,data)
+%
+% *DESCRIPTION*
 % This function uses the ExperienceLabPipeline provided data format, and
 % configuration file, to create a figure with a heatmap showing the
 % accumilated data on the map
 %
-% DATA
-%   You can either provide the data, or the directory of the datafile
-%
-% CONFIG
+% *INPUT*
+%Configuration Options
 %   cfg.mapname = location of map image file
 %   cfg.mapmeta = location of map xlsx metadata
 %   cfg.datatype = datatype to represent in the heatmap (z value), must be
@@ -31,11 +19,37 @@ cfg.calculation = @length;
 %   cfg.gridsize = size of the grid in meters
 %   cfg.calculation = the function used (mean, max, min, length)
 %
+%Data Requirements
+%   You can either provide the data, or the directory of the datafile
+%
+% *OUTPUT*
+%Description of the output this function provides, both type of data, and
+%potentialy the format it outputs
+%
+% *NOTES*
+%Additional information about the function, for example if parts have been
+%retrieved from an online source
+%
+% *BY*
 % Wilco Boode 21/01/2022
+warning('THIS FUNCTION IS QUITE EXPERIMENTAL AND NOT FULLY FLUSHED OUT, PLEASE BE CAREFULL AND CHECK THE RESULTS')
 
-%% TO DO
+%% DEV INFO
 % Make it smoother. Perhaps fill rest of the grid with 0 values for
 % smoother interpolation?
+
+%% EXAMPLE VALUES
+%clear;
+%cfg = [];
+%data = 'G:\BUas\602012 - Experience Lab - Cxxxxxx - Markiezenhof - Cxxxxxx - Markiezenhof\EmpaticaProject\2.ProcessedData\data_final.mat';
+%cfg.mapname = 'G:\BUas\602012 - Experience Lab - Cxxxxxx - Markiezenhof - Cxxxxxx - Markiezenhof\EmpaticaProject\1.Scripts&Tools\map2.png';
+%cfg.mapmeta = 'G:\BUas\602012 - Experience Lab - Cxxxxxx - Markiezenhof - Cxxxxxx - Markiezenhof\EmpaticaProject\0.RawData\MapMeta.xlsx';
+%cfg.transparency = 0.5;
+%cfg.datatype = 'phasic';
+%%cfg.participants = 'all';
+%cfg.participants = [1,4,7,28,34];
+%cfg.gridsize = 2;
+%cfg.calculation = @length;
 
 %% VARIABLE SETUP
 disp('SETUP START');

@@ -1,4 +1,8 @@
 function out = resample_facereader (cfg, data)
+%% RESAMPLE FACEREADER
+%function out = resample_facereader (cfg, data)
+%
+% *DESCRIPTION*
 %This function can resample the Facereader data, currently it can only
 %downlsample, not upsample. But the final version will resample according
 %to the original / new sample rate, this allows for 1 resample script,
@@ -8,7 +12,29 @@ function out = resample_facereader (cfg, data)
 %grabs the mean value of this combination of samples.
 %The Upsample should fill up the spaces with the nearest Sample Time. This
 %is already done with some of the data (beacon)
+%
+% *INPUT*
+%Configuration Options
+%cfg.fsample = the desired sample frequency
+%           default = 4;
+% *OUTPUT*
+%resampled structure
+%
+% *NOTES*
+%NA
+%
+% *BY*
+%Wilco Boode
 
+%% DEV INFO
+%This function was developed as a test and needs extensive reworking to be
+%functional in a production setting.
+%The current resampling is done manually, creating a linear frequency and
+%then using the default resample (or resample_generic) would be preferred
+%in the future
+
+
+%% START
 %clearvars -except segmented_facereader_e segmented_facereader_e_resegmented
 %data = segmented_facereader_e;
 %clearvars -except out out_original

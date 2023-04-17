@@ -1,7 +1,9 @@
 function out = getdevicename(cfg)
+%% GET DEVICE NAME
 %function out = getdevicename(cfg)
 %
-%This function allows the user to compare and create a column with deviceIDs based on its name. 
+% *DESCRIPTION*
+%This function allows the user to compare and create a column with deviceIDs from an excel file based on its name. 
 %It is specifically meant to more easily add empatica IDs to your participant
 %data sheet, as that will simplify the process of looking for the devices
 %in the Empatica Manager.
@@ -12,6 +14,15 @@ function out = getdevicename(cfg)
 %           as EL0100
 %   Z3      ("Z z" prefix + number) = Recognized as Z3
 %
+% *INPUT*
+%Configuration Options
+%cfg (mandatory)
+%cfg.DeviceList = "EmpaticaNames.xlsx"; = String with path of devicelist
+%cfg.ParticipantData = "ParticipantData.xlsx"; = String with path of participantdata
+%cfg.DeviceNameColumn = 6; = Index of the row DeviceName in the participantdata
+%cfg.DeviceIDColumn = 7; = Index of the row DeviceID in the participantdata
+%
+%Data Requirements
 %Excel Format:
 %An excel file with 2 columns, the existing sheet with ExperienceLab owned
 %devices can be found in Teams -> Experience Lab Team -> General Channel ->
@@ -26,14 +37,20 @@ function out = getdevicename(cfg)
 %   DeviceID =  A column without any data, this column will be filled with
 %               the required IDs
 %
-%cfg (mandatory)
-%cfg.DeviceList = "EmpaticaNames.xlsx"; = String with path of devicelist
-%cfg.ParticipantData = "ParticipantData.xlsx"; = String with path of participantdata
-%cfg.DeviceNameColumn = 6; = Index of the row DeviceName in the participantdata
-%cfg.DeviceIDColumn = 7; = Index of the row DeviceID in the participantdata
+% *OUTPUT*
+%Structure the same as the input excel file, but with a column for the
+%device names
 %
-% Wilco 27/06/2022
+% *NOTES*
+%NA
+%
+% *BY*
+% Wilco Boode 27/06/2022
 
+%% DEV INFO
+%
+
+%%
 %read the excel file with device names & ids
 DeviceList = readtable(cfg.DeviceList);
 

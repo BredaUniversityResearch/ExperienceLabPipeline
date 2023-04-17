@@ -1,4 +1,6 @@
 function data = ridesegmets2mat(cfg)
+%THIS FUNCTION IS BASICALLY A REMNANT, DOING THIS SHOULD BE DONE USING
+%SEGMENT_GENERIC
 
 %NEED TO DOCUMENT #WILCO2018
     cfg.format = 'dd-mm-yyyy HH:MM:SS'

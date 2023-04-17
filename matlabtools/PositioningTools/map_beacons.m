@@ -1,34 +1,45 @@
-function out = map_beacons(cfg, plotting_data)
-
-%TestVars
-%clearvars -except combined_data
-%plotting_data = combined_data;
-%cfg = [];
-%cfg.participantFolder = 'C:\\data\\Wilco\\0.PositionTest\\colintest\\testdata';
-%cfg.beacondataFolder = 'C:\\data\\Wilco\\0.PositionTest\\colintest\\testdata';
-
+function out = map_beacons(cfg, data)
+%% NAME OF FUNCTION
+% function out = map_beacons(cfg, data)
+%
+% *DESCRIPTION*
 %This function loads in combined data, and using user provided argument (in
 %the cfg plots this data on a map). This particular script is written for
 %beacon data, but can be expended for other data.
 %The Script outputs the final map (it also saves the map in the participant
 %folder) and all variables combined for future combinations of all data.
-%participantFolder =    String of the participant data folder position
-%beacondataFolder =     String of the folder containing overall beacon info
-%sizeStart =            Num Value of the starting size of the points
-%sizeMultiplier =       Num Value of the multiplication factor for the
-%point size
-%intensityType =        string for the calculations used on the beacon data
-%max
-%min
-%mean
-%modus
-%median
-%sampleVariable =       From the datasource, what variable should be used
+%
+% *INPUT*
+%Configuration Options
+%cfg.participantFolder =    String of the participant data folder position
+%cfg.beacondataFolder =     String of the folder containing overall beacon info
+%cfg.sizeStart =            Num Value of the starting size of the points
+%cfg.sizeMultiplier =       Num Value of the multiplication factor for the
+%cfg.intensityType =        string for the calculations used on the beacon data
+%cfg.sampleVariable =       From the datasource, what variable should be used
 %for the point color (conductance, phasic, distance)
-%beaconFile =           String name& format of the file with beacon info
-%mapFile =              String name & format of the map file. This map file
-% also needs a special positioning file for geodata
+%cfg.beaconFile =           String name& format of the file with beacon info
+%cfg.mapFile =              String name & format of the map file. This map file
+%
+%Data Requirements
+%requires data to be formatted the way we do with the experiencelab
+%pipeline
+%
+% *OUTPUT*
+%map.png file with the plotted data
+%
+% *NOTES*
+%NA
+%
+% *BY*
+%Wilco Boode
 
+%% DEV INFO
+%This function is pretty old, but seems to have some relevance still.
+%Should probably make a couple of visualization options and use this as a
+%wrapper around it in the future.
+
+%% VARIABLE CHECK
 %check if all required CFG fields are available, if not then generate them
 if ~isfield(cfg, 'participantFolder')
     warning('PARTICIPANT FOLDER NOT FOUND, MAP WILL NOT BE AUTOMATICALLY SAVED');
@@ -74,11 +85,11 @@ y = beaconPos(1:size(beaconPos),3);
 
 %Grab all data from the sampleVariable array and past it in the array
 %struct of the correct beacon
-for  i = 1:length(plotting_data.minor)
-    if ~(isnan(plotting_data.minor(i)))
+for  i = 1:length(data.minor)
+    if ~(isnan(data.minor(i)))
         for  j = 1:length(minor)
-            if minor(j) == plotting_data.minor(i)
-                allSamples{j} = [allSamples{j} plotting_data.(cfg.sampleVariable)(i)];
+            if minor(j) == data.minor(i)
+                allSamples{j} = [allSamples{j} data.(cfg.sampleVariable)(i)];
             end
         end
     end
@@ -88,7 +99,7 @@ end
 %data, and the size the point should have (based on the seconds and sizes)
 for  i = 1:length(minor)
     if ~(isnan(allSamples{i}))
-        seconds{i} =  length(allSamples{i})/plotting_data.fsample;
+        seconds{i} =  length(allSamples{i})/data.fsample;
         
         if strcmp(cfg.intensityType,'max')
             intensity{i} = max(allSamples{i});

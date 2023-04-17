@@ -1,4 +1,31 @@
 function out = segment_facereader(cfg, data)
+%% SEGMENT FACEREADER
+%function out = segment_facereader(cfg, data)
+%
+% *DESCRIPTION*
+%function to segment the facereader data
+%
+% *INPUT*
+%Configuration Options
+%cfg.pretrigger = 1;
+%cfg.posttrigger = 60;
+%cfg.trigger_time = '24-Oct-2017 09:12:40'
+%
+% *OUTPUT*
+%Structure containing the segmented facereader data 
+%
+% *NOTES*
+%NA
+%
+% *BY*
+%Wilco Boode
+
+%% DEV INFO
+%This function was partially developed, but never fully implemented in a
+%project, need some cleanup and a sensibility check.
+%Probably beter to completely deprecate this function and move to
+%segment_generic
+
 %clearvars -except out
 %clearvars -except data data2 data3 cfg
 %data = data3;

@@ -1,10 +1,13 @@
 function out = calculatebikingpower(cfg)
-%CALCULATE BIKING POWER WITH KG, M, KM, Seated, M/hr
-
-%this calculation comes from the website of the university of arizona
-%https://www.u.arizona.edu/~sandiway/bike/climb.html
-
-%Users can set the following values
+%% NAME OF FUNCTION
+% function out = calculatebikingpower(cfg)
+%
+% *DESCRIPTION*
+%This function can calculate the current power required to propel a bike
+%forward
+%
+% *INPUT*
+%Configuration Options
 %cfg.bikerweight = weight of the biker in KG;
 %cfg.bikeweight = weight of the bike in KG;
 %cfg.verticalgain = verticalgain of that section in M;
@@ -12,8 +15,18 @@ function out = calculatebikingpower(cfg)
 %cfg.speed = Speed of the biker in KM/H;
 %cfg.roadtype = Type of Road, can be set as "road" or "mountain"
 %cfg.position = Position of the biker, can be set as "standing", "seated,bar-tops", "seated,drops", "seated,tucked";
+%
+% *OUTPUT*
+%The final power calculation
+%
+% *NOTES*
+%this calculation is based on the website of the university of arizona
+%https://www.u.arizona.edu/~sandiway/bike/climb.html
+%
+% *BY*
+%Wilco Boode
 
-%%
+%% CHECK VARIABLES
 %Checks for user provided values, if they are not in standard values are used
 if ~isfield(cfg, 'bikerweight')
     cfg.bikerweight = 70;
@@ -38,7 +51,7 @@ if ~isfield(cfg, 'position')
     cfg.position = "seated,bar-tops";
 end
 
-%%
+%% SET VALUES
 %Set non-user definable values
 crunits = 3600;
 if strcmp(cfg.roadtype,"road")
@@ -68,12 +81,13 @@ rollingresistance = roadtype;
 riderposition = position;
 
 
-%% 
+%% CALCULATE POWER LEVEL
 %Calculate final values that indicate power
 gravity = gravityscalar*totalweight*climbrate;
 rolresistance = gravityscalar*totalweight*rollingresistance*speed;
 aero = riderposition*speed3;
 power = gravity + rolresistance + aero;
 
+%% OUTPUT
 out = power;
 end

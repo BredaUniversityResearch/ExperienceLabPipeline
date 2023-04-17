@@ -1,16 +1,30 @@
 function out = resample_beacon(cfg, beaconData)
+%% RESAMPLE BEACON
 % function out = resample_beacon(cfg, beaconData)
-% 
+%
+% *DESCRIPTION*
 % Function for resampling the beacon data, this function was written as a
 % generic resampler, and could be used to resample other data as well,
 % although this is not fully tested
 %
-% configuration options are:
+% *INPUT*
+%Configuration Options
 % cfg.fsample       = new sample rate the data should be resampled to
 % cfg.stringNames   = names of string data, by default this is assumed to be the nearest beacon and nearestBeacocnID data;
 % cfg.doubleNames   = names of double data, by default this is assumed to be the x,y,z,z_inv data;
 %
+% *OUTPUT*
+%Resampled beacon data structure
+%
+% *NOTES*
+%NA
+%
+% *BY*
 % Wilco Boode 18/05/2020
+
+%% DEV INFO
+% this function should probably be deprecated and replaced by
+% resample_generic, to create one function that can detect data types
 
 %defining the names of all arrays to be resampled
 if ~isfield (cfg, 'stringNames')

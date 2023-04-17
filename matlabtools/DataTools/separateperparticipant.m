@@ -3,15 +3,15 @@ function out = separateperparticipant(cfg,data)
 %function out = separateperparticipant(cfg,data)
 %
 % *DESCRIPTION*
-% This is a simple script that takes the input datafile, loops over all rows, and separates the data
-% per participantvalue. The function can then export all values as separate csv files for easier per participant
-% separation with smaller files. The order will remain as in the original file, and can handle both
-% clearly separated participants, as well as mixed participant data.
+%This is a simple script that takes the input datafile, loops over all rows, and separates the data
+%per participantvalue. The function can then export all values as separate csv files for easier per participant
+%separation with smaller files. The order will remain as in the original file, and can handle both
+%clearly separated participants, as well as mixed participant data.
 %
 % *INPUT*
-% Configuration Options:
-% participantcolumn = the number of the column containing the participant name / value  | 5
-% exportlocation = the folder where the data should be exported to | 'D:\Projectname\Data\EyeTracking\'
+%Configuration Options:
+%participantcolumn = the number of the column containing the participant name / value  | 5
+%exportlocation = the folder where the data should be exported to | 'D:\Projectname\Data\EyeTracking\'
 %           leaving this empty will give you the struct with the data, but
 %           wont output separated data files
 %
@@ -27,7 +27,7 @@ function out = separateperparticipant(cfg,data)
 %NA
 %
 % *BY*
-% Wilco Boode, 21/05/2021
+%Wilco Boode, 21/05/2021
 
 %% DEV INFO
 % Should add function to define column name instead of per se column number

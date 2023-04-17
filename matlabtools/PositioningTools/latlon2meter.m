@@ -1,38 +1,47 @@
-function out  = latlon2meter(lato,lono,latd,lond,R)
+function out  = latlon2meter(cfg)
+%% LAT LON 2 METER
+% function out = latlon2meter (cfg)
 %
+% *DESCRIPTION*
 %Function to get the x z position in meters from the lat and long positions
 %This function creates a distance calculation based on the the starting lat/lon 
 %position, and the current data lat/lon, to calculate grids and generate
 %indoor mappable data
 %
-%The function outputs a single structure containing:
+% *INPUT*
+%Configuration Options
+%cfg.lato = Origin latitude
+%cfg.lono = Origin longitute
+%cfg.latd = Destination latitude
+%cfg.lond = Destination longitude
+%cfg.R = (OPTIONAL)the radius of the earth
 %
-%out.x              = Estimated X position of participant
-%out.z              = Estimated Z position of participant
+% *OUTPUT*
+%out.x = Estimated X position of participant
+%out.z = Estimated Z position of participant
 %
-%Mandadory confuguration options are:
-%lato            = Starting latitude
-%lono            = Starting longitute
-%latd            = Latitude of the data
-%lond            = Longitude of the data
+% *NOTES*
 %
-%Non-mandadory confuguration options are:
-%R              = the radius of the earth, this is not mandatory
-%
+% *BY*
 %Wilco Boode: 12-03-2021
-%PLACE EXACT DESCRIPTION FOR MATLAB PROGRAMMERS HERE
+
+%% DEV INFO
 %12-03-2021 - Added output in lat/lon as well, as its more sensible in some
 %situations
 
+%% VARIABLE CHECK
 %If the Radius is not defined, then the radius will be set by the function.
-if ~exist('R','var')
-    R=6378137;
+if ~isfield(cfg,'R')
+    cfg.R=6378137;
 end
 
-dLat = lato * pi / 180 - latd * pi / 180;
-dLon = lono * pi / 180 - lond * pi / 180 ;
-out.z = dLat*R;
-out.x = dLon*(R*cos(pi*lato/180));
-out.lat = dLat*R;
-out.lon = dLon*(R*cos(pi*lato/180));
+%% CALCULATION & OUTPUT
+dLat = cfg.lato * pi / 180 - cfg.latd * pi / 180;
+dLon = cfg.lono * pi / 180 - cfg.lond * pi / 180 ;
+
+out.z = dLat*cfg.R;
+out.x = dLon*(cfg.R*cos(pi*cfg.lato/180));
+
+out.lat = dLat*cfg.R;
+out.lon = dLon*(cfg.R*cos(pi*cfg.lato/180));
 end

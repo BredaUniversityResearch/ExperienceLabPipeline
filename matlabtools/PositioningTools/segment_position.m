@@ -1,4 +1,8 @@
 function out = segment_position(cfg, data)
+%THIS FUNCTION SHOULD BE DEPRECATED BY NOW, PLEASE USE SEGMENT_GENERIC IF
+%POSSIBLE
+warning('THIS FUNCTION IS DEPRECATED AND SHOULD BE REPLACED BY SEGMENT_GENERIC!!!')
+
 % function out = segment_position(cfg, data);
 % segments position data (in matlab formt) around a trigger point.
 % It returns segmented position data - only beacon psoition data in current implementation.
