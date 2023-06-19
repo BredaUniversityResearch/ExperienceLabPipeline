@@ -30,9 +30,24 @@ function out = resample_generic(cfg, data)
 if ~isfield (cfg,'fsample')
     error('no sample frequency is defined');
 end
+
+if ~isfield (data,'time')
+    error('no time data provided')
+end
+
 %Deterine wheter any datavalues are provided, if not, give a warning
 if ~isfield (cfg,'valueList')
-    warning('no data values provided');
+    warning('no data values provided, using all arrays with length as time');
+    cfg.valueList = [];
+    vars = fieldnames(data);
+    for isamp = 1:length(vars)
+        if strcmpi(string(vars{isamp}),"time")
+            continue
+        end
+        if height(data.(vars{isamp})) == height(data.time)
+            cfg.valueList = [cfg.valueList;string(vars{isamp})];
+        end
+    end
 end
 
 %% TAKE ALL VARIABLES AND RESAMPLE THEM TO THE NEW FREQUENCY
@@ -50,7 +65,7 @@ end
 
 %calculate the total duration of the data, then generate an array of time
 %points
-tFinal = data.time(length(data.time));
+tFinal = (1/cfg.fsample)*(datalength-1);% data.time(length(data.time));
 time = transpose(linspace(0,tFinal,datalength));
 
 %% FUNCTION END

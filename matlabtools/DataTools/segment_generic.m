@@ -178,7 +178,7 @@ else
     end
 end
 if starttime < min(time) && strcmp(cfg.allowoutofbounds,'false')
-    error('New Start time is less than the data start time, this is not allowed')
+    error(strcat('New Start time is less than the data start time, this is not allowed',' DataStart: ', string(data.initial_time_stamp_mat),' DataEnd:',string(cfg.starttime)))
 elseif starttime < min(time) && strcmp(cfg.allowoutofbounds,'true')
     preduration = -starttime;
     starttime = min(time);
