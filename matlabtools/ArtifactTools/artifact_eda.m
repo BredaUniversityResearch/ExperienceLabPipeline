@@ -207,6 +207,7 @@ while (repeatremoval == 'y')
                         leftindex = leftindex-1;
                     else
                         leftborder = isample - ((cfg.timwin*data.fsample/2)+1) + leftindex; % left border is now indexed in real datasamples, not in samples of the smaller time window
+                        leftborder = clamp(leftborder,0,length(data.time)); % make sure the border is always within the time domain / datapoint count to mitigate index issues
                         break
                     end
                 end
@@ -218,6 +219,7 @@ while (repeatremoval == 'y')
                         rightindex = rightindex+1;
                     else
                         rightborder = isample - ((cfg.timwin*data.fsample/2)+1) + rightindex; % left border is now indexed in real datasamples, not in samples of the smaller time window
+                        rightborder = clamp(rightborder,0,length(data.time)); % make sure the border is always within the time domain / datapoint count to mitigate index issues
                         break
                     end
                 end
@@ -237,14 +239,16 @@ while (repeatremoval == 'y')
                     continue
                 end
 
-                artifact = struct('starttime',data.time(leftborder),'endtime',data.time(rightborder));
+                if (leftborder ~= rightborder)
 
-                if exist('artifacts','var')
-                    artifacts(length(artifacts)+1) = artifact;
-                else
-                    artifacts(1) = artifact;
+                    artifact = struct('starttime',data.time(leftborder),'endtime',data.time(rightborder));
+
+                    if exist('artifacts','var')
+                        artifacts(length(artifacts)+1) = artifact;
+                    else
+                        artifacts(1) = artifact;
+                    end
                 end
-
                 %done with the current potential artifact. Jump to the end of it and go to the next iteration
                 isample = rightborder+((cfg.timwin*data.fsample/2)+1);
 
@@ -264,6 +268,7 @@ while (repeatremoval == 'y')
                         leftindex = leftindex-1;
                     else
                         leftborder = isample - ((cfg.timwin*data.fsample/2)+1) + leftindex; % left border is now indexed in real datasamples, not in samples of the smaller time window
+                        leftborder = clamp(leftborder,0,length(data.time)); % make sure the border is always within the time domain / datapoint count to mitigate index issues
                         break
                     end
                 end
@@ -275,6 +280,7 @@ while (repeatremoval == 'y')
                         rightindex = rightindex+1;
                     else
                         rightborder = isample - ((cfg.timwin*data.fsample/2)+1) + rightindex; % left border is now indexed in real datasamples, not in samples of the smaller time window
+                        rightborder = clamp(rightborder,0,length(data.time)); % make sure the border is always within the time domain / datapoint count to mitigate index issues
                         break
                     end
                 end
@@ -294,22 +300,23 @@ while (repeatremoval == 'y')
                     continue
                 end
 
-                artifact = struct('starttime',data.time(leftborder),'endtime',data.time(rightborder));
+                if (leftborder ~= rightborder)
+                    artifact = struct('starttime',data.time(leftborder),'endtime',data.time(rightborder));
 
-                if exist('artifacts','var')
-                    artifacts(length(artifacts)+1) = artifact;
-                else
-                    artifacts(1) = artifact;
+                    if exist('artifacts','var')
+                        artifacts(length(artifacts)+1) = artifact;
+                    else
+                        artifacts(1) = artifact;
+                    end
                 end
 
                 %done with the current potential artifact. Jump to the end of it and go to the next iteration
                 isample = rightborder+((cfg.timwin*data.fsample/2)+1);
-
+                
             else % no potential artifact detected
                 isample = isample+1;
                 continue
             end
-
         end
     end
 
