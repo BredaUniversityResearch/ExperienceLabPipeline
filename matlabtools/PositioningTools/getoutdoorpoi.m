@@ -39,6 +39,12 @@ function out  = getoutdoorpoi(cfg,data)
 %1. retrieving the geojson file containing all POI areas
 %2. comparing all lat/lon points in the data file to polygons created with the geojson file
 
+%% TO DO
+%1. make sure you can either provide the geojson structur, or the link to
+%the file
+%2. make sure the function works with cell arrays {} as well as struct
+%arrays ()
+%3. 
 
 %% VARIABLE CHECK
 if ~isfield(cfg, 'datafolder')
