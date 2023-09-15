@@ -74,9 +74,13 @@ function out = segment_generic (cfg,data)
 % Default = amsterdam from now on I guess
 
 % TO ADD
-%option for out of bounds data, and a fill up with specific data type (zeroes ,  "" , self-provided, or last-available)
-%option for excludevariables, in case you want to do all but certain variables in the data file
+%1 option for out of bounds data, and a fill up with specific data type (zeroes ,  "" , self-provided, or last-available)
+%2 option for excludevariables, in case you want to do all but certain variables in the data file
 %maybe we make it variable dependent? (not sure if its a good idea, but allowing per variable fill options might be interesting) NO, SOUNDS HORRIBLE
+%3 posttrigger/duration, add check if its a cell that can be turned into an
+%integer or not
+%4 add config for pretrigger, posttrigger, trigger_time
+%5 make it possible to use datetimes rather than string values
 
 %% VARIABLE CHECK
 if isfield (cfg, 'trigger_time')
@@ -304,7 +308,7 @@ if exist('postduration','var') || exist('preduration','var')
         out.(variables(isamp)) = newarray;
     end
     % ADJUST TIME VARIABLES for PRE POST
-    newtime = linspace(0,max(newtime)+((prepoints + postpoints)*diff([time(1),time(2)])),length(tindex)+(prepoints + postpoints));
+    newtime = transpose(linspace(0,double(max(newtime)+((prepoints + postpoints)*diff([time(1),time(2)]))),double(length(tindex)+(prepoints + postpoints))));
 
     out.time = newtime;
 
