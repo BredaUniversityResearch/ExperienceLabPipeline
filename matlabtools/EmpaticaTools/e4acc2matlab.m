@@ -18,8 +18,6 @@ function out = e4acc2matlab(cfg)
 % cfg.edafile unless you have a good reason to deviate from that.
 % Wilco Boode, 11-07-2022
 
-% testing changes
-
 %Save current Folder Location
 curdir = pwd;
 cd(cfg.datafolder)
