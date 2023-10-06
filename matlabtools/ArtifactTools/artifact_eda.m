@@ -51,6 +51,10 @@ function out = artifact_eda(cfg, data)
 % Marcel, 29-12-2018
 % Wilco, 21-02-2022
 
+% FEATURE REQUESTS
+% 1. Option to check if theres NaN data at the end, if so, segment all data
+% to the moment up until the NaN data begins
+
 %% VARIABLE CHECK
 if isfield (cfg, 'validationdata')
     graphCount = 3;
