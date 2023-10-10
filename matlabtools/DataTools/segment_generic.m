@@ -241,7 +241,8 @@ tindex = find(data.time >= starttime & data.time <= endtime);
 
 %replace the out variable with the section cut based on tindex
 for isamp = 1:length(variables)
-    out.(variables(isamp))=data.(variables(isamp))(min(tindex):max(tindex),:);
+    %BUG WHEN USING HORIZONTAL INSTEAD OF VERTICAL DATA
+    out.(variables(isamp)) = data.(variables(isamp))(min(tindex):max(tindex),:);
 end
 
 

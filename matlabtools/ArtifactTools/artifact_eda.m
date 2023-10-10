@@ -324,29 +324,44 @@ while (repeatremoval == 'y')
         end
     end
 
-    %% ARTIFACT CORRECTION
+    %% ARTIFACT CORRECTION APP
     % Open the correction app, and allow user to select artifacts to correct
     if exist('artifacts','var')
-        appcfg = [];
-        if isfield(cfg, 'prepostvisualization')
-            appcfg.prepostduration = cfg.prepostvisualization;
-        end
-
+       
+        %setup cfg for correction app
         artifactcfg = [];
         artifactcfg.artifacts = artifacts;
         artifactcfg.time = data.time;
         if isfield(cfg, 'validationdata')
             artifactcfg.validation = cfg.validationdata;
-        end
+        end        
         if isfield(cfg, 'artifactprepostvis')
             artifactcfg.prepostduration = cfg.artifactprepostvis;
         end
+        
+        %Open app with the provided data and artifacts
         ArtifactApp = ArtifactCorrectionApp(data.conductance,artifactcfg);
-
         waitfor(ArtifactApp,'closeapplication',1)
-
-        data.conductance = ArtifactApp.solution;
+        
+        %Wait until artifactapp has been closed to take the final solution
+        solution = ArtifactApp.solution;
         delete(ArtifactApp);
+
+        %check if new conductance level has the same amount of datapoints,
+        %otherwise resegment to the new count
+        sampledifference = length(data.conductance) - length(solution);
+        if sampledifference > 0
+            newduration = data.time(length(data.conductance)-sampledifference);
+
+            segment_cfg = [];
+            segment_cfg.trigger_time = data.initial_time_stamp_mat;
+            segment_cfg.pretrigger = 0;
+            segment_cfg.posttrigger = newduration;
+            data = segment_generic(segment_cfg,data);
+        end
+
+        data.conductance = solution;
+        %
     end
 
     %% POST BLOCKREPLACEMENT
