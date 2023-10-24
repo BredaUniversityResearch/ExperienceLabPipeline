@@ -63,7 +63,7 @@ end
 
 %% LOAD DATA
 %Load POI json file
-fname = strcat(cfg.datafolder,cfg.poifile);
+fname = strcat(fullfile(cfg.datafolder,cfg.poifile));
 fid = fopen(fname); 
 raw = fread(fid,inf); 
 str = char(raw'); 
@@ -123,9 +123,17 @@ for i = 1:length(poinames)
     end
 end
 
+%Create matrix of all pois and labels
+samples = max(size(data.lat));
+poimatrix = zeros(height(poinames),samples);
+for isamp = 1:height(poinames)
+    poimatrix(isamp,:)= pois.(poinames{isamp}).inside;
+end
+
 %% FUNCTION END
 %create the output structure
 out = data;
-out.poidata = pois;
+out.poidata = poimatrix;
 out.currentpoi = currentpoi;
+out.poilabels = poinames;
 end
