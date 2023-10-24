@@ -41,11 +41,11 @@ function out = artifact_eda(cfg, data)
 %
 %
 % *OUTPUT*
-% The same as the input structure, but with the corrected conductance array
+%The same as the input structure, but with the corrected conductance array
 %
 % *NOTES*
-% Very much developed around the EMPATICA data, might not work optimal with
-% other data types
+%Very much developed around the EMPATICA data, might not work optimal with
+%other data types
 %
 % *BY*
 % Marcel, 29-12-2018
@@ -83,48 +83,51 @@ if ~isfield(cfg, 'blockreplacement')
     cfg.blockreplacement = "none";
 end
 
+if ~isfield(cfg, 'blockreplacement')
+    cfg.blockreplacement = "none";
+end
 
-% value to track whether artifact removal should be repeated entirely after
-% being done
+%value to track whether artifact removal should be repeated entirely after
+%being done
 repeatremoval = 'y';
 
 while (repeatremoval == 'y')
     %% PRE BLOCK REPLACEMENT
-    % section for pre-correction block replacement
+    %section for pre-correction block replacement
     if (cfg.blockreplacement == "pre" || cfg.blockreplacement == "both")
-        % check if there is an existing artifact list, if not, then create a new
-        % one using the python package and the provided data
+        %check if there is an existing artifact list, if not, then create a new
+        %one using the python package and the provided data
         if ~isfield(cfg, 'replacementartifacts')
             pcfg = [];
             artifacts = artifactmat2matlab(pcfg,data);
             cfg.replacementartifacts = artifacts.binaryArtifacts;
             warning("Got Artifacts");
         end
-        % check if there are configurations set for the replacement function, if
-        % not, create an empty config
+        %check if there are configurations set for the replacement function, if
+        %not, create an empty config
         if ~isfield(cfg, 'replacementarticfg')
             cfg.replacementcfg = [];
             warning("Made CFG");
         end
-        % store original conductance in separate variable for safekeeping and
-        % probible later use
+        %store original conductance in separate variable for safekeeping and
+        %probible later use
         data_orig = data;
 
-        % create structure for replacement function
+        %create structure for replacement function
         rdata.artifacts = cfg.replacementartifacts;
         rdata.original = data.conductance;
         rdata.time = data.time;
 
-        % run replacement function, and replace conductance data
+        %run replacement function, and replace conductance data
         replacementdata = artifact_replacement(cfg.replacementcfg, rdata);
         warning("Did a replace");
 
         data.conductance = replacementdata.corrected;
     end
 
-    % MANUAL IDENTIFICATION, artifact is manually defined and corrected
-    if strcmpi(cfg.manual, 'yes')
-        artifact_detected = 1; % artifact detection flag
+    %% MANUAL IDENTIFICATION
+    if strcmpi(cfg.manual, 'yes') % no artifact detection necessary, artifact is manually defined and corrected
+        detected = 1; %flag for keeping track of artifacts, used here for compatibility with the detection part of the function
         if (~isfield(cfg,'manual_starttime') || ~isfield(cfg,'manual_endtime'))
             error('manual artifact correction has been selected, but cfg.manual_starttime or cfg.manual_endtime have not been defined. Check input');
         end
@@ -134,7 +137,7 @@ while (repeatremoval == 'y')
         end
 
         data.conductance(cfg.manual_starttime*data.fsample+2:cfg.manual_endtime*data.fsample) = NaN; % replace artifact by NaNs; not sure why the +2 needs to be there, but it doesn't work well otherwise
-        if strcmpi(cfg.interp_method, 'spline') % spline interpolation
+        if strcmpi(cfg.interp_method, 'spline') %spline interpolation
             data.conductance = inpaint_nans(data.conductance, 1);
         elseif strcmpi(cfg.interp_method, 'linear') % linear interpolation
             data.conductance = inpaint_nans(data.conductance, 4);
@@ -144,7 +147,7 @@ while (repeatremoval == 'y')
 
 
 
-        % plot the resulting corrected data and ask for confirmation, if user wants this
+        %plot the resulting corrected data and ask for confirmation, if user wants this
         if strcmpi(cfg.confirm, 'yes')
             figure(99);
             subplot(graphCount,1,1), plot(data.time, data.conductance, data_orig.time, data_orig.conductance) % the entire data
@@ -176,155 +179,144 @@ while (repeatremoval == 'y')
         end
 
 
-    % ARTIFACT DETECTION, semi-automatic artifact detection and correction
-    else 
-        artifact_detected = 0; % initialize artifact detection flag, no artifact found yet
-        data_orig = data; % keep track of original data for final plot
-        timwin_samplesize = cfg.timwin * data.fsample; % the length of the window in amount of samples (e.g. 20s * 4Hz = 80 samples)
-        sample_i = 1; % start the timewindow at the first data sample
-        
-        while sample_i < numel(data.conductance) - timwin_samplesize
+        %% ARTIFACT DETECTION
+        % semi-automatic artifact detection and correction
+    else % perform artifact detection and correction
+        detected = 0;
+        data_orig = data; %keep track of original data for final plot
+        %move over data in subsegment intervals and z-transform
+        isample = (cfg.timwin*data.fsample/2)+2; % skip the first sample to avoid array indexing issues while plotting
+        while isample < numel(data.conductance)-((cfg.timwin*data.fsample/2)+1)
 
-            timwin_data = data.conductance(sample_i : sample_i + timwin_samplesize - 1); % get the data of the current window
-            zvalues = normalize(timwin_data); % calculate zscores (ignoring NaNs)
-            [peak,   peakindex]   = max(zvalues); % determine the peak z-value, and its index relative to the start of the time window
-            [trough, troughindex] = min(zvalues); % determine the trough z-value, and its index relative to the start of the time window
-            next_sample_jump = sample_i; % if artifacts are found, we want to jump ahead
+            timewindow = data.conductance(isample-(cfg.timwin*data.fsample/2):isample+((cfg.timwin*data.fsample/2)));
+            [zvalues, ~, ~] = zscore(timewindow);
+            [peak, peakindex] = max(zvalues); %determine the peak z-value, and its index relative to the start of the time window (isamp -41)
+            [trough, troughindex] = min(zvalues); %determine the trough z-value, and its index relative to the start of the time window (isamp - 41)
+            peaksample = isample - ((cfg.timwin*data.fsample/2)+1) + peakindex;
+            troughsample = isample - ((cfg.timwin*data.fsample/2)+1) + troughindex;
 
-            % PEAK DETECTION
-            if peak > cfg.threshold % if the peak zscore exceeds the provided threshold 
-                artifact_detected = 1; % artifact detection flag, artifact found
+            %% PEAK DETECTION
+            if peak > cfg.threshold %detected possible artifact in terms of peaks
+                detected =1;
 
-                % find left-hand border of this artifact by finding the
-                % datasample to the left of the peak where the incline started, within the 20-second time window
-                leftindex = peakindex; % start at the peak
-                while leftindex > 1 % stay within the current window
-                    if zvalues(leftindex - 1) < zvalues(leftindex) % the left value was smaller than the current value
-                        leftindex = leftindex - 1; % so move (further) to the left
-                    else % until the left value is not smaller than the current value
+                %determine the extent of the possible artifact, within the 20-second time window
+                %find left-hand border
+                leftindex = peakindex;
+                while leftindex > 1
+                    if zvalues(leftindex-1) < zvalues(leftindex)
+                        leftindex = leftindex-1;
+                    else
+                        leftborder = isample - ((cfg.timwin*data.fsample/2)+1) + leftindex; % left border is now indexed in real datasamples, not in samples of the smaller time window
+                        leftborder = clamp(leftborder,0,length(data.time)); % make sure the border is always within the time domain / datapoint count to mitigate index issues
                         break
                     end
                 end
 
-                % find right-hand border of this artifact by finding the
-                % datasample to the right of the peak where the decline stops, within the 20-second time window
-                rightindex = peakindex; % start at the peak
-                while rightindex < timwin_samplesize % stay within the current window
-                    if zvalues(rightindex + 1) < zvalues(rightindex) % the right value is smaller than the current value
-                        rightindex = rightindex + 1; % so move (further) to the right
-                    else % until the right value is not smaller than the current value
+                %find right-hand border
+                rightindex = peakindex;
+                while rightindex < cfg.timwin*data.fsample+1
+                    if zvalues(rightindex+1) < zvalues(rightindex)
+                        rightindex = rightindex+1;
+                    else
+                        rightborder = isample - ((cfg.timwin*data.fsample/2)+1) + rightindex; % left border is now indexed in real datasamples, not in samples of the smaller time window
+                        rightborder = clamp(rightborder,0,length(data.time)); % make sure the border is always within the time domain / datapoint count to mitigate index issues
                         break
                     end
                 end
 
-                % sometimes the peak or border of the artifact is found at the left-hand side of the time window. In this case, it is a sudden
-                % drop in the signal, not a motion artifact: a motion artifact also entails a sudden rise in the signal, which should have been
-                % detected in earlier time windows. Move forward the time window to one sample beyond the peak and continue to the next iteration
-                if (leftindex == 1)
-                    sample_i = sample_i + peakindex + 1; 
+                %sometimes the peak or border of the artifact is foundf at the left-hand side of the time window. In this case, it is a sudden
+                %drop in the signal, not a motion artifact: a motion artifact also entails a sudden rise in the signal, which should have been
+                %detected in earlier time windows. Move forward the time window to one sample beyond the peak and continue to the next iteration
+                if (leftindex ==1 || peakindex ==1)
+                    isample = isample+peakindex+1;
                     continue
                 end
 
-                % sometimes the peak or border of the artifact is found at the right-hand side of the time window. In this case, we have not
-                % captured the full extent of the artifact yet. Move forward one sample and continue to the next iteration
-                if (rightindex == timwin_samplesize)
-                    sample_i = sample_i + 1; 
+                %sometimes the peak or border of the artifact is found at the right-hand side of teh time window. In this case, we have not
+                %captured the full extent of the artifact yet. Move forward one sample and continue to the next iteration
+                if (rightindex == cfg.timwin*data.fsample+1 || peakindex == cfg.timwin*data.fsample+1)
+                    isample = isample+1;
                     continue
                 end
 
-                if (leftindex < rightindex)
-                    % translate the window indices to the data indices
-                    leftborder  = sample_i + leftindex  - 1; 
-                    rightborder = sample_i + rightindex - 1;
-                    % make sure the border is always within the time domain / datapoint count to mitigate index issues (should not be possible) 
-                    % leftborder  = clamp(leftborder, 1,length(data.time)); 
-                    % rightborder = clamp(rightborder,1,length(data.time));
+                if (leftborder ~= rightborder)
 
-                    % create a structure to hold the artifact start and end times    
                     artifact = struct('starttime',data.time(leftborder),'endtime',data.time(rightborder));
 
-                    % add the current artifact to the end of the artifact list
                     if exist('artifacts','var')
-                        artifacts(length(artifacts) + 1) = artifact;
+                        artifacts(length(artifacts)+1) = artifact;
                     else
                         artifacts(1) = artifact;
                     end
                 end
+                %done with the current potential artifact. Jump to the end of it and go to the next iteration
+                isample = rightborder+((cfg.timwin*data.fsample/2)+1);
 
-                % done with the current potential artifact. Jump to the end of it and go to the next iteration
-                % but first check the trough
-                next_sample_jump = rightborder; 
+            else % no potential artifact detected
+                isample = isample;
             end
 
-            %% TROUGH DETECTION
-            if trough < cfg.threshold * -1 % if the peak zscore exceeds the provided threshold in the negative direction
-                artifact_detected = 1; % artifact detection flag, artifact found
+            %% THROUGH DETECTION
+            if trough < cfg.threshold*-1 %detected possible artifact
+                detected =1;
 
-                % find left-hand border of this artifact by finding the
-                % datasample to the left of the peak where the decline started, within the 20-second time window
-                leftindex = troughindex; % start at the peak
-                while leftindex > 1 % stay within the current window
-                    if zvalues(leftindex - 1) > zvalues(leftindex) % the left value was larger than the current value
-                        leftindex = leftindex - 1; % so move (further) to the left
-                    else % until the left value is not larger than the current value
+                %determine the extent of the possible artifact, within the 20-second time window
+                %find left-hand border
+                leftindex = troughindex;
+                while leftindex > 1
+                    if zvalues(leftindex-1) > zvalues(leftindex)
+                        leftindex = leftindex-1;
+                    else
+                        leftborder = isample - ((cfg.timwin*data.fsample/2)+1) + leftindex; % left border is now indexed in real datasamples, not in samples of the smaller time window
+                        leftborder = clamp(leftborder,0,length(data.time)); % make sure the border is always within the time domain / datapoint count to mitigate index issues
                         break
                     end
                 end
 
-                % find right-hand border of this artifact by finding the
-                % datasample to the right of the peak where the incline stops, within the 20-second time window
-                rightindex = troughindex; % start at the peak
-                while rightindex < timwin_samplesize % stay within the current window
-                    if zvalues(rightindex +1 ) > zvalues(rightindex) % the right value is larger than the current value
-                        rightindex = rightindex + 1; % so move (further) to the right
-                    else % until the right value is not larger than the current value
+                %find right-hand border
+                rightindex = troughindex;
+                while rightindex < cfg.timwin*data.fsample+1
+                    if zvalues(rightindex+1) > zvalues(rightindex)
+                        rightindex = rightindex+1;
+                    else
+                        rightborder = isample - ((cfg.timwin*data.fsample/2)+1) + rightindex; % left border is now indexed in real datasamples, not in samples of the smaller time window
+                        rightborder = clamp(rightborder,0,length(data.time)); % make sure the border is always within the time domain / datapoint count to mitigate index issues
                         break
                     end
                 end
 
-                % sometimes the trough or border of the artifact is found at the left-hand side of the time window. In this case, it is a sudden
-                % rise in the signal, not a motion artifact: a trough motion artifact also entails a sudden drop in the signal, which should have been
-                % detected in earlier time windows. Move forward the time window to one sample beyond the trough and continue to the next iteration
-                if (leftindex == 1)
-                    sample_i = sample_i + troughindex +  1;
+                %sometimes the trough or border of the artifact is found at the left-hand side of the time window. In this case, it is a sudden
+                %rise in the signal, not a motion artifact: a trough motion artifact also entails a sudden drop in the signal, which should have been
+                %detected in earlier time windows. Move forward the time window to one sample beyond the trough and continue to the next iteration
+                if (leftindex ==1 || troughindex ==1)
+                    isample = isample+troughindex+1;
                     continue
                 end
 
-                % sometimes the trough or border of the artifact is found at the right-hand side of teh time window. In this case, we have not
-                % captured the full extent of the artifact yet. Move forward one sample and continue to the next iteration
-                if (rightindex == timwin_samplesize)
-                    sample_i = sample_i + 1;
+                %sometimes the trough or border of the artifact is found at the right-hand side of teh time window. In this case, we have not
+                %captured the full extent of the artifact yet. Move forward one sample and continue to the next iteration
+                if (rightindex == cfg.timwin*data.fsample+1 || troughindex == cfg.timwin*data.fsample+1)
+                    isample = isample+1;
                     continue
                 end
 
-                if (leftindex < rightindex)
-                    % translate the window indices to the data indices
-                    leftborder  = sample_i + leftindex  - 1; 
-                    rightborder = sample_i + rightindex - 1;
-                    % make sure the border is always within the time domain / datapoint count to mitigate index issues (should not be possible) 
-                    % leftborder  = clamp(leftborder, 1,length(data.time)); 
-                    % rightborder = clamp(rightborder,1,length(data.time)); 
-
-                    % create a structure to hold the artifact start and end times    
+                if (leftborder ~= rightborder)
                     artifact = struct('starttime',data.time(leftborder),'endtime',data.time(rightborder));
 
-                    % add the current artifact to the end of the artifact list
                     if exist('artifacts','var')
-                        artifacts(length(artifacts) + 1) = artifact;
+                        artifacts(length(artifacts)+1) = artifact;
                     else
                         artifacts(1) = artifact;
                     end
                 end
 
-                % done with the current potential artifact. Jump to the end of it and go to the next iteration
-                % TODO: changing sample_i here while it is used in the trough section?
-                % TODO: can we assume there is only one artifact in a given timwin?
-                next_sample_jump = rightborder;
+                %done with the current potential artifact. Jump to the end of it and go to the next iteration
+                isample = rightborder+((cfg.timwin*data.fsample/2)+1);
                 
+            else % no potential artifact detected
+                isample = isample+1;
+                continue
             end
-
-            % jump ahead in time (increase sample_i) 
-            sample_i = next_sample_jump + 1;
         end
     end
 
@@ -354,41 +346,41 @@ while (repeatremoval == 'y')
     end
 
     %% POST BLOCKREPLACEMENT
-    % section for pre-correction block replacement
+    %section for pre-correction block replacement
     if (cfg.blockreplacement == "post" || cfg.blockreplacement == "both")
-        % create new artifact list using the python function using the corrected
-        % data
+        %create new artifact list using the python function using the corrected
+        %data
         pcfg = [];
         artifacts = artifactmat2matlab(pcfg,data);
         cfg.replacementartifacts = artifacts.binaryArtifacts;
 
-        % check if there are configurations set for the replacement function, if
-        % not, create an empty config
+        %check if there are configurations set for the replacement function, if
+        %not, create an empty config
         if ~isfield(cfg, 'replacementarticfg')
             cfg.replacementcfg = [];
         end
 
-        % store original conductance in separate variable for safekeeping and
-        % probible later use
+        %store original conductance in separate variable for safekeeping and
+        %probible later use
         originalconductance = data.conductance;
 
-        % create structure for replacement function
+        %create structure for replacement function
         rdata.artifacts = cfg.replacementartifacts;
         rdata.original = data.conductance;
         rdata.time = data.time;
 
-        % run replacement function, and replace conductance data
+        %run replacement function, and replace conductance data
         replacementdata = artifact_replacement(cfg.replacementcfg, rdata);
         data.conductance = replacementdata.corrected;
     end
 
     %% HOUSEKEEPING AND RE-CALCULATE OPTION
     out = data; % copy corrected data to output struct
-    out.conductance_z = normalize(out.conductance); % replace old z-transformed data to new (after correction) z-transformed data
+    out.conductance_z = zscore(out.conductance); % replace old z-transformed data to new (after correction) z-transformed data
     close;%(99);
 
     if strcmp(cfg.manual,'no')
-        if artifact_detected ==1  % if an artifact was found
+        if detected ==1
             figure;
             subplot(graphCount,1,1), plot(data_orig.time, data_orig.conductance, out.time, out.conductance) % the original data
             title('Original data (blue = before artifact correction, red = after artifact correction)');

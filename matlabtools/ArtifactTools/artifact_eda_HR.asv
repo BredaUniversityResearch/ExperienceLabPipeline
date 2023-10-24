@@ -189,7 +189,7 @@ while (repeatremoval == 'y')
             zvalues = normalize(timwin_data); % calculate zscores (ignoring NaNs)
             [peak,   peakindex]   = max(zvalues); % determine the peak z-value, and its index relative to the start of the time window
             [trough, troughindex] = min(zvalues); % determine the trough z-value, and its index relative to the start of the time window
-            next_sample_jump = sample_i; % if artifacts are found, we want to jump ahead
+            next_sample_jump = 0; % if artifacts are found, we want to jump ahead
 
             % PEAK DETECTION
             if peak > cfg.threshold % if the peak zscore exceeds the provided threshold 
@@ -236,9 +236,9 @@ while (repeatremoval == 'y')
                     % translate the window indices to the data indices
                     leftborder  = sample_i + leftindex  - 1; 
                     rightborder = sample_i + rightindex - 1;
-                    % make sure the border is always within the time domain / datapoint count to mitigate index issues (should not be possible) 
-                    % leftborder  = clamp(leftborder, 1,length(data.time)); 
-                    % rightborder = clamp(rightborder,1,length(data.time));
+                    % make sure the border is always within the time domain / datapoint count to mitigate index issues TODO: should not be possible anyway 
+                    leftborder  = clamp(leftborder, 1,length(data.time)); 
+                    rightborder = clamp(rightborder,1,length(data.time));
 
                     % create a structure to hold the artifact start and end times    
                     artifact = struct('starttime',data.time(leftborder),'endtime',data.time(rightborder));
@@ -301,9 +301,9 @@ while (repeatremoval == 'y')
                     % translate the window indices to the data indices
                     leftborder  = sample_i + leftindex  - 1; 
                     rightborder = sample_i + rightindex - 1;
-                    % make sure the border is always within the time domain / datapoint count to mitigate index issues (should not be possible) 
-                    % leftborder  = clamp(leftborder, 1,length(data.time)); 
-                    % rightborder = clamp(rightborder,1,length(data.time)); 
+                    % make sure the border is always within the time domain / datapoint count to mitigate index issues TODO: should not be possible anyway 
+                    leftborder  = clamp(leftborder, 1,length(data.time)); 
+                    rightborder = clamp(rightborder,1,length(data.time)); 
 
                     % create a structure to hold the artifact start and end times    
                     artifact = struct('starttime',data.time(leftborder),'endtime',data.time(rightborder));
@@ -323,8 +323,8 @@ while (repeatremoval == 'y')
                 
             end
 
-            % jump ahead in time (increase sample_i) 
-            sample_i = next_sample_jump + 1;
+            % jump ahead in time if artifacts are found
+            sample_i = next_sample_jump;
         end
     end
 

@@ -236,9 +236,9 @@ while (repeatremoval == 'y')
                     % translate the window indices to the data indices
                     leftborder  = sample_i + leftindex  - 1; 
                     rightborder = sample_i + rightindex - 1;
-                    % make sure the border is always within the time domain / datapoint count to mitigate index issues (should not be possible) 
-                    % leftborder  = clamp(leftborder, 1,length(data.time)); 
-                    % rightborder = clamp(rightborder,1,length(data.time));
+                    % make sure the border is always within the time domain / datapoint count to mitigate index issues TODO: should not be possible anyway 
+                    leftborder  = clamp(leftborder, 1,length(data.time)); 
+                    rightborder = clamp(rightborder,1,length(data.time));
 
                     % create a structure to hold the artifact start and end times    
                     artifact = struct('starttime',data.time(leftborder),'endtime',data.time(rightborder));
@@ -301,9 +301,9 @@ while (repeatremoval == 'y')
                     % translate the window indices to the data indices
                     leftborder  = sample_i + leftindex  - 1; 
                     rightborder = sample_i + rightindex - 1;
-                    % make sure the border is always within the time domain / datapoint count to mitigate index issues (should not be possible) 
-                    % leftborder  = clamp(leftborder, 1,length(data.time)); 
-                    % rightborder = clamp(rightborder,1,length(data.time)); 
+                    % make sure the border is always within the time domain / datapoint count to mitigate index issues TODO: should not be possible anyway 
+                    leftborder  = clamp(leftborder, 1,length(data.time)); 
+                    rightborder = clamp(rightborder,1,length(data.time)); 
 
                     % create a structure to hold the artifact start and end times    
                     artifact = struct('starttime',data.time(leftborder),'endtime',data.time(rightborder));
