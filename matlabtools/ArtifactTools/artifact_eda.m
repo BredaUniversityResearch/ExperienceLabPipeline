@@ -404,43 +404,72 @@ while (repeatremoval == 'y')
         end
 
 
-        prompt = 'Do you want repeat the removal process? y/n [n]: ';
-        repeatremoval = input(prompt,'s');
-        if isempty(repeatremoval)
-            repeatremoval = 'n';
-        end
+        % Ask if removal process should be repeated
+        dlgtitle = 'Repeat removal process';
+        prompt = 'Do you want to repeat the removal process?';
+        opts.Default = 'No';
+        answer_repeatremoval = questdlg(prompt, dlgtitle, 'Yes','No', opts.Default);
 
-        if repeatremoval == 'y'
-            prompt = 'Do you want change the treshold? y/n [n]: ';
-            changetreshold = input(prompt,'s');
-            if isempty(changetreshold)
-                changetreshold = 'n';
-            end
+        % Handle response
+        switch answer_repeatremoval
+            case 'Yes'
+                repeatremoval = 'y';
 
-            if changetreshold == 'y'
-                disp(strcat("Original Treshold: ", num2str(cfg.threshold)));
-                prompt = 'Set new Threshold: ';
-                newthreshold = input(prompt);
+                % Ask if treshold should be changed
+                opts.Default = 'No';
+                dlgtitle = 'Change treshold';
+                prompt = strcat('Do you want change the treshold? (current treshold=', num2str(cfg.threshold) , ')');
+                changetreshold = questdlg(prompt, dlgtitle, 'Yes','No', opts.Default);
+    
+                % Handle response
+                switch changetreshold
+                    case 'Yes'
+                        cfg.threshold = get_new_treshold(cfg.threshold);
 
-                prompt = strcat('Do you want change the treshold from: ', num2str(cfg.threshold), ' to: ',num2str(newthreshold), '? y/n [y]: ');
-                acceptnewthreshold = input(prompt,'s');
-                if isempty(acceptnewthreshold)
-                    acceptnewthreshold = 'y';
                 end
 
-                if acceptnewthreshold == 'y'
-                    cfg.threshold = newthreshold;
-                    disp(strcat('Threshold changed to: ', num2str(cfg.threshold)));
-                else
-                    disp("Threshold Unchanged");
-                end
-            end
-
-            data = out;
-
-            disp("Restarting Artifact Removal");
-        else
-            disp("Finishing Artifact Removal");
+                data = out;
+            
+                disp("Restarting Artifact Removal");         
+        
+            otherwise
+                repeatremoval = 'n'; % specify to end the artefact removal procedure
+                disp("Finishing Artifact Removal");
         end
     end
 end
+end % artifact_eda(cfg, data)
+
+% Function to get a new treshold value
+function new_treshold = get_new_treshold(current_treshold)
+    % Ask for the new treshold value
+    prompt = strcat('Set new threshold: (current treshold=', num2str(current_treshold), ')');
+    dlgtitle = 'Treshold';
+    fieldsize = [1 45];
+    definput = {num2str(current_treshold)};
+
+    while 1  % loop indefinetly until a value is entered
+
+        newtreshold_str = inputdlg(prompt,dlgtitle,fieldsize,definput);
+
+        % Handle the response
+        if isempty(newtreshold_str) % user has pressed 'Cancel', so return
+            disp("Threshold Unchanged");
+            new_treshold = current_treshold;
+            return;
+        else
+            % treshold has changed
+            newtreshold_double = str2double(newtreshold_str); % convert input to a number if possibe
+            % check whether the new value is a positive numer
+            if isnan(newtreshold_double) % this is a NaN if the entered value was not a number
+                prompt = strcat(' Error: ''', newtreshold_str , ''' is not a valid treshold value. Treshold should be a positive number. Set new threshold: (current treshold=', num2str(current_treshold), ')');
+            elseif newtreshold_double <= 0 % the entered value is negative or zero
+                prompt = strcat(' Error: ''', newtreshold_str , ''' is not a valid treshold value. Treshold should be a positive number. Set new threshold: (current treshold=', num2str(current_treshold), ')');
+            else % the entered value is a positive number, so return this value
+                disp(strcat('Threshold changed to: ', newtreshold_str));
+                new_treshold = newtreshold_double;
+                return;
+            end
+        end
+    end
+end % get_new_treshold(current_treshold)
