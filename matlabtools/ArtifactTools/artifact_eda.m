@@ -38,6 +38,7 @@ function out = artifact_eda(cfg, data)
 % cfg.blockreplacement  : determines whether block based artifact replacement should be conducted, can be set to "pre", "post", "both"
 % cfg.replacementartifacts  : the data array containing the artifactdata used for pre - correction replacement. Post-correction replacement, and non-existing replacement data require the python package and connection to be functional
 % cfg.replacementcfg    : option so set custom cfg options for blockreplacement function (must adhere to the cfg options of the artifact_replacement function)
+% cfg.participant       : string with participant number to show in the artifact correction window
 %
 %
 % *OUTPUT*
@@ -81,6 +82,10 @@ end
 
 if ~isfield(cfg, 'blockreplacement')
     cfg.blockreplacement = "none";
+end
+
+if ~isfield(cfg, 'participant')
+    cfg.participant = '';
 end
 
 
@@ -193,7 +198,6 @@ while (repeatremoval == 'y')
 
             % PEAK DETECTION
             if peak > cfg.threshold % if the peak zscore exceeds the provided threshold 
-                artifact_detected = 1; % artifact detection flag, artifact found
 
                 % find left-hand border of this artifact by finding the
                 % datasample to the left of the peak where the incline started, within the 20-second time window
@@ -242,7 +246,8 @@ while (repeatremoval == 'y')
 
                     % create a structure to hold the artifact start and end times    
                     artifact = struct('starttime',data.time(leftborder),'endtime',data.time(rightborder));
-
+                    artifact_detected = 1; % artifact detection flag, artifact found
+                    
                     % add the current artifact to the end of the artifact list
                     if exist('artifacts','var')
                         artifacts(length(artifacts) + 1) = artifact;
@@ -258,7 +263,6 @@ while (repeatremoval == 'y')
 
             %% TROUGH DETECTION
             if trough < cfg.threshold * -1 % if the peak zscore exceeds the provided threshold in the negative direction
-                artifact_detected = 1; % artifact detection flag, artifact found
 
                 % find left-hand border of this artifact by finding the
                 % datasample to the left of the peak where the decline started, within the 20-second time window
@@ -290,7 +294,7 @@ while (repeatremoval == 'y')
                     continue
                 end
 
-                % sometimes the trough or border of the artifact is found at the right-hand side of teh time window. In this case, we have not
+                % sometimes the trough or border of the artifact is found at the right-hand side of the time window. In this case, we have not
                 % captured the full extent of the artifact yet. Move forward one sample and continue to the next iteration
                 if (rightindex == timwin_samplesize)
                     sample_i = sample_i + 1;
@@ -307,6 +311,7 @@ while (repeatremoval == 'y')
 
                     % create a structure to hold the artifact start and end times    
                     artifact = struct('starttime',data.time(leftborder),'endtime',data.time(rightborder));
+                    artifact_detected = 1; % artifact detection flag, artifact found
 
                     % add the current artifact to the end of the artifact list
                     if exist('artifacts','var')
@@ -339,6 +344,8 @@ while (repeatremoval == 'y')
         artifactcfg = [];
         artifactcfg.artifacts = artifacts;
         artifactcfg.time = data.time;
+        artifactcfg.participant = cfg.participant;
+        
         if isfield(cfg, 'validationdata')
             artifactcfg.validation = cfg.validationdata;
         end
@@ -389,52 +396,59 @@ while (repeatremoval == 'y')
 
     if strcmp(cfg.manual,'no')
         if artifact_detected ==1  % if an artifact was found
-            figure;
-            subplot(graphCount,1,1), plot(data_orig.time, data_orig.conductance, out.time, out.conductance) % the original data
-            title('Original data (blue = before artifact correction, red = after artifact correction)');
-            subplot(graphCount,1,2), plot(out.time, out.conductance); % the corrected data
-            title('Data after artifact correction.');
-            if isfield(cfg, 'validationdata')
-                subplot(graphCount,1,3), plot(data.time, cfg.validationdata, 'Color', [0.1, 0.5, 0.1])
-                title('Validation Data');
+            if strcmp(cfg.confirm, 'yes')
+                figure;
+                subplot(graphCount,1,1), plot(data_orig.time, data_orig.conductance, out.time, out.conductance) % the original data
+                title('Original data (blue = before artifact correction, red = after artifact correction)');
+                subplot(graphCount,1,2), plot(out.time, out.conductance); % the corrected data
+                title('Data after artifact correction.');
+                if isfield(cfg, 'validationdata')
+                    subplot(graphCount,1,3), plot(data.time, cfg.validationdata, 'Color', [0.1, 0.5, 0.1])
+                    title('Validation Data');
+                end
             end
         else
             warning('No artifacts detected. Consider lowering the threshold.');
-            pause;
+            % pause; 
         end
 
+        if false % repeating does not seem to be necessary anymore, let's bypass it for now
 
-        % Ask if removal process should be repeated
-        dlgtitle = 'Repeat removal process';
-        prompt = 'Do you want to repeat the removal process?';
-        opts.Default = 'No';
-        answer_repeatremoval = questdlg(prompt, dlgtitle, 'Yes','No', opts.Default);
+            % Ask if removal process should be repeated
+            dlgtitle = 'Repeat removal process';
+            prompt = 'Do you want to repeat the removal process?';
+            opts.Default = 'No';
+            answer_repeatremoval = questdlg(prompt, dlgtitle, 'Yes','No', opts.Default);
 
-        % Handle response
-        switch answer_repeatremoval
-            case 'Yes'
-                repeatremoval = 'y';
+            % Handle response
+            switch answer_repeatremoval
+                case 'Yes'
+                    repeatremoval = 'y';
 
-                % Ask if treshold should be changed
-                opts.Default = 'No';
-                dlgtitle = 'Change treshold';
-                prompt = strcat('Do you want change the treshold? (current treshold=', num2str(cfg.threshold) , ')');
-                changetreshold = questdlg(prompt, dlgtitle, 'Yes','No', opts.Default);
-    
-                % Handle response
-                switch changetreshold
-                    case 'Yes'
-                        cfg.threshold = get_new_treshold(cfg.threshold);
+                    % Ask if treshold should be changed
+                    opts.Default = 'No';
+                    dlgtitle = 'Change treshold';
+                    prompt = strcat('Do you want change the treshold? (current treshold=', num2str(cfg.threshold) , ')');
+                    changetreshold = questdlg(prompt, dlgtitle, 'Yes','No', opts.Default);
 
-                end
+                    % Handle response
+                    switch changetreshold
+                        case 'Yes'
+                            cfg.threshold = get_new_treshold(cfg.threshold);
 
-                data = out;
-            
-                disp("Restarting Artifact Removal");         
-        
-            otherwise
-                repeatremoval = 'n'; % specify to end the artefact removal procedure
-                disp("Finishing Artifact Removal");
+                    end
+
+                    data = out;
+
+                    disp("Restarting Artifact Removal");
+
+                otherwise
+                    repeatremoval = 'n'; % specify to end the artefact removal procedure
+                    disp("Finishing Artifact Removal");
+            end
+        else
+            repeatremoval = 'n'; % specify to end the artefact removal procedure
+            disp("Finishing Artifact Removal");
         end
     end
 end
