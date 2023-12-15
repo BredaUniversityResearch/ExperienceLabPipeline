@@ -50,6 +50,57 @@ if ~isfield(cfg, 'export_scrlist')
     cfg.export_scrlist = [0.05 1];
 end
 
+%% Deal with NaNs in the data
+%  Ledalab does not like NaNs, but our data may contain them if the
+%  artifact solution 'replace with NaNs' was chosen during the artifact
+%  correction step.
+%  To solve this issue, NaN parts are replace by inear interpolation first.
+%  After the deconvolution process, the NaNs are reinserted into the data.
+
+% store which timepoints contained NaNs
+nan_booleans = isnan(data.conductance);
+
+% check for NaN parts 
+if sum(isnan(data.conductance)) > 0
+    disp('Temporarily replacing NaN parts with linear interpolation for the deconvolution.');
+    % create backup of the NaN-containing data
+    conductance_with_NaNs = data.conductance;
+
+    % extract NaN segments and replace these with linear interpolation
+    for i=1:length(data.conductance)
+        % find the next NaN
+        if isnan(data.conductance(i))
+            % NaN found, keep track of the index
+            starttime = i;
+            % move up the timeline until a non-NaN is found or the end of
+            % the interval is reached
+            while true
+                if (~isnan(data.conductance(i))) || i==length(data.conductance)
+                    break;
+                end
+                % update the endtime of the NaN segment
+                endtime = i;
+                % still a NaN, move to the next timepoint
+                i=i+1; % Yes, I know, changing the index within a for loop, the horror ...
+            end
+            % The end of the NaN segment has been reached,
+            % now replace it with linear interpolation.
+            % For special cases that include the very first or last timepoint
+            % linear interpolation is not possible, so use a fixed value
+            if starttime==1
+                data.conductance(starttime-1:endtime+1)   = data.conductance(endtime+1);
+                data.conductance_z(starttime-1:endtime+1) = data.conductance_z(endtime+1);
+            elseif endtime == length(data.conductance)
+                data.conductance(starttime-1:endtime+1)   = data.conductance(starttime-1);
+                data.conductance_z(starttime-1:endtime+1) = data.conductance_z(starttime-1);
+            else
+                data.conductance(starttime-1:endtime+1)   = linspace(data.conductance(starttime-1),data.conductance(endtime+1),(endtime-starttime+3));
+                data.conductance_z(starttime-1:endtime+1) = linspace(data.conductance_z(starttime-1),data.conductance_z(endtime+1),(endtime-starttime+3));
+            end
+        end
+    end
+end
+
 out = data;% keep track of data, is overwritten by ledalab later
 
 % create the dataset that ledalab needs
@@ -131,4 +182,22 @@ for i=1:numel(out.eventchan)
     end
 end
 
+
+%% Put the NaNs back in place
+
+% first, let's make a copy of the interpolated data
+out.phasic_interpolated   = out.phasic;
+out.tonic_interpolated    = out.tonic;
+out.phasic_z_interpolated = out.phasic_z;
+out.tonic_z_interpolated  = out.tonic_z;
+out.conductance_interpolated  = out.conductance;
+out.conductance_z_interpolated  = out.conductance_z;
+
+% set all timepoints that originally contained NaNs back to NaN
+out.phasic(nan_booleans) = NaN;
+out.tonic(nan_booleans) = NaN;
+out.phasic_z(nan_booleans) = NaN;
+out.tonic_z(nan_booleans) = NaN;
+out.conductance(nan_booleans) = NaN;
+out.conductance_z(nan_booleans) = NaN;
 
