@@ -13,6 +13,10 @@ function out = e4eda2matlab(cfg)
 %                     in, your local timezone will be used  if you dont
 %                     specify anything. You can find all possible timezones
 %                     by running the following command: timezones 
+% cfg.timeformat    = string specifying the format of the start and endtimes
+%                     This can be either 'datetime' (default) or 'unixtime'
+%                     Example of datetime: 
+%                     by running the following command: timezones 
 % Note that it is recommended to use the default configuration options for 
 % cfg.edafile unless you have a good reason to deviate from that.
 % Wilco Boode, 11-07-2022: created
@@ -38,6 +42,10 @@ if ~isfield(cfg, 'timezone')
     warning(strcat('TimeZone not specified. Using local TimeZone: ',cfg.timezone));
 end
 
+if ~isfield(cfg, 'timeFormat')
+    cfg.timeFormat = 'UnixTime';
+end
+
 % read eda data from file
 edaRaw = readmatrix(string(fullfile(cfg.datafolder, cfg.edafile)));
 
@@ -58,8 +66,12 @@ data.eda = zeros(nsamp, 1);
 % generate the timelist for the eda data 
 data.time = linspace(0,((nsamp-1)/data.fsample),nsamp)';
 
-% Store the eda conduction data (skip first two rows)
-data.eda(1:nsamp,1) = edaRaw(3:end,1);
+% Separate data from eda file into the 3 columns 
+% 4th column for the accumulated strength
+for isamp=1:nsamp   
+    data.eda(isamp,1) = edaRaw(isamp+2,1);
+end
+% data.eda(1:nsamp,1) = edaRaw(3:end,1);
 
 
 % fill part of the output structure

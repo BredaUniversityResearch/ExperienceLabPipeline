@@ -157,11 +157,9 @@ for pp_i = 1:nof_pps
     
     % we get the participant number here
     pp_nr = pp_nrs(pp_i); 
-    % The folders with data have a P before the number, so paste a 'P' before the participant number
-    pp_label = ['P', num2str(pp_nr, '%03d')]; 
 
     % create the full path to the data folder of this participant
-    pp_datafolder = fullfile(datafolder, pp_label);
+    pp_datafolder = [datafolder, '\', pp_label]; 
 
     % extract the start and duration from the participantData file
     % find the row that has the current participant number

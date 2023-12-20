@@ -27,10 +27,10 @@ clearvars;
 %% Specify where to find and save data
 
 % set a path to the project
-projectfolder = 'C:\Hans\2023_05_22_MarcelWorkshop';
+projectfolder = 'C:\Hans\Nuenen';
 
 % where to find the raw data
-datafolder = [projectfolder '\0.RawData'];
+datafolder = fullfile(projectfolder, '0.RawData');
 
 % the excel file that holds starttime and duration per pp
 participantDataFile = [projectfolder '\0.RawData\ParticipantData.xlsx'];
@@ -137,15 +137,13 @@ end
 
 %% Participant numbers
 %  Here listed as numbers because the participant data Excel file has them
-%  as numbers. However, the corresponding folders al start with P, so we
-%  will have to fix that further down.
-pp_nrs = [
-    126, 127, 128, 129, 130, 131, 132, 133, 134, 135, ...
-    136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, ...
-    ];
+%  as numbers. However, the corresponding folders al start with P and have leading zeros, 
+%  so we will have to fix that further down.
+%  Example: pp_nrs = [1:8, 12:15, 123];
+pp_nrs = [1:5];
 
 % the number of participants
-nof_pps = size(pp_nrs,2); % 21
+nof_pps = length(pp_nrs);  
 
 
 
@@ -157,31 +155,37 @@ for pp_i = 1:nof_pps
     
     % we get the participant number here
     pp_nr = pp_nrs(pp_i); 
-    % The folders with data have a P before the number, so paste a 'P' before the participant number
+    % The folders with data have a P before the number, and leading zeros
+    % to make it a 3 digit number
     pp_label = ['P', num2str(pp_nr, '%03d')]; 
-
     % create the full path to the data folder of this participant
-    pp_datafolder = fullfile(datafolder, pp_label);
+    pp_datafolder = fullfile(datafolder, pp_label); 
 
-    % extract the start and duration from the participantData file
-    % find the row that has the current participant number
-    participantData_index = find(participantData.Participant==pp_nr);
+    % find the row in the participantData file that has the current participant number
+    participantData_index = find(strcmp(participantData.Participant,pp_label)); % use this if the excel file contains participant labels (P003)
+    % participantData_index = find(participantData.Participant==pp_nr); % use this if the excel file contains participant numbers (3)
+    
     % read the starttime, duration, and timezone from that row
-    starttime = participantData.StartTime(participantData_index); 
-    duration = participantData.Duration(participantData_index); 
-    timezone = string(participantData.TimeZone(participantData_index)); 
+    timeformat = participantData.TimeFormat(participantData_index); % e.g. 'UnixTime'
+    starttimeIndoor = participantData.StartTimeIndoor(participantData_index); 
+    durationIndoor = participantData.DurationIndoor(participantData_index); 
+    timezone = string(participantData.TimeZone(participantData_index)); % e.g. 'Europe/Amsterdam'
 
     % get the data
     cfg = []; 
     cfg.datafolder = pp_datafolder; 
-    cfg.timezone = timezone;
+    cfg.timezone = timezone; 
     raw_data = e4eda2matlab(cfg);
 
     % extract the [starttime - starttime+duration] segment of the data
     cfg = []; 
-    cfg.starttime = starttime; 
-    cfg.duration = duration; 
+    cfg.starttime = starttimeIndoor; 
+    cfg.duration = durationIndoor; 
+    cfg.timeformat = timeformat; 
     segmented_data(pp_i) = segment_generic(cfg, raw_data);
+
+    % Provide some feedback
+    fprintf('Data of participant %s loaded and segmented\n', pp_label);
 end
 
 
@@ -219,14 +223,21 @@ cfg.interp_method = 'spline'; % set the default solution of all artifacts (defau
 cfg.confirm = 'no'; % state that we do not want to see a figure with the solution for each participant (default = 'yes')
 
 for pp_i = 1:nof_pps % for all participants
-    % specify where to save the clean data, with what filename
-    clean_data_path_filename = [cleandatafolder '\P' num2str(pp_nrs(pp_i)) '_cleandata.mat'];
+
+    % get the participant number
+    pp_nr = pp_nrs(pp_i); 
+    % Paste a P and leading zeros before the number, 
+    pp_label = ['P', num2str(pp_nr, '%03d')]; 
+    % specify where to save the clean data, with what filename 
+    % (add the '_cleadata' suffix and the '.mat' extension)
+    clean_data_path_filename = fullfile(cleandatafolder, [pp_label, '_cleandata.mat']);
+
     % check whether this file alreay exists
     if exist(clean_data_path_filename, 'file')
         % the file already exist, ask whether user wants to process again
         % or skip this file
         dlgtitle = 'Cleaned data file already exists';
-        question = sprintf('A cleaned datafile already exists for participant %d.\nWould you like to redo the artifact correction? (This deletes the previous file)\nOr skip this one?', pp_nrs(pp_i));
+        question = sprintf('A cleaned datafile already exists for participant P%03d.\nWould you like to redo the artifact correction? (This deletes the previous file)\nOr skip this one?', pp_nrs(pp_i));
         opts.Default = 'Skip';
         answer = questdlg(question, dlgtitle, 'Redo','Skip', opts.Default);
 
@@ -242,7 +253,7 @@ for pp_i = 1:nof_pps % for all participants
 
     % define the raw skin conductance data
     cfg.validationdata = segmented_data(pp_i).conductance;
-    cfg.participant = num2str(pp_nrs(pp_i));
+    cfg.participant = pp_label;
     % open the artifact correction window
     clean_data = artifact_eda(cfg, segmented_data(pp_i)); 
     % save the cleaned up skin conductance data
@@ -269,13 +280,21 @@ end
 
 
 for pp_i=1:nof_pps
+
+    % get the participant number
+    pp_nr = pp_nrs(pp_i); 
+    % Paste a P and leading zeros before the number, 
+    pp_label = ['P', num2str(pp_nr, '%03d')]; 
+    % specify where to save the clean data, with what filename 
+    % (add the '_deconvolved_data' suffix and the '.mat' extension)
+    deconvolved_data_path_filename = fullfile(deconvolveddatafolder, [pp_label, '_deconvolved_data.mat']);
+    
     % check whether the deconvolved data already exists
-    deconvolved_data_path_filename = [deconvolveddatafolder '\P' num2str(pp_nrs(pp_i)) '_deconvolved_data.mat'];
     if exist(deconvolved_data_path_filename, 'file')
         % the file already exist, ask whether user wants to process again
         % or skip this file
         dlgtitle = 'Devonvolved data file already exists';
-        question = sprintf('A deconvolved datafile already exists for participant %d.\nWould you like to redo the deconvolution? (This deletes the previous file)\nOr skip this one?', pp_nrs(pp_i));
+        question = sprintf('A deconvolved datafile already exists for participant P%03d.\nWould you like to redo the deconvolution? (This deletes the previous file)\nOr skip this one?', pp_nrs(pp_i));
         opts.Default = 'Skip';
         answer = questdlg(question, dlgtitle, 'Redo','Skip', opts.Default);
         % Handle response
@@ -289,7 +308,7 @@ for pp_i=1:nof_pps
     end
 
     % get the cleaned up data of this participant
-    clean_data_path_filename = [cleandatafolder '\P' num2str(pp_nrs(pp_i)) '_cleandata.mat'];
+    clean_data_path_filename = fullfile(cleandatafolder, [pp_label, '_cleandata.mat']);
     load(clean_data_path_filename);
 
     % do the deconvolution thing
@@ -319,7 +338,13 @@ hold on;
 
 
 for pp_i=1: nof_pps
-    deconvolved_data_path_filename = [deconvolveddatafolder '\P' num2str(pp_nrs(pp_i)) '_deconvolved_data.mat'];
+    % get the participant number
+    pp_nr = pp_nrs(pp_i); 
+    % Paste a P and leading zeros before the number, 
+    pp_label = ['P', num2str(pp_nr, '%03d')]; 
+    % specify where to save the clean data, with what filename 
+    % (add the '_deconvolved_data' suffix and the '.mat' extension)
+    deconvolved_data_path_filename = fullfile(deconvolveddatafolder, [pp_label, '_deconvolved_data.mat']);
     load(deconvolved_data_path_filename);
 
     plot(deconvolved_data.time, deconvolved_data.phasic);
@@ -345,7 +370,14 @@ hold off;
 
 % combine the deonvolved data of all participants in one struct
 for pp_i=1:nof_pps
-    deconvolved_data_path_filename = [deconvolveddatafolder '\P' num2str(pp_nrs(pp_i)) '_deconvolved_data.mat'];
+    % get the participant number
+    pp_nr = pp_nrs(pp_i); 
+    % Paste a P and leading zeros before the number, 
+    pp_label = ['P', num2str(pp_nr, '%03d')]; 
+    % specify where to save the clean data, with what filename 
+    % (add the '_deconvolved_data' suffix and the '.mat' extension)
+    deconvolved_data_path_filename = fullfile(deconvolveddatafolder, [pp_label, '_deconvolved_data.mat']);
+
     load(deconvolved_data_path_filename);
 
     all_deconvolved_data(pp_i) = deconvolved_data;

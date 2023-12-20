@@ -175,7 +175,7 @@ else
     if isnumeric(cfg.starttime)
         starttime = cfg.starttime;
         if strcmp(cfg.timeformat, 'unixtime')
-            % calculate the starttime relative to the start of the measurement 
+            % the provided starttime is 
             starttime = starttime - data.initial_time_stamp;
         end
     else
@@ -203,10 +203,6 @@ end
 if isfield(cfg,'endtime')
     if isnumeric(cfg.endtime)
         endtime = cfg.endtime;
-        if strcmp(cfg.timeformat, 'unixtime')
-            % calculate the endtime relative to the start of the measurement 
-            endtime = endtime - data.initial_time_stamp;
-        end
     else
         if cfg.endtime == "endfile"
             endtime = max(time);
@@ -235,11 +231,22 @@ else
         warning('Endtime not defined, assuming end of file')
     end
 end
-if endtime > max(time) && strcmp(cfg.allowoutofbounds,'false')
-    error('New End time is higher than the data end time, this is not allowed')
-elseif endtime > max(time) && strcmp(cfg.allowoutofbounds,'true')
-    postduration = endtime-max(time);
-    endtime = max(time);
+if strcmp(cfg.timeformat, 'datetime')
+    if endtime > max(time) && strcmp(cfg.allowoutofbounds,'false')
+        error('New End time is higher than the data end time, this is not allowed')
+    elseif endtime > max(time) && strcmp(cfg.allowoutofbounds,'true')
+        postduration = endtime-max(time);
+        endtime = max(time);
+    end
+elseif strcmp(cfg.timeformat, 'unixtime')
+    if endtime > (max(time)+ data.initial_time_stamp) && strcmp(cfg.allowoutofbounds,'false')
+        error('New End time is higher than the data end time, this is not allowed')
+    elseif endtime > (max(time)+ data.initial_time_stamp) && strcmp(cfg.allowoutofbounds,'true')
+        postduration = endtime-(max(time)+ data.initial_time_stamp);
+        endtime = (max(time)+ data.initial_time_stamp);
+    end
+else
+    error('Specified timeformat is not recognized. Use ''datatime'' or ''unixtime''.')
 end
 
 if endtime<starttime || endtime==starttime
