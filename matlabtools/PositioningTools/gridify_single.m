@@ -1,25 +1,60 @@
-function out = gridify_participant(cfg,data)
-
-%% FORMATS & NOTES
-% data input, data should be a table for easier editing along the way
+function out = gridify_single(cfg,data)
+%% GRIDIFY SINGLE
+% function out = gridify_single (cfg,data)
 %
-% CFG Input
-% min/max lat/long = optional, if not then auto generated from lat/lon
-% gridsize = optional, if not then 20
-% variables = optional, if not then ALL using mean
-% smoothdata = optional, if enabled it uses smoothdata2 to smooth all final
-% variables using the specified method
-% smoothwindow = optional, if set and smoothmethod != none then it smooths
-% with that window
-% spheroid = the elipsical to use for conversion, default is earth is wgs84Ellipsoid("m")
+% *DESCRIPTION*
+%Gridify_single takes a single table, containing a lat,lon and additional
+%number-based columns and outputs a grid-based representation of this
+%data. By default all additional number-based columns will return a mean
+%value for that position, unless the desired calculations are
+%defined in cfg.variables.
 %
-% Data Requirements (TABLE FORMATTED)
-% Lat
-% Lon
-% Data
+% *INPUT*
+%A table containing a column for lat,lon, and any amount of number-based
+%columns. An alt column can be added, if not this will be automatically
+%calculated. All configuration options are optional.
+%
+%Configuration Options
+%cfg.gridsize = (OPTIONAL) the size of the calculation grid in meters
+%    default = 20
+%cfg.smoothmethod = (OPTIONAL) smoothing method applied over the gridded
+%   data, possible to choose from:'movmean';'movmedian';'gaussian';'lowess';'loess';'sgolay';'none'
+%   default = 'none' 
+%   THIS FEATURE IS STILL BEING TESTED, ONLY USE THIS IF YOU ARE AWARE OF
+%   THE LIMITATIONS
+%cfg.spheroid = (OPTIONAL) type of sphere used for reprojecting the data
+%   from lat/lon
+%   default = wgs84Ellipsoid("m");
+%cfg.variables = (OPTIONAL) table with calculations performed over the
+%   selected data, colums must be: 'in', 'out', 'calculation', where in is
+%   the name of the data-column, out is the name in the output data, and
+%   calculation is the calculation to perform over the data inside that
+%   grid point.
+%   calculation methods = min, max, unique, count, mean, sum
+%   default = mean calculation for all data columns except 'lat';'lon';'alt'
+% 
+%Data Requirements
+%data = table containing a lat,lon and additional number-based columns, an
+%   alt column is adviced, but not necessary.
+%
+% *OUTPUT*
+%A table containing lat,lon,alt,x,y,z,and separate columns for each
+%calculation performed.
+%
+% *NOTES*
+%N/A
+%
+% *BY*
+%Wilco Boode, 09/01/2024
 
+%% DEV INFO
+%This function is called by the gridifiy function to calculate individual 
+%participant grids.
+%ADDITIONAL FEATURES TO ADD:
+%1. Implement proper altitude check, current function uses alt=zero if
+%   nothing is supplied
 
-%% CHECK CFG AND DATA
+%% VARIABLE CHECK
 %lat MUST be provided, otherwise its impossible to calculate the grid
 if ~any("lat" == string(data.Properties.VariableNames))
     if any("latitude" == string(data.Properties.VariableNames))
@@ -31,7 +66,6 @@ end
 
 %lon MUST be provided, otherwise its impossible to calculate the grid
 if ~any("lon" == string(data.Properties.VariableNames))
-
     if any("long" == string(data.Properties.VariableNames))
         data.lon = data.long;
     elseif any("longtitude" == string(data.Properties.VariableNames))
@@ -53,7 +87,7 @@ if ~isfield(cfg,'variables')
     %Add all variables apart from Lat & Lon to the list of variables to calculate
     varCount = 1;
     for isamp = 1:length(data.Properties.VariableNames)
-        if max(strcmp(data.Properties.VariableNames{isamp},{'lat';'lon';'long'})) == 0
+        if max(strcmp(data.Properties.VariableNames{isamp},{'lat';'lon';'long';'alt'})) == 0
             cfg.variables(varCount) = struct('in',data.Properties.VariableNames{isamp},'out',data.Properties.VariableNames{isamp},'calculation','mean');
             varCount = varCount+1;
         end
@@ -92,8 +126,7 @@ if ~any("x" == string(data.Properties.VariableNames))
     data.z = round(data.z / cfg.gridsize) * cfg.gridsize;
 end
 
-%% CALCULATE GRID POSITIONS
-
+%% CALCULATE UNIQUE GRID POSITIONS
 % get unique lat long values 
 [data_g,~,idx] = unique(data(:,width(data)-2:width(data)),'rows');
 
@@ -195,8 +228,7 @@ end
 [data_g.lat,data_g.lon,data_g.alt] = ecef2geodetic(spheroid,data_g.x,data_g.y,data_g.z);
 
 
-%% CREATE OUTPUT
+%% FUNCTION END
 % copy all gridded data over to the output
 out = data_g;
-
 end
