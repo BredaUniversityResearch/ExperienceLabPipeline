@@ -75,11 +75,16 @@ if sum(isnan(data.conductance)) > 0
             % move up the timeline until a non-NaN is found or the end of
             % the interval is reached
             while true
-                if (~isnan(data.conductance(i))) || i==length(data.conductance)
+                % if this value is not a NaN, break out of the for loop
+                if (~isnan(data.conductance(i)))
                     break;
                 end
                 % update the endtime of the NaN segment
                 endtime = i;
+                % If the end of the data is reached, break the for loop
+                if i==length(data.conductance)
+                    break;
+                end
                 % still a NaN, move to the next timepoint
                 i=i+1; % Yes, I know, changing the index within a for loop, the horror ...
             end
@@ -88,11 +93,11 @@ if sum(isnan(data.conductance)) > 0
             % For special cases that include the very first or last timepoint
             % linear interpolation is not possible, so use a fixed value
             if starttime==1
-                data.conductance(starttime-1:endtime+1)   = data.conductance(endtime+1);
-                data.conductance_z(starttime-1:endtime+1) = data.conductance_z(endtime+1);
+                data.conductance(starttime:endtime)   = data.conductance(endtime+1);
+                data.conductance_z(starttime:endtime) = data.conductance_z(endtime+1);
             elseif endtime == length(data.conductance)
-                data.conductance(starttime-1:endtime+1)   = data.conductance(starttime-1);
-                data.conductance_z(starttime-1:endtime+1) = data.conductance_z(starttime-1);
+                data.conductance(starttime:endtime)   = data.conductance(starttime-1);
+                data.conductance_z(starttime:endtime) = data.conductance_z(starttime-1);
             else
                 data.conductance(starttime-1:endtime+1)   = linspace(data.conductance(starttime-1),data.conductance(endtime+1),(endtime-starttime+3));
                 data.conductance_z(starttime-1:endtime+1) = linspace(data.conductance_z(starttime-1),data.conductance_z(endtime+1),(endtime-starttime+3));
