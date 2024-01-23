@@ -100,6 +100,7 @@ end
 if ~isfield(cfg,'smoothmethod')
     cfg.smoothmethod = 'none';
 elseif max(strcmp(cfg.smoothmethod,{'movmean';'movmedian';'gaussian';'lowess';'loess';'sgolay';'none'})) == 0
+    warning('provided smoothmethod ''%s'' is not valid. Smoothmethod = ''movmean'' will be used. Type ''help gridify'' for more info.' , cfg.smoothmethod );
     cfg.smoothmethod = 'movmean';
 end
 
@@ -134,19 +135,19 @@ end
 
 % Use the defined calculation method to calculate the gridded data over the
 % defined variables, and store them using the preferred output name
-for vsamp = 1:height(cfg.variables)
-    if strcmp(cfg.variables.calculation{vsamp},'mean')
-        data_g.(cfg.variables.out{vsamp}) = accumarray(idx,data.(cfg.variables.in{vsamp}),[],@mean);
-    elseif strcmp(cfg.variables.calculation{vsamp},'unique')
-        data_g.(cfg.variables.out{vsamp}) = groupsummary(data.(cfg.variables.in{vsamp}),idx,"numunique");
-    elseif strcmp(cfg.variables.calculation{vsamp},'count')
-        data_g.(cfg.variables.out{vsamp}) = accumarray(idx,data.(cfg.variables.in{vsamp}),[],@length);
-    elseif strcmp(cfg.variables.calculation{vsamp},'sum')
-        data_g.(cfg.variables.out{vsamp}) = accumarray(idx,data.(cfg.variables.in{vsamp}),[],@sum);
-    elseif strcmp(cfg.variables.calculation{vsamp},'min')
-        data_g.(cfg.variables.out{vsamp}) = accumarray(idx,data.(cfg.variables.in{vsamp}),[],@min);
-    elseif strcmp(cfg.variables.calculation{vsamp},'max')
-        data_g.(cfg.variables.out{vsamp}) = accumarray(idx,data.(cfg.variables.in{vsamp}),[],@max);
+for samp_v = 1:height(cfg.variables)
+    if strcmp(cfg.variables.calculation{samp_v},'mean')
+        data_g.(cfg.variables.out{samp_v}) = accumarray(idx,data.(cfg.variables.in{samp_v}),[],@mean);
+    elseif strcmp(cfg.variables.calculation{samp_v},'unique')
+        data_g.(cfg.variables.out{samp_v}) = groupsummary(data.(cfg.variables.in{samp_v}),idx,"numunique");
+    elseif strcmp(cfg.variables.calculation{samp_v},'count')
+        data_g.(cfg.variables.out{samp_v}) = accumarray(idx,data.(cfg.variables.in{samp_v}),[],@length);
+    elseif strcmp(cfg.variables.calculation{samp_v},'sum')
+        data_g.(cfg.variables.out{samp_v}) = accumarray(idx,data.(cfg.variables.in{samp_v}),[],@sum);
+    elseif strcmp(cfg.variables.calculation{samp_v},'min')
+        data_g.(cfg.variables.out{samp_v}) = accumarray(idx,data.(cfg.variables.in{samp_v}),[],@min);
+    elseif strcmp(cfg.variables.calculation{samp_v},'max')
+        data_g.(cfg.variables.out{samp_v}) = accumarray(idx,data.(cfg.variables.in{samp_v}),[],@max);
     end
 end
 
@@ -164,12 +165,12 @@ if ~strcmp(cfg.smoothmethod,'none')
     gridsize.y = max(y)-min(y);
 
     %Run over all variables, skipping the ones for latg/long
-    for vsamp = 1:length(data_g.Properties.VariableNames)
-        if max(strcmp(data_g.Properties.VariableNames{vsamp},{'x';'y';'x';'lat';'lon';'alt'})) == 0
+    for samp_v = 1:length(data_g.Properties.VariableNames)
+        if max(strcmp(data_g.Properties.VariableNames{samp_v},{'x';'y';'x';'lat';'lon';'alt'})) == 0
 
             %Make a grid out of the existing variables data, with zeros
             %where no data exists
-            v = data_g.(data_g.Properties.VariableNames{vsamp});            
+            v = data_g.(data_g.Properties.VariableNames{samp_v});            
             variableGrid=zeros(gridsize.x,gridsize.y);
             for isamp = 1:dataPoints
                 xpos = x(isamp)-min(x);
@@ -183,7 +184,7 @@ if ~strcmp(cfg.smoothmethod,'none')
             else
                 smoothenedGrid = smoothdata2(variableGrid);            
             end
-            variableGrids.(data_g.Properties.VariableNames{vsamp}) = smoothenedGrid;
+            variableGrids.(data_g.Properties.VariableNames{samp_v}) = smoothenedGrid;
         end
     end
 
@@ -192,28 +193,28 @@ if ~strcmp(cfg.smoothmethod,'none')
     data_smoothened = [];
     data_smoothened.x = [];
     data_smoothened.y = [];
-    for vsamp = 1:length(gridFields)
-        data_smoothened.(gridFields{vsamp}) = [];
+    for samp_v = 1:length(gridFields)
+        data_smoothened.(gridFields{samp_v}) = [];
     end
 
     %Loop over all grid points
-    for xsamp = 1:gridsize.x%max(x)
+    for samp_x = 1:gridsize.x%max(x)
         for ysamp = 1:gridsize.y%max(y)
             %Check if any of the variables have non-zero values at that
             %position
             sampleFound = false;
-            for vsamp = 1:length(gridFields)
-                if variableGrids.(gridFields{vsamp})(xsamp,ysamp) >0
+            for samp_v = 1:length(gridFields)
+                if variableGrids.(gridFields{samp_v})(samp_x,ysamp) >0
                     sampleFound = true;
                 end
             end
             
             %If thereare values found, add to the structure
             if sampleFound
-                data_smoothened.x = [data_smoothened.x;min(x)+(xsamp-1)];
+                data_smoothened.x = [data_smoothened.x;min(x)+(samp_x-1)];
                 data_smoothened.y = [data_smoothened.y;min(y)+(ysamp-1)];
-                for vsamp = 1:length(gridFields)
-                   data_smoothened.(gridFields{vsamp}) = [data_smoothened.(gridFields{vsamp});variableGrids.(gridFields{vsamp})(xsamp,ysamp)];
+                for samp_v = 1:length(gridFields)
+                   data_smoothened.(gridFields{samp_v}) = [data_smoothened.(gridFields{samp_v});variableGrids.(gridFields{samp_v})(samp_x,ysamp)];
                 end
             end
         end
