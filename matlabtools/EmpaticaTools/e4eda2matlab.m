@@ -31,7 +31,7 @@ end
 if ~isfield(cfg, 'datafolder')
     error('empatica2matlab: datafolder not specified');
 end
-% check whether a timezone is specific, if not give warning and use local /
+% check whether a timezone is specified, if not give warning and use local /
 % current
 if ~isfield(cfg, 'timezone')
     cfg.timezone = datetime('now', 'TimeZone', 'local').TimeZone;
@@ -39,7 +39,7 @@ if ~isfield(cfg, 'timezone')
 end
 
 % read eda data from file
-edaRaw = readmatrix([cfg.datafolder, '\', cfg.edafile]);
+edaRaw = readmatrix(string(fullfile(cfg.datafolder, cfg.edafile)));
 
 % make initial time stamp in UNIX time Seconds
 data.initial_time_stamp = edaRaw(1);
@@ -58,11 +58,9 @@ data.eda = zeros(nsamp, 1);
 % generate the timelist for the eda data 
 data.time = linspace(0,((nsamp-1)/data.fsample),nsamp)';
 
-% Separate data from eda file into the 3 columns 
-% 4th column for the accumulated strength
-for isamp=1:nsamp   
-    data.eda(isamp,1) = edaRaw(isamp+2,1);
-end
+% Store the eda conduction data (skip first two rows)
+data.eda(1:nsamp,1) = edaRaw(3:end,1);
+
 
 % fill part of the output structure
 data.timeoff = 0;

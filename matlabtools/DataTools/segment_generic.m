@@ -15,6 +15,10 @@ function out = segment_generic (cfg,data)
 %           containing time-series data ('timearray'), or the full time-series
 %           data itself [0 1 2 3 4 5 6]. Leaving this blank will use the
 %           variable "time" in the "data" as the time-series.
+% cfg.timeformat = string specifying the format of the start and endtimes
+%           This can be either 'datetime' (default) or 'unixtime'
+%           Example of datetime: '15-May-2023 14:16:48'
+%           Example of unixtime: 1700470579
 %cfg.starttime = The time of the first datapoint to include in the
 %           segmented section, can be indicated as datetime ("23-Feb-2022 11:29:23"),
 %           as a value in the time-series data (250.5), or as "startfile"
@@ -102,6 +106,9 @@ if ~isfield(cfg,'allowoutofbounds')
     %    cfg.outofboundsnumeric = zeros; %fill in value to use for out of bound strings. Optionally, use "bound" to use the last available value
     %end
 end
+if ~isfield(cfg, 'timeformat')
+    cfg.timeformat = 'datetime';
+end
 
 %% SET TIME VARIABLE
 if ~isfield(cfg,'time')
@@ -167,6 +174,10 @@ if ~isfield(cfg,'starttime')
 else
     if isnumeric(cfg.starttime)
         starttime = cfg.starttime;
+        if strcmp(cfg.timeformat, 'unixtime')
+            % calculate the starttime relative to the start of the measurement 
+            starttime = starttime - data.initial_time_stamp;
+        end
     else
         if cfg.starttime == "startfile"
             starttime = 0;
@@ -192,6 +203,10 @@ end
 if isfield(cfg,'endtime')
     if isnumeric(cfg.endtime)
         endtime = cfg.endtime;
+        if strcmp(cfg.timeformat, 'unixtime')
+            % calculate the endtime relative to the start of the measurement 
+            endtime = endtime - data.initial_time_stamp;
+        end
     else
         if cfg.endtime == "endfile"
             endtime = max(time);

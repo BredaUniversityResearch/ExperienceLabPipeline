@@ -43,6 +43,7 @@ function out = segment_data(cfg,data)
 % range = ["0|300";"300|600";"600|900"] = range between two numeric values, separated with a pipe symbol
 %
 % Wilco -7=-2-2022
+% Hans 20-12-2012 added cfg option to use unix timestamps as start and endtime
 
 %% Check Values
 % This sections checks if the necessary top level data is available

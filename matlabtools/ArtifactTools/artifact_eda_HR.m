@@ -38,7 +38,6 @@ function out = artifact_eda(cfg, data)
 % cfg.blockreplacement  : determines whether block based artifact replacement should be conducted, can be set to "pre", "post", "both"
 % cfg.replacementartifacts  : the data array containing the artifactdata used for pre - correction replacement. Post-correction replacement, and non-existing replacement data require the python package and connection to be functional
 % cfg.replacementcfg    : option so set custom cfg options for blockreplacement function (must adhere to the cfg options of the artifact_replacement function)
-% cfg.participant       : string with participant number to show in the artifact correction window
 %
 %
 % *OUTPUT*
@@ -51,10 +50,6 @@ function out = artifact_eda(cfg, data)
 % *BY*
 % Marcel, 29-12-2018
 % Wilco, 21-02-2022
-
-% FEATURE REQUESTS
-% 1. Option to check if theres NaN data at the end, if so, segment all data
-% to the moment up until the NaN data begins
 
 %% VARIABLE CHECK
 if isfield (cfg, 'validationdata')
@@ -86,10 +81,6 @@ end
 
 if ~isfield(cfg, 'blockreplacement')
     cfg.blockreplacement = "none";
-end
-
-if ~isfield(cfg, 'participant')
-    cfg.participant = '';
 end
 
 
@@ -202,6 +193,7 @@ while (repeatremoval == 'y')
 
             % PEAK DETECTION
             if peak > cfg.threshold % if the peak zscore exceeds the provided threshold 
+                artifact_detected = 1; % artifact detection flag, artifact found
 
                 % find left-hand border of this artifact by finding the
                 % datasample to the left of the peak where the incline started, within the 20-second time window
@@ -244,14 +236,13 @@ while (repeatremoval == 'y')
                     % translate the window indices to the data indices
                     leftborder  = sample_i + leftindex  - 1; 
                     rightborder = sample_i + rightindex - 1;
-                    % make sure the border is always within the time domain / datapoint count to mitigate index issues (should not be possible) 
-                    % leftborder  = clamp(leftborder, 1,length(data.time)); 
-                    % rightborder = clamp(rightborder,1,length(data.time));
+                    % make sure the border is always within the time domain / datapoint count to mitigate index issues TODO: should not be possible anyway 
+                    leftborder  = clamp(leftborder, 1,length(data.time)); 
+                    rightborder = clamp(rightborder,1,length(data.time));
 
                     % create a structure to hold the artifact start and end times    
                     artifact = struct('starttime',data.time(leftborder),'endtime',data.time(rightborder));
-                    artifact_detected = 1; % artifact detection flag, artifact found
-                    
+
                     % add the current artifact to the end of the artifact list
                     if exist('artifacts','var')
                         artifacts(length(artifacts) + 1) = artifact;
@@ -267,6 +258,7 @@ while (repeatremoval == 'y')
 
             %% TROUGH DETECTION
             if trough < cfg.threshold * -1 % if the peak zscore exceeds the provided threshold in the negative direction
+                artifact_detected = 1; % artifact detection flag, artifact found
 
                 % find left-hand border of this artifact by finding the
                 % datasample to the left of the peak where the decline started, within the 20-second time window
@@ -298,7 +290,7 @@ while (repeatremoval == 'y')
                     continue
                 end
 
-                % sometimes the trough or border of the artifact is found at the right-hand side of the time window. In this case, we have not
+                % sometimes the trough or border of the artifact is found at the right-hand side of teh time window. In this case, we have not
                 % captured the full extent of the artifact yet. Move forward one sample and continue to the next iteration
                 if (rightindex == timwin_samplesize)
                     sample_i = sample_i + 1;
@@ -309,13 +301,12 @@ while (repeatremoval == 'y')
                     % translate the window indices to the data indices
                     leftborder  = sample_i + leftindex  - 1; 
                     rightborder = sample_i + rightindex - 1;
-                    % make sure the border is always within the time domain / datapoint count to mitigate index issues (should not be possible) 
-                    % leftborder  = clamp(leftborder, 1,length(data.time)); 
-                    % rightborder = clamp(rightborder,1,length(data.time)); 
+                    % make sure the border is always within the time domain / datapoint count to mitigate index issues TODO: should not be possible anyway 
+                    leftborder  = clamp(leftborder, 1,length(data.time)); 
+                    rightborder = clamp(rightborder,1,length(data.time)); 
 
                     % create a structure to hold the artifact start and end times    
                     artifact = struct('starttime',data.time(leftborder),'endtime',data.time(rightborder));
-                    artifact_detected = 1; % artifact detection flag, artifact found
 
                     % add the current artifact to the end of the artifact list
                     if exist('artifacts','var')
@@ -348,8 +339,6 @@ while (repeatremoval == 'y')
         artifactcfg = [];
         artifactcfg.artifacts = artifacts;
         artifactcfg.time = data.time;
-        artifactcfg.participant = cfg.participant;
-        
         if isfield(cfg, 'validationdata')
             artifactcfg.validation = cfg.validationdata;
         end
@@ -400,94 +389,58 @@ while (repeatremoval == 'y')
 
     if strcmp(cfg.manual,'no')
         if artifact_detected ==1  % if an artifact was found
-            if strcmp(cfg.confirm, 'yes')
-                figure;
-                subplot(graphCount,1,1), plot(data_orig.time, data_orig.conductance, out.time, out.conductance) % the original data
-                title('Original data (blue = before artifact correction, red = after artifact correction)');
-                subplot(graphCount,1,2), plot(out.time, out.conductance); % the corrected data
-                title('Data after artifact correction.');
-                if isfield(cfg, 'validationdata')
-                    subplot(graphCount,1,3), plot(data.time, cfg.validationdata, 'Color', [0.1, 0.5, 0.1])
-                    title('Validation Data');
-                end
+            figure;
+            subplot(graphCount,1,1), plot(data_orig.time, data_orig.conductance, out.time, out.conductance) % the original data
+            title('Original data (blue = before artifact correction, red = after artifact correction)');
+            subplot(graphCount,1,2), plot(out.time, out.conductance); % the corrected data
+            title('Data after artifact correction.');
+            if isfield(cfg, 'validationdata')
+                subplot(graphCount,1,3), plot(data.time, cfg.validationdata, 'Color', [0.1, 0.5, 0.1])
+                title('Validation Data');
             end
         else
             warning('No artifacts detected. Consider lowering the threshold.');
-            % pause; 
+            pause;
         end
 
-        if false % repeating does not seem to be necessary anymore, let's bypass it for now
 
-            % Ask if removal process should be repeated
-            dlgtitle = 'Repeat removal process';
-            prompt = 'Do you want to repeat the removal process?';
-            opts.Default = 'No';
-            answer_repeatremoval = questdlg(prompt, dlgtitle, 'Yes','No', opts.Default);
+        prompt = 'Do you want repeat the removal process? y/n [n]: ';
+        repeatremoval = input(prompt,'s');
+        if isempty(repeatremoval)
+            repeatremoval = 'n';
+        end
 
-            % Handle response
-            switch answer_repeatremoval
-                case 'Yes'
-                    repeatremoval = 'y';
-
-                    % Ask if treshold should be changed
-                    opts.Default = 'No';
-                    dlgtitle = 'Change treshold';
-                    prompt = strcat('Do you want change the treshold? (current treshold=', num2str(cfg.threshold) , ')');
-                    changetreshold = questdlg(prompt, dlgtitle, 'Yes','No', opts.Default);
-
-                    % Handle response
-                    switch changetreshold
-                        case 'Yes'
-                            cfg.threshold = get_new_treshold(cfg.threshold);
-
-                    end
-
-                    data = out;
-
-                    disp("Restarting Artifact Removal");
-
-                otherwise
-                    repeatremoval = 'n'; % specify to end the artefact removal procedure
-                    disp("Finishing Artifact Removal");
+        if repeatremoval == 'y'
+            prompt = 'Do you want change the treshold? y/n [n]: ';
+            changetreshold = input(prompt,'s');
+            if isempty(changetreshold)
+                changetreshold = 'n';
             end
+
+            if changetreshold == 'y'
+                disp(strcat("Original Treshold: ", num2str(cfg.threshold)));
+                prompt = 'Set new Threshold: ';
+                newthreshold = input(prompt);
+
+                prompt = strcat('Do you want change the treshold from: ', num2str(cfg.threshold), ' to: ',num2str(newthreshold), '? y/n [y]: ');
+                acceptnewthreshold = input(prompt,'s');
+                if isempty(acceptnewthreshold)
+                    acceptnewthreshold = 'y';
+                end
+
+                if acceptnewthreshold == 'y'
+                    cfg.threshold = newthreshold;
+                    disp(strcat('Threshold changed to: ', num2str(cfg.threshold)));
+                else
+                    disp("Threshold Unchanged");
+                end
+            end
+
+            data = out;
+
+            disp("Restarting Artifact Removal");
         else
-            repeatremoval = 'n'; % specify to end the artefact removal procedure
             disp("Finishing Artifact Removal");
         end
     end
 end
-end % artifact_eda(cfg, data)
-
-% Function to get a new treshold value
-function new_treshold = get_new_treshold(current_treshold)
-    % Ask for the new treshold value
-    prompt = strcat('Set new threshold: (current treshold=', num2str(current_treshold), ')');
-    dlgtitle = 'Treshold';
-    fieldsize = [1 45];
-    definput = {num2str(current_treshold)};
-
-    while 1  % loop indefinetly until a value is entered
-
-        newtreshold_str = inputdlg(prompt,dlgtitle,fieldsize,definput);
-
-        % Handle the response
-        if isempty(newtreshold_str) % user has pressed 'Cancel', so return
-            disp("Threshold Unchanged");
-            new_treshold = current_treshold;
-            return;
-        else
-            % treshold has changed
-            newtreshold_double = str2double(newtreshold_str); % convert input to a number if possibe
-            % check whether the new value is a positive numer
-            if isnan(newtreshold_double) % this is a NaN if the entered value was not a number
-                prompt = strcat(' Error: ''', newtreshold_str , ''' is not a valid treshold value. Treshold should be a positive number. Set new threshold: (current treshold=', num2str(current_treshold), ')');
-            elseif newtreshold_double <= 0 % the entered value is negative or zero
-                prompt = strcat(' Error: ''', newtreshold_str , ''' is not a valid treshold value. Treshold should be a positive number. Set new threshold: (current treshold=', num2str(current_treshold), ')');
-            else % the entered value is a positive number, so return this value
-                disp(strcat('Threshold changed to: ', newtreshold_str));
-                new_treshold = newtreshold_double;
-                return;
-            end
-        end
-    end
-end % get_new_treshold(current_treshold)
