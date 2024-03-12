@@ -12,29 +12,37 @@ function out = shimmer2matlab(cfg)
 %
 %Configuration Options
 % cfg.shimmerfile    = string specifying file that contains eda data in csv
-%                     format (numbers, not strings!). Default = shimmer.csv
-% cfg.datafolder    = string containing the full path folder in which empatica files
-%                     are stored. Note that for matlab-internal reasons you
-%                     have to specify double backslashes in the path. For
-%                     example 'c:\\data\\marcel\\europapark\\raw\\s01'
+%                     format. Default = shimmer.csv.
+% cfg.datafolder    = string containing the full path folder in which the
+%                       shimmer data is stored
 % cfg.timezone      = string specifying the timezone the data was collected
 %                     in, your local timezone will be used  if you dont
 %                     specify anything. You can find all possible timezones
 %                     by running the following command: timezones 
+% cfg.allowedsampledifference   = shimmers can combine several sessions in
+%                     one file, this is currently not supported by our
+%                     importer without data issues, therefore we set a max
+%                     sample difference to trigger an error if we expect a
+%                     file contains several sessions. Default = 1
+% cfg.fsample       = The sample frequency of the data, best to use the
+%                      correct settings for best data quality. Default =
+%                      128
 %
 %Data Requirements
-%data.value1 = Description of a required variable in the data structure (if relevant)
-%           example = [0 0 0 -1 -1 -1 1 1 1 1 0 0];
+%The shimmer data should use the following settings when exporting from the
+%consensys software
+% fileformat        = .csv
+% file delimiter    = comma
+% timestamp format  = unix
 %
 % *OUTPUT*
-%A structure containing the shimmer data which could be identified
+%A structure containing the shimmer data separated per data-type, using the
+%provided sample frequency
 %
 % *NOTES*
-% Note that it is recommended to use the default configuration options for 
-% cfg.edafile unless you have a good reason to deviate from that.
 %
-% *BY*
-% Wilco Boode, 19-09-2022
+% *LAST UPDATE*
+% Wilco Boode, 12-03-2023
 
 %% DEV INFO:
 % for creating the time array, and doing the restructuring, use the first and last unix timestamp, that way we know for certain we got the correct length, incase we have some skipping samples (which we shouldnt, bt just in case) 
