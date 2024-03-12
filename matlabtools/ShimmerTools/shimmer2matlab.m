@@ -4,7 +4,6 @@ function out = shimmer2matlab(cfg)
 %
 % *DESCRIPTION*
 % function to read in data from shimmer files.
-
 %
 % *INPUT*
 %Information on the variables / data to feed into this function must
