@@ -33,16 +33,16 @@ projectfolder = 'C:\Hans\Nuenen';
 datafolder = fullfile(projectfolder, '0.RawData');
 
 % the excel file that holds starttime and duration per pp
-participantDataFile = [projectfolder '\0.RawData\ParticipantData.xlsx'];
+participantDataFile = fullfile(projectfolder, '\0.RawData\ParticipantData.xlsx');
 
 % where to save the clean data after artifact correction
-cleandatafolder = [projectfolder '\2.ProcessedData\0.CleanData'];
+cleandatafolder = fullfile(projectfolder, '\2.ProcessedData\0.CleanData');
 
 % where to save the phasic data
-deconvolveddatafolder = [projectfolder '\2.ProcessedData\1.DeconvolvedData'];
+deconvolveddatafolder = fullfile(projectfolder, '\2.ProcessedData\1.DeconvolvedData');
 
 % define temporary directory for datafiles
-tempfolder = [projectfolder  '\Temp'];
+tempfolder = fullfile(projectfolder, '\Temp');
 
 
 %% Check whether these folders exist. Ask to create, if needed.
@@ -368,7 +368,7 @@ hold off;
 %% GRAND AVERAGING MULTIPLE PARTICIPANTS
 %  Creating grand average of the deconvolved data over all participants. 
 
-% combine the deonvolved data of all participants in one struct
+% combine the deconvolved data of all participants in one struct
 for pp_i=1:nof_pps
     % get the participant number
     pp_nr = pp_nrs(pp_i); 
@@ -399,5 +399,75 @@ plot(GA_deconvolved_data.time, GA_deconvolved_data.phasic);
 % again, but with some smoothing
 figure;
 plot(GA_deconvolved_data.time, movmean(GA_deconvolved_data.phasic, 40));
+
+
+%% INSPECT THE RESULTS PER PARTICIPANT
+%  This lets you inspect the results of artefact correction and
+%  deconvolution per participant. It can be usefull to check whether your
+%  choices in artefact rejection did not cause strange behaviour in the
+%  deconvolution process.
+
+% NOTE TO JOEL: 
+% ===============
+% apparently, the raw data is not stored in the deconvoluted data. 
+% I will fix that, so loading seprate data files will not be necessary. 
+% But for now, since your data has already been processed, you will need to work around that issue:
+%  - This script assumes you have the raw segmented data in working memory.
+%  - This is called segmented_data en is constructed in your pipeline
+
+% First indicate which participant you would like to inspect
+% Either use the index of the participant list ...
+pp_i = 5;
+pp_nr = pp_nrs(pp_i);
+% or set the participant number directly
+% pp_nr = 1;
+
+% load the data of this participant
+pp_label = ['P', num2str(pp_nr, '%03d')];
+deconvolved_data_path_filename = fullfile(deconvolveddatafolder, [pp_label, '_deconvolved_data.mat']);
+load(deconvolved_data_path_filename);
+
+% Let's show the original conductance and the artefact corrected
+% conductance in one graph
+% Add the phasic part in the same graph.
+
+% Start by opening a new figure
+figure;
+
+% specify what is on the x-axis
+x = deconvolved_data.time;
+
+% Draw the original raw conductance in red
+y = segmented_data(pp_i).conductance;
+plot(x, y, 'LineWidth', 1, 'Color', 'r');
+
+% let matlab know that you want the next plots to appear in the same figure
+hold on;
+
+% Draw the cleaned conductance in green over the raw conductance
+% Only the removed artifacts will be visible in red
+y = deconvolved_data.conductance;
+plot(x, y, 'LineWidth', 1, 'Color', 'g');
+
+% Draw the phasic data in the same figure
+y = deconvolved_data.phasic;
+plot(x, y, 'LineWidth', 1, 'Color', 'b');
+
+% Set the labels at the x- and y-axes, the title, and the legend
+xlabel('Time (s)');
+ylabel('Skin Conductace (\muS)');
+title(['Participant ', pp_label]);
+legend('raw', 'clean', 'phasic');
+
+% Set the range of the graph
+xlim([0 max(x)]); % x corresponds exactly to the data
+ylim([0 30]); % <================= The y-axis has a fixed range of 0-30 ...
+% so that the data is easy to compare between participants. 
+% Change the number if your graphs do not fit, 
+% or just remove this line so that the limits are adjusted to the data. 
+% That makes it more difficult to compare though. 
+
+
+
 
 
