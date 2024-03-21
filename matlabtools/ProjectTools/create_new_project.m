@@ -44,7 +44,7 @@ function newproject = create_new_project(project)
 % A project struct will be returned.
 %   project.project_name
 %   project.project_directory
-%   project.rawdata_directory
+%   project.raw_data_directory
 %   project.segmented_data_directory
 %   project.artifact_corrected_data_directory
 %   project.deconvolved_data_directory
@@ -80,7 +80,7 @@ directory_name = 'Project folder';
 check_directory(directory, directory_name, create_directory) % call function to check and create
 
 % Raw data folder
-directory = newproject.rawdata_directory;
+directory = newproject.raw_data_directory;
 directory_name = 'Raw data folder';
 check_directory(directory, directory_name, create_directory) % call function to check and create
 
