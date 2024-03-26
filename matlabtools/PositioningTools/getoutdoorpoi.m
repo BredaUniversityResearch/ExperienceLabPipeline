@@ -76,9 +76,9 @@ amount = length(jsondata.features);
 
 pois = [];
 for i = 1:amount
-    name = jsondata.features(i).properties.name;
-    lat = jsondata.features(i).geometry.coordinates(:,:,2);
-    long = jsondata.features(i).geometry.coordinates(:,:,1);
+    name = jsondata.features{i}.properties.name;
+    lat = jsondata.features{i}.geometry.coordinates(:,:,2);
+    long = jsondata.features{i}.geometry.coordinates(:,:,1);
 
     %Store colorcode and corresponding boundaries for every POI
     pois.(name).lat = lat;
@@ -95,7 +95,7 @@ poinames = fieldnames(pois);
 for i = 1:length(poinames)
     curname = cell2mat(poinames(i));
     curpois = pois.(curname);
-    pois.(curname).inside = false(1,length(data.lat));
+    pois.(curname).inside = false(length(data.lat),1);
     
     %For each boundary in the POI, compare it to the x,z position of the
     %data using inpolygon to get a list of all points inside the boundarie,
