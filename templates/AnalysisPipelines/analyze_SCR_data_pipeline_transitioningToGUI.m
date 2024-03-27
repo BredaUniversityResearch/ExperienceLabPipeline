@@ -34,7 +34,7 @@ clearvars;
 project = [];
 project.project_name = "test_project";
 project.project_directory = "c:\projects\test_project";
-% project.rawdata_directory = "raw";
+% project.raw_data_directory = "raw";
 % project.segmented_data_directory = "segm";
 % project.artifact_corrected_data_directory = "art";
 % project.deconvolved_data_directory = "decon";
@@ -43,7 +43,7 @@ project.ask_create_directory = "create"; % "ask" or "create"
 
 
 % create the new project
-newproject = create_new_project(project);
+project = create_new_project(project);
 
 
 %%
