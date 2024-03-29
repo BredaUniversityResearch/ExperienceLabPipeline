@@ -26,102 +26,35 @@ clearvars;
 
 %% Specify where to find and save data
 
-% set a path to the project
-projectfolder = 'C:\Hans\Nuenen';
+%%%%%%%%%%% New GUI version %%%%%%%%%%%%
+% opens a window to set and check the directories
+% it also creates a bookkeeping file (project_name.belt)
 
-% where to find the raw data
-datafolder = fullfile(projectfolder, '0.RawData');
+% Optionally, you can fill in the input fields here
+project = [];
+project.project_name = "test_project";
+project.project_directory = "c:\projects\test_project";
+% project.raw_data_directory = "raw";
+% project.segmented_data_directory = "segm";
+% project.artifact_corrected_data_directory = "art";
+% project.deconvolved_data_directory = "decon";
+% project.output_directory = "out";
+project.ask_create_directory = "create"; % "ask" or "create"
 
-% the excel file that holds starttime and duration per pp
-participantDataFile = fullfile(projectfolder, '\0.RawData\ParticipantData.xlsx');
 
-% where to save the clean data after artifact correction
-cleandatafolder = fullfile(projectfolder, '\2.ProcessedData\0.CleanData');
+% create the new project
+project = create_new_project(project);
 
-% where to save the phasic data
-deconvolveddatafolder = fullfile(projectfolder, '\2.ProcessedData\1.DeconvolvedData');
+
+%%
+
 
 % define temporary directory for datafiles
 tempfolder = fullfile(projectfolder, '\Temp');
 
 
-%% Check whether these folders exist. Ask to create, if needed.
-
-% project folder
-if ~exist(projectfolder, "dir")
-    % the folder does not exist, ask whether it should be created
-    dlgtitle = 'Project folder does not exist';
-    question = sprintf('The specified project folder cannot be found.\nWould you like me to create it?');
-    opts.Default = 'No';
-    answer = questdlg(question, dlgtitle, 'Yes','No', opts.Default);
-
-    % Handle response
-    switch answer
-        case 'Yes'
-            % create the folder
-            [status, msg, msgID] = mkdir(projectfolder); % create the folder
-        case 'No'
-            % abort the program and show an error message
-            error("The project folder was not found at the specified location. Please check.");
-    end
-end
-
-% data folder
-if ~exist(datafolder, "dir")
-    % the folder does not exist, ask whether it should be created
-    dlgtitle = 'Data folder does not exist';
-    question = sprintf('The raw data folder cannot be found.\nWould you like me to create it?');
-    opts.Default = 'No';
-    answer = questdlg(question, dlgtitle, 'Yes','No', opts.Default);
-
-    % Handle response
-    switch answer
-        case 'Yes'
-            % create the folder
-            [status, msg, msgID] = mkdir(datafolder); % create the folder
-        case 'No'
-            % abort the program and show an error message
-            error("The raw data folder was not found at the specified location. Please check.");
-    end
-end
-
-% clean data folder
-if ~exist(cleandatafolder, "dir")
-    % the folder does not exist, ask whether it should be created
-    dlgtitle = 'Clean data folder does not exist';
-    question = sprintf('The clean data folder cannot be found.\nWould you like me to create it?');
-    opts.Default = 'No';
-    answer = questdlg(question, dlgtitle, 'Yes','No', opts.Default);
-
-    % Handle response
-    switch answer
-        case 'Yes'
-            % create the folder
-            [status, msg, msgID] = mkdir(cleandatafolder); % create the folder
-        case 'No'
-            % abort the program and show an error message
-            error("The clean data folder was not found at the specified location. Please check.");
-    end
-end
-
-% deconvolved data folder
-if ~exist(deconvolveddatafolder, "dir")
-    % the folder does not exist, ask whether it should be created
-    dlgtitle = 'Deconvolved data folder does not exist';
-    question = sprintf('The deconvolved data folder cannot be found.\nWould you like me to create it?');
-    opts.Default = 'No';
-    answer = questdlg(question, dlgtitle, 'Yes','No', opts.Default);
-
-    % Handle response
-    switch answer
-        case 'Yes'
-            % create the folder
-            [status, msg, msgID] = mkdir(deconvolveddatafolder); % create the folder
-        case 'No'
-            % abort the program and show an error message
-            error("The deconvolved data folder was not found at the specified location. Please check.");
-    end
-end
+%% 
+ 
 
 % participant Datafile
 if ~exist(participantDataFile, "file")
