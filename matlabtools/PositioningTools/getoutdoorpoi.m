@@ -63,7 +63,7 @@ end
 
 %% LOAD DATA
 %Load POI json file
-fname = strcat(fullfile(cfg.datafolder,cfg.poifile));
+fname = fullfile(cfg.datafolder,cfg.poifile);
 fid = fopen(fname); 
 raw = fread(fid,inf); 
 str = char(raw'); 
