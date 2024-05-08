@@ -27,7 +27,7 @@ participantDataFile = fullfile(projectfolder, '\0.RawData\ParticipantData.xlsx')
 cleandatafolder = fullfile(projectfolder, '\2.ProcessedData\0.CleanData');
 
 % where to save the phasic data
-deconvolveddatafolder = fullfile(projectfolder, '\2.ProcessedData\1.DeconvolvedData');
+deconvolveddatafolder = fullfile(projectfolder, '\2.ProcessedData\1.DeconvolvedData\1.IndoorData');
 
 % define temporary directory for datafiles
 tempfolder = fullfile(projectfolder, '\Temp');
