@@ -67,9 +67,9 @@ if ~isfield(cfg, 'beaconPositions')
     warning('beaconNearestPosition: name of beacon position file not specified, using default');
     cfg.beaconPositions = 'BeaconPositions.xlsx';
 end
-if ~isfield(cfg, 'beaconMeta')
+if ~isfield(cfg, 'beaconmeta')
     warning('beaconNearestPosition: name of beacon metadata file not specified, using default');
-    cfg.beaconMeta = 'BeaconMeta.xlsx';
+    cfg.beaconmeta = 'beaconmeta.xlsx';
 end
 if ~isfield(cfg, 'datafolder')
     error('beacon2matlab: datafolder not specified');
@@ -107,16 +107,11 @@ if ~isfield(cfg, 'timezone')
     warning(strcat('TimeZone not specified. Using local TimeZone: ',cfg.timezone));
 end
 
-%save the current directory, and open the datafolder containing the actual
-%data
-curdir = pwd;
-cd(cfg.datafolder)
-%eval(sprintf('cd %s', cfg.datafolder));
 
 %% SETUP STRUCTURE AND VARIABLES
-%Create variables & set data for beaconMeta data, based on project
+%Create variables & set data for beaconmeta data, based on project
 %position & known ID / Major_Minor_UUID
-positionTable = readtable(strcat(cfg.beaconDataFolder,cfg.beaconPositions));
+positionTable = readtable(fullfile(cfg.beaconDataFolder,cfg.beaconPositions));
 
 positionTable.Major = NaN(length(positionTable.BeaconID),1);
 positionTable.Minor = NaN(length(positionTable.BeaconID),1);
@@ -124,7 +119,7 @@ positionTable.UUID = string(NaN(length(positionTable.BeaconID),1));
 positionTable.cBeacon = string(NaN(length(positionTable.BeaconID),1));
 
 %Read and Store Metadata from Beacons
-metaTable = readtable(strcat(cfg.beaconDataFolder,cfg.beaconMeta));
+metaTable = readtable(fullfile(cfg.beaconDataFolder,cfg.beaconmeta));
 for isamp=1: height(metaTable)
     for jsamp=1: height(positionTable)
         if (metaTable.BeaconID(isamp) == positionTable.BeaconID(jsamp,1))
@@ -139,7 +134,7 @@ end
 
 %% READ AND ORGANIZE DATA
 %read beacon data from file
-beaconTable = readtable(strcat(cfg.datafolder,cfg.beaconfile));
+beaconTable = readtable(fullfile(cfg.datafolder,cfg.beaconfile));
 
 %erase string indicators, split data in separate strings, and dicect the
 %array into a final matrix, as well as an array struct
@@ -157,7 +152,7 @@ rData.TIME = beaconTable(:,7);
 %Set the initial time stamps in both Matlab / human readable format, and
 %UNIX code*
 
-beaconTable.TIME(1)
+% beaconTable.TIME(1)
 initial_time_stamp = beaconTable.TIME(1);%str2double(cell2mat(beaconTable.TIME(1)));
 initial_time_stamp_mat = datetime(initial_time_stamp,'ConvertFrom','posixtime','TicksPerSecond',1,'Format','dd-MMM-yyyy HH:mm:ss.SSS','TimeZone',cfg.timezone);
 %initial_time_stamp_mat = datetime(datestr(unixmillis2datenum(initial_time_stamp*1000), 'dd-mmm-yyyy HH:MM:SS'));
@@ -176,7 +171,7 @@ bData.time = time;
 bData.time2 = rot90(time);
 beacons = {};
 
-%create array for every beacon in project (defined in beaconMeta)
+%create array for every beacon in project (defined in beaconmeta)
 for isamp = 1: height(positionTable)
     cBeacon = string(char("b"+string(positionTable.Major(isamp,1))+"_"+string(positionTable.Minor(isamp,1))));
     if ~isfield(bData, cBeacon)
@@ -232,7 +227,7 @@ out.initial_time_stamp = initial_time_stamp;
 out.initial_time_stamp_mat = initial_time_stamp_mat;
 out.fsample = 1;
 out.time = time;
-out.beaconMeta = positionTable;
+out.beaconmeta = positionTable;
 out.timeoff = 0;
 out.orig = cfg.datafolder;
 out.datatype = "ibeacon";
