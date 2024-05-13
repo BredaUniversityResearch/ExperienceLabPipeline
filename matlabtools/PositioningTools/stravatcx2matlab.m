@@ -47,6 +47,9 @@ function out = stravatcx2matlab(cfg)
 
 %% VARIABLE CHECK
 %set defaults
+if ~isfield(cfg, 'datafolder')
+    error('strava2matlab: datafolder not specified');
+end
 if ~isfield(cfg, 'stravafile')
     cfg.stravafile = 'strava.tcx';
 end
@@ -57,22 +60,20 @@ if ~isfield(cfg, 'newtimezone')
     cfg.newtimezone = datetime('now', 'TimeZone', 'local').TimeZone;
     warning(strcat('TimeZone not specified. Using local TimeZone: ',cfg.newtimezone));
 end
-if ~isfield(cfg, 'datafolder')
-    error('strava2matlab: datafolder not specified');
-end
+
 
 %% READ DATA
 %save the current directory, and open the datafolder containing the actual
 %data
-curdir = pwd;
-cd(cfg.datafolder)
+% curdir = pwd;
+% cd(cfg.datafolder)
 
 %read strava data from file, if file does not exist, look for other .tcx
 %files and suggest these instead
-if isfile(cfg.stravafile)
-    file = readstruct(cfg.stravafile,'FileType','xml');
+if isfile(fullfile(cfg.datafolder, cfg.stravafile))
+    file = readstruct(fullfile(cfg.datafolder, cfg.stravafile),'FileType','xml');
 else
-    fileList = dir('*.tcx');
+    fileList = dir(fullfile(cfg.datafolder, '*.tcx'));
     disp(strcat(cfg.stravafile,' Not Found'));
     if ~isempty(fileList)
         for f=1:length(fileList)
@@ -86,7 +87,7 @@ else
             if usenamefromlist == 'y'
                 cfg.stravafile = fileList(f).name;
                 
-                file = readstruct(cfg.stravafile,'FileType','xml');
+                file = readstruct(fullfile(cfg.datafolder, cfg.stravafile),'FileType','xml');
                 break
             end
         end
