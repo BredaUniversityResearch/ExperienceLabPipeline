@@ -117,7 +117,7 @@ opts = detectImportOptions(cfg.shimmerfile);
 fid = fopen(cfg.shimmerfile);
 firstLine = strsplit(fgetl(fid));
 fclose(fid);
-if contains(firstLine,"sep=")
+if max(contains(firstLine,"sep="))
     opts.DataLines = 4;
     opts.VariableNamesLine = 2;
 else
