@@ -35,9 +35,7 @@ project = [];
 project.project_name = "test_project";
 project.project_directory = "c:\projects\test_project";
 % project.raw_data_directory = "raw";
-% project.segmented_data_directory = "segm";
-% project.artifact_corrected_data_directory = "art";
-% project.deconvolved_data_directory = "decon";
+% project.processed_data_directory = "proc";
 % project.output_directory = "out";
 project.ask_create_directory = "create"; % "ask" or "create"
 
@@ -50,10 +48,12 @@ project = create_new_project(project);
 
 
 % define temporary directory for datafiles
-tempfolder = fullfile(projectfolder, '\Temp');
+tempfolder = fullfile(project.project_directory, '\Temp');
 
 
 %% 
+% the excel file that holds starttime and duration per pp
+participantDataFile = fullfile(project.project_directory, '\0.RawData\ParticipantData.xlsx');
  
 
 % participant Datafile
@@ -92,7 +92,7 @@ for pp_i = 1:nof_pps
     % to make it a 3 digit number
     pp_label = ['P', num2str(pp_nr, '%03d')]; 
     % create the full path to the data folder of this participant
-    pp_datafolder = fullfile(datafolder, pp_label); 
+    pp_datafolder = fullfile(project.raw_data_directory, pp_label); 
 
     % find the row in the participantData file that has the current participant number
     participantData_index = find(strcmp(participantData.Participant,pp_label)); % use this if the excel file contains participant labels (P003)
@@ -149,46 +149,48 @@ hold off;
 %% ARTIFACT CORRECTION
 %  Check the EDA data for artifacts and select a solution
 
+clc
+
 cfg = [];
 cfg.timwin    = 20; % define the timewindow for artifact detection (default = 20)
 cfg.threshold  = 3; % define the threshold for artifact detection (default = 5)
 cfg.interp_method = 'spline'; % set the default solution of all artifacts (default = 'linear')
 cfg.confirm = 'no'; % state that we do not want to see a figure with the solution for each participant (default = 'yes')
 
-for pp_i = 1:nof_pps % for all participants
+for pp_i = 1 %:nof_pps % for all participants
 
     % get the participant number
     pp_nr = pp_nrs(pp_i); 
     % Paste a P and leading zeros before the number, 
     pp_label = ['P', num2str(pp_nr, '%03d')]; 
     % specify where to save the clean data, with what filename 
-    % (add the '_cleadata' suffix and the '.mat' extension)
-    clean_data_path_filename = fullfile(cleandatafolder, [pp_label, '_cleandata.mat']);
+    % (add the '_cleandata' suffix and the '.mat' extension)
+    clean_data_path_filename = fullfile(project.processed_data_directory, [pp_label, '_processed_data.mat']);
 
     % check whether this file alreay exists
-    if exist(clean_data_path_filename, 'file')
-        % the file already exist, ask whether user wants to process again
-        % or skip this file
-        dlgtitle = 'Cleaned data file already exists';
-        question = sprintf('A cleaned datafile already exists for participant P%03d.\nWould you like to redo the artifact correction? (This deletes the previous file)\nOr skip this one?', pp_nrs(pp_i));
-        opts.Default = 'Skip';
-        answer = questdlg(question, dlgtitle, 'Redo','Skip', opts.Default);
-
-        % Handle response
-        switch answer
-            case 'Skip'
-                % continue to the next participant
-                continue;
-            case 'Redo'
-                % process the data again
-        end
-    end
+    % if exist(clean_data_path_filename, 'file')
+    %     % the file already exist, ask whether user wants to process again
+    %     % or skip this file
+    %     dlgtitle = 'Cleaned data file already exists';
+    %     question = sprintf('A cleaned datafile already exists for participant P%03d.\nWould you like to redo the artifact correction? (This deletes the previous file)\nOr skip this one?', pp_nrs(pp_i));
+    %     opts.Default = 'Skip';
+    %     answer = questdlg(question, dlgtitle, 'Redo','Skip', opts.Default);
+    % 
+    %     % Handle response
+    %     switch answer
+    %         case 'Skip'
+    %             % continue to the next participant
+    %             continue;
+    %         case 'Redo'
+    %             % process the data again
+    %     end
+    % end
 
     % define the raw skin conductance data
     cfg.validationdata = segmented_data(pp_i).conductance;
     cfg.participant = pp_label;
     % open the artifact correction window
-    clean_data = artifact_eda(cfg, segmented_data(pp_i)); 
+    clean_data = artifact_eda_belt(cfg, segmented_data(pp_i)); 
     % save the cleaned up skin conductance data
     save(clean_data_path_filename, 'clean_data');
 

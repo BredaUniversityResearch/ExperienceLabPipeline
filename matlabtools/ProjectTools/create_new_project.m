@@ -84,19 +84,9 @@ directory = newproject.raw_data_directory;
 directory_name = 'Raw data folder';
 check_directory(directory, directory_name, create_directory) % call function to check and create
 
-% Segmented data folder
-directory = newproject.segmented_data_directory;
-directory_name = 'Segmented data folder';
-check_directory(directory, directory_name, create_directory) % call function to check and create
-
-% Artifact corrected data folder
-directory = newproject.artifact_corrected_data_directory;
-directory_name = 'Artifact corrected data folder';
-check_directory(directory, directory_name, create_directory) % call function to check and create
-
-% Deconvolved data folder
-directory = newproject.deconvolved_data_directory;
-directory_name = 'Deconvolved data folder';
+% Processed data folder
+directory = newproject.processed_data_directory;
+directory_name = 'Processed data folder';
 check_directory(directory, directory_name, create_directory) % call function to check and create
 
 % Output folder
