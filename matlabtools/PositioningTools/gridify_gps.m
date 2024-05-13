@@ -118,6 +118,12 @@ if isstruct(data)
         cfg.variables = gridify_identify_variables(data(1).data);
     end
 
+    % Add participant count variable if we expect several participants
+    if max(size(data))>=1
+        pcount_v = table({'participant'},{'participantcount'},{'unique'},'VariableNames',{'in','out','calculation'});
+        cfg.variables = vertcat(cfg.variables,pcount_v);
+    end
+
     % Check individual participants in struct on available variables,
     % remove any that are not found in other participants
     for samp_i = 1:max(size(data))
@@ -165,12 +171,10 @@ cfg.multipleparticipants = 1;
 for samp_i = 1:max(size(data))
     data_grid(samp_i).data = gridify_table(cfg,data(samp_i).data);
 end
+
+%Orient data to a single cellrow
 data_c = struct2cell(data_grid);
 data_t = vertcat(data_c{:});
-
-% Add participant count variable
-pcount_v = table({'participant'},{'participantcount'},{'unique'},'VariableNames',{'in','out','calculation'});
-cfg.variables = vertcat(cfg.variables,pcount_v);
 
 % Index combined data table
 [data_g,~,idx] = unique(data_t(:,1:3),'rows');
@@ -222,7 +226,7 @@ warning('Variables and calculations have not been defined, calculating MEAN for 
 %Add all variables apart from Lat & Lon to the list of variables to calculate
 varCount = 1;
 for isamp = 1:length(data.Properties.VariableNames)
-    if max(strcmp(data.Properties.VariableNames{isamp},{'lat';'lon';'long';'alt';'z';'y';'x'})) == 0
+    if max(strcmp(data.Properties.VariableNames{isamp},{'lat';'lon';'long';'alt';'z';'y';'x';'participant'})) == 0
         cfg.variables(varCount) = struct('in',data.Properties.VariableNames{isamp},'out',data.Properties.VariableNames{isamp},'calculation','mean');
         varCount = varCount+1;
     end
@@ -249,7 +253,7 @@ gridsize.y = max(y)-min(y);
 
 %Run over all variables, skipping the ones for latg/long
 for samp_v = 1:length(data.Properties.VariableNames)
-    if max(strcmp(data.Properties.VariableNames{samp_v},{'y';'x';'lat';'lon';'alt'})) == 0
+    if max(strcmp(data.Properties.VariableNames{samp_v},{'z';'y';'x';'lat';'lon';'alt';'participant'})) == 0
 
         %Make a grid out of the existing variables data, with zeros
         %where no data exists
