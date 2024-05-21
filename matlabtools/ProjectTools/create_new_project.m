@@ -1,4 +1,4 @@
-function newproject = create_new_project(project)
+function newproject = create_new_project(cfg, project)
 %% CREATE_NEW_PROJECT
 %  function newproject = create_new_project(project)
 % 
@@ -18,9 +18,6 @@ function newproject = create_new_project(project)
 %        0.RawData
 %        1.Scripts&Tools (recommended dir, not created by function)
 %        2.ProcessedData
-%           0.SegmentedData
-%            1.CleanData
-%            2.DeconvolvedData
 %        3.Output
 %        4.Documentation (recommended dir, not created by function)
 %
@@ -39,96 +36,45 @@ function newproject = create_new_project(project)
 % directories will be fill in according to the recommended structure.
 % For a completely blank project, use 
 % project = [];
+%
+% A cfg struct is used to pass along config settings
+% cfg.ask_create_directory = 'ask' or 'create'  % (default = 'create')
+%    Whether directories should just be created if they do not exist,
+%    or the user should be asked to decide for each directory that does not
+%    exist.
 
 % *OUTPUT*
 % A project struct will be returned.
 %   project.project_name
 %   project.project_directory
 %   project.raw_data_directory
-%   project.segmented_data_directory
-%   project.artifact_corrected_data_directory
-%   project.deconvolved_data_directory
+%   project.processed_data_directory
 %   project.output_directory
-%   project.ask_create_directory
+
 
 
 %% Open the app to create a new project
 
-NewProjectAppApp = CreateNewProjectApp(project); % open the app
+NewProjectApp = CreateNewProjectApp(cfg, project); % open the app
 
-waitfor(NewProjectAppApp,'closeapplication',1) % wait until the app closes
+waitfor(NewProjectApp,'closeapplication',1) % wait until the app closes
 
-if NewProjectAppApp.save_project % if the [Create] button was pressed
-    newproject = NewProjectAppApp.project; % store the project struct
-end
-
-delete(NewProjectAppApp); % delete the app from workspace
-
-
-%% Check whether these folders exist. Ask to create, if needed.
-
-% if a folder does not exist, should we create it?
-if strcmp(newproject.ask_create_directory, 'create')
-    create_directory = true;
+if NewProjectApp.save_project % if the [Create] button was pressed
+    newproject = NewProjectApp.project; % store the project struct
+    cfg = NewProjectApp.cfg; % update the config struct
+    delete(NewProjectApp); % delete the app from workspace
+    check_project_directories(cfg, newproject); % check directories and create if needed
 else
-    create_directory = false;
+    newproject = [];
+    delete(NewProjectApp); % delete the app from workspace
+    return;
 end
 
-% project folder
-directory = newproject.project_directory;
-directory_name = 'Project folder';
-check_directory(directory, directory_name, create_directory) % call function to check and create
 
-% Raw data folder
-directory = newproject.raw_data_directory;
-directory_name = 'Raw data folder';
-check_directory(directory, directory_name, create_directory) % call function to check and create
 
-% Processed data folder
-directory = newproject.processed_data_directory;
-directory_name = 'Processed data folder';
-check_directory(directory, directory_name, create_directory) % call function to check and create
-
-% Output folder
-directory = newproject.output_directory;
-directory_name = 'Output folder';
-check_directory(directory, directory_name, create_directory) % call function to check and create
 
 
 end
 
-function check_directory(directory, directory_name, create_directory)
 
-    % provide some feedback
-    fprintf('Checking %s "%s". ', directory_name, directory);
-
-    if ~exist(directory, "dir")
-        % the folder does not exist, check whether we should ask or create
-        if create_directory
-            % create the folder
-            [status, msg, msgID] = mkdir(directory); % create the folder
-            fprintf('Directory created.\n');
-        else
-            % ask whether it should be created
-            dlgtitle = [directory_name ' does not exist'];
-            question = ['I cannot find the folder "' directory '". Would you like me to create it?'];
-            opts.Default = 'No';
-            answer = questdlg(question, dlgtitle, 'Yes','No', opts.Default);
-    
-            % Handle response
-            switch answer
-                case 'Yes'
-                    % create the folder
-                    [status, msg, msgID] = mkdir(directory); % create the folder
-                    fprintf('Directory created.\n');
-                case 'No'
-                    % abort the program and show an error message
-                    error(['The folder "' directory '" was not found at the specified location. Please check.']);
-            end
-        end
-    else
-        fprintf('Directory already exists.\n');
-    end
-
-end % check_directory(directory, directory_name, create_directory)
 
