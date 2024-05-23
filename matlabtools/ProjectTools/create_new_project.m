@@ -51,28 +51,31 @@ function newproject = create_new_project(cfg, project)
 %   project.processed_data_directory
 %   project.output_directory
 
-
-
-%% Open the app to create a new project
-
-NewProjectApp = CreateNewProjectApp(cfg, project); % open the app
-
-waitfor(NewProjectApp,'closeapplication',1) % wait until the app closes
-
-if NewProjectApp.save_project % if the [Create] button was pressed
-    newproject = NewProjectApp.project; % store the project struct
-    cfg = NewProjectApp.cfg; % update the config struct
-    delete(NewProjectApp); % delete the app from workspace
-    check_project_directories(cfg, newproject); % check directories and create if needed
-else
-    newproject = [];
-    delete(NewProjectApp); % delete the app from workspace
-    return;
+%% check input
+if ~isfield(cfg, 'show_input_window')
+    cfg.show_input_window = false;
 end
 
+%% check and create directories
 
+if cfg.show_input_window % Open the app to create a new project
 
+    NewProjectApp = CreateNewProjectApp(cfg, project); % open the app
+    waitfor(NewProjectApp,'closeapplication',1) % wait until the app closes
+    if NewProjectApp.save_project % if the [Create] button was pressed
+        newproject = NewProjectApp.project; % store the project struct
+        cfg = NewProjectApp.cfg; % update the config struct
+        delete(NewProjectApp); % delete the app from workspace
+        check_project_directories(cfg, newproject); % check directories and create if needed
+    else
+        newproject = [];
+        delete(NewProjectApp); % delete the app from workspace
+        return;
+    end
 
+else % check and create directories without dialog window
+
+    newproject = check_project_directories(cfg, project); 
 
 end
 
