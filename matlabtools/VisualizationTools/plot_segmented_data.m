@@ -5,9 +5,6 @@ function plot_segmented_data (cfg, project)
 % *DESCRIPTION*
 %  plots data of all participants in a projects in a single figure for data
 %  inspection. Use it to check for outliers and non-responders.
-%  IMPORTANT: currently it can only plot the segmented raw data. The
-%  function will be expanded to als o be able to plot the artifact
-%  corrected data, phasic data, and phasic_z data
 %
 % * INPUT*
 % A project struct with at least
@@ -19,39 +16,74 @@ function plot_segmented_data (cfg, project)
 %  processed_segment.(cfg.data_type)
 % A cfg struct with
 %  cfg.segment_nr :: 
-%  cfg.data_type :: currently only 'conductance' is supported
+%  cfg.data_type :: e.g. 'conductance_raw',  
+%                        'conductance_raw_z', 
+%                        'conductance_artifact_corrected',  
+%                        'conductance_artifact_corrected_z',  
+%                        'conductance_deconvolved',  
+%                        'conductance_deconvolved_z'  
+%  cfg.pp_labels = 'all' or a cell array of participant labels, e.g.{'P001', 'P002'}; (default = 'all')
+
 %  
 % === TODO:
 %     check input
 %     write description
 
+%% check input
+if ~isfield(cfg, 'pp_labels')
+    cfg.pp_labels = 'all';
+end
+if ~isfield(cfg, 'data_type')
+    cfg.data_type = 'conductance_raw';
+end
 
-segment_i = cfg.segment_nr;
+%%
+
+
+segment_nr = cfg.segment_nr;
 
 fig = figure; % create a new figure
 hold on; % indicate that we want to plot multiple lines in the same graph
-pp_labels = [];
-nof_pps = length(project.pp_labels);
+legend_labels = [];
 
-for pp_i = 1:nof_pps % for all participants
-    % check if segmentation is completed
-    if project.segment(segment_i).segmented(pp_i)
+if strcmp(cfg.pp_labels, 'all'); % show all participants
+    nof_pps = length(project.pp_labels);
+    
+    for pp_i = 1:nof_pps % for all participants
+        % check if segmentation is completed
+        if project.segment(segment_nr).segmented(pp_i)
+            % load the data
+            pp_label = cell2mat(project.pp_labels(pp_i));
+            path_filename = fullfile(project.processed_data_directory, [pp_label '_processed_segment_' project.segment(segment_nr).name '.mat']);
+            load(path_filename, 'processed_segment');
+       
+            % draw the data, x=time, y=conductance
+            plot(processed_segment.time, processed_segment.(cfg.data_type));
+    
+            % add the pp_label to the list for the legend
+            legend_labels = [legend_labels; pp_label];
+        end
+    end
+else
+    for pp_label_i = 1:length(cfg.pp_labels)
+        pp_label = cfg.pp_labels{pp_label_i};
         % load the data
-        pp_label = cell2mat(project.pp_labels(pp_i));
-        path_filename = fullfile(project.processed_data_directory, [pp_label '_processed_segment_' project.segment(segment_i).name '.mat']);
-        load(path_filename, 'processed_segment');
-   
-        % draw the data, x=time, y=conductance
-        plot(processed_segment.time, processed_segment.(cfg.data_type));
-
-        % add the pp_label to the list for the legend
-        pp_labels = [pp_labels; pp_label];
+        path_filename = fullfile(project.processed_data_directory, [pp_label '_processed_segment_' project.segment(segment_nr).name '.mat']);
+        if isfile(path_filename) % check if the data file exists
+            load(path_filename, 'processed_segment');
+       
+            % draw the data, x=time, y=conductance
+            plot(processed_segment.time, processed_segment.(cfg.data_type));
+    
+            % add the pp_label to the list for the legend
+            legend_labels = [legend_labels; pp_label];
+        end
     end
 end
 xlabel('Time (s)');
 ylabel('Conductance (\muS)')
-title(['Raw skin conductance data (' project.segment(segment_i).name ' segment)']);
-legend(pp_labels, 'Location', 'eastoutside');
+title([cfg.data_type ' (' project.segment(segment_nr).name ' segment)'], 'Interpreter', 'none');
+legend(legend_labels, 'Location', 'eastoutside');
 hold off;
 
 % call the displayCoordinates function to show the pp_label at the mouse
@@ -67,6 +99,5 @@ end
 function txt = displayCoordinates(~,info)
     x = info.Position(1);
     y = info.Position(2);
-    %pp_i = find(myarray(:,x)== y);
-    txt = ['pp = TODO (' num2str(x) ', ' num2str(y) ')'];
+    txt = ['t = ' num2str(x) 's, conductance = ', num2str(y) 'uS)'];
 end
