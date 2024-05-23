@@ -41,7 +41,9 @@ end
 if ~isfield(cfg, 'create_directory')
     cfg.create_directory = true;
 end
-
+if ~isfield(cfg, 'show_input_window')
+    cfg.show_input_window = false;
+end
 
 
 
