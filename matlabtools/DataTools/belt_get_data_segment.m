@@ -111,16 +111,23 @@ if project.segment(segment_nr).include(pp_nr)
     cfg.timezone = cell2mat(project.timezone(pp_nr)); % e.g. 'Europe/Amsterdam'
     % check data source: Empatica or Shimmer
     if isfile(fullfile(cfg.datafolder, 'EDA.csv')) % Empatica
-        raw_data = e4eda2matlab(cfg);
+        raw_data = e4eda2matlab(cfg); % get the raw data
     elseif isfile(fullfile(cfg.datafolder, 'physiodata.csv')) % Shimmer
         cfg.shimmerfile = 'physiodata.csv';
-        cfg.fsample = 128; % TODO: get this from the data
-        cfg.allowedsampledifference = 1; % TODO: make configurable
-        raw_data = shimmer2matlab(cfg);
-        raw_data = rmfield(raw_data,'temperature');
-        raw_data = rmfield(raw_data,'acceleration');
-        raw_data = rmfield(raw_data,'directionalforce');
-
+        cfg.fsample = 4; % resample the data to 4Hz
+        cfg.allowedsampledifference = 1; % for detection of multiple recordings
+        cfg.columnname.unix  = 'Unix'; % get the timestamps
+        cfg.columnname.eda   = 'GSR_Skin_Conductance'; % get the skin conductance data
+        cfg.columnname.acc_x = 'ignore'; % ignore acc_x
+        cfg.columnname.acc_y = 'ignore';  % ignore acc_y
+        cfg.columnname.acc_z = 'ignore';  % ignore acc_z
+        cfg.columnname.temp  = 'ignore'; % ignore temp
+        cfg.columnname.hr    = 'ignore'; % ignore hr
+        raw_data = shimmer2matlab(cfg); % get the raw data
+    else % Neither a Shimmer nor an Empatica datafile was found
+        warning('No datafile found for %s, segment %s. Please check! There should either be a ''EDA.csv'' or ''physiodata.csv'' file.', pp_label, segment_name);
+        processed_segment = [];
+        return;
     end
 
     % extract the [starttime - endtime] segment of the data
