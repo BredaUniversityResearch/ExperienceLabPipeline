@@ -115,7 +115,7 @@ opts.VariableNamesLine = 2;
 datanames = opts.VariableNames;
 columnnames = fieldnames(cfg.columnname);
 datacolumns = [];
-opts.SelectedVariableNames = {};
+opts.SelectedVariableNames = {}; % to read only the variables that we need
 
 % iterate over the columnnames to find the corresponding dataname, and
 % store this in a structure for later use
@@ -158,6 +158,7 @@ for isamp = 1:length(columnnames)
     end
 end
 
+% read the data
 shimmerraw = readtable(cfg.shimmerfile,opts);
 
 
