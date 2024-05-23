@@ -24,47 +24,35 @@
 %  Remove all data currently in the workspace
 clearvars;
 
-%% Specify a project name and directory 
-%  optionally specify where to find and save data
-%  if omitted, this is filled in with defaults
+%% Open the project   
+% 
+%  Open an existing project or create a new one if non exists 
 
 project = [];
 project.project_name       = 'PSV';
 project.project_directory  = 'c:\projects\PSV';
 % === Optional settings ===
-% === the defaults should be fine if the recommended structure is used ===
+% === the defaults directory structure is recommended. An alternative structure can be set via 
     % project.raw_data_directory       = fullfile(project.project_directory, '0.RawData');       % (default = '<project_directory>\0.RawData')
     % project.processed_data_directory = fullfile(project.project_directory, '2.ProcessedData'); % (default = '<project_directory>\2.ProcessedData')
     % project.output_directory         = fullfile(project.project_directory, '3.Output');        % (default = '<project_directory>\3.Output')
+% === or ask for an input window via cfg.show_input_window = true
 
 cfg = [];
-cfg.ask_create_directory         =  'create'; % 'ask' or 'create"  % (default = 'create')
+cfg.ask_create_directory    =  'create'; % 'create" directories that do not exist, or 'ask' (default = 'create')
+cfg.show_input_window       = false; %  show an input window to check and edit the directories
 
-% check and create directories, and create the project struct
-% Would you like a dialog window with that?
-I_want_a_dialog_window_to_check_or_change_directories = false; % true or false
-if I_want_a_dialog_window_to_check_or_change_directories
-    project = create_new_project(cfg, project); % opens the input dialog window
-else
-    project = check_project_directories(cfg, project); % checks and creates without dialog window
-end
-clear I_want_a_dialog_window_to_check_or_change_directories cfg; % clean up
-
-
-
-%% Get project details form the ParticipantData file and add to the project struct
-
-cfg = [];
+% Get project details from the ParticipantData file and add to the project struct
 cfg.segment_names      = {'AR', 'FirstHalf', 'SecondHalf'};
 
 % === optional settings === 
-% the defaults should be fine if the ParticipantData.xlsx template was used
-    % cfg.participant_data_dir = project.raw_data_directory;               % the folder that has the participant data
+% === the defaults should be fine if the ParticipantData.xlsx template was used
+    % cfg.participant_data_dir      = project.raw_data_directory;          % the folder that has the participant data
     % cfg.participant_data_filename = 'ParticipantData.xlsx';              % the filename of the participant data 
-    % cfg.participants = 'Participant';                                    % the column that has the participant labels 
-    % cfg.timeformat = 'TimeFormat';                                       % the column that has the time format ('unixtime' or 'datetime') 
-    % cfg.timezone   = 'TimeZone';                                         % the column that has the timezone ('Europe/Amsterdam') 
-    % cfg.number_of_segments = 3;                                          % the number of segments that each eda datafile contains (if omitted, this is determined from the segment names) 
+    % cfg.participants          = 'Participant';                           % the column that has the participant labels 
+    % cfg.timeformat            = 'TimeFormat';                            % the column that has the time format ('unixtime' or 'datetime') 
+    % cfg.timezone              = 'TimeZone';                              % the column that has the timezone ('Europe/Amsterdam') 
+    % cfg.number_of_segments    =  3;                                      % the number of segments that each eda datafile contains (if omitted, this is determined from the segment names) 
     % cfg.segment(1).starttimes = 'StartTimeAR';                           % the column that has the starttimes of the first segment 
     % cfg.segment(1).endtimes   = 'EndTimeAR';                             % the column that has the endtimes of the first segment 
     % cfg.segment(2).starttimes = 'StartTimeFirstHalf';                    % the column that has the starttimes of the second segment 
@@ -75,103 +63,33 @@ cfg.segment_names      = {'AR', 'FirstHalf', 'SecondHalf'};
 % === note that the match number and condition are not included ===
 % === those can be added to the processed data through a script, if needed ===
 
-% Add the relevant participant data to the project struct
-project = add_participant_data(cfg, project);
-
-
-
-
-%% write the bookkeeping file
-%
-%  creates a .csv file with
-%  - filename = projectname
-%  - file extension = .belt
-%  The file is saved in the project root (project.project_directory)
-%  Through this file we keep track of wich part of the processing has been
-%  done for each participant
-
-cfg = []; % === TODO: add options for rewriting an existing file
-project = create_project_bookkeeping(cfg, project);
-
-% === TODO: check whether file already exists, check for differences and
-%           report.
-%           pps may be added after processing has started
+project = belt_open_project(cfg, project);
 
 
 %% Store the number of participants
 
 nof_pps = length(project.pp_labels);  % number of participants
-nof_pps = 16;  % === for testing ===
 
 
-%%  Find all data, cut out the proper segments, and store in a variable
+%%  SEGMENTATION
+% Find all data, cut out the proper segments, store in a variable
+% 'processed_segment, and save that as
+% <pp_label>_processed_segment_<segment_name>.mat
+% The project bookkeeping is updated to note for which segment/pp the
+% segmenting is complete.
+
 
 % for each participant, do ...
 % (note that pp_i is the index in the participant list, not the participant number)
-
-
 for segment_i = 1:project.nof_segments
     for pp_i = 1:nof_pps
 
-        % get the participant label (e.g. 'P001')
-        pp_label = cell2mat(project.pp_labels(pp_i));
-
-        % get the raw data
         cfg = [];
-        cfg.datafolder = fullfile(project.raw_data_directory, pp_label);
-        cfg.timezone = cell2mat(project.timezone(pp_i)); % e.g. 'Europe/Amsterdam'
-        raw_data = e4eda2matlab(cfg);
-
-        % extract the [starttime - endtime] segment of the data
-        cfg = [];
-        cfg.starttime  = project.segment(segment_i).starttime(pp_i);
-        cfg.endtime    = project.segment(segment_i).endtime(pp_i);
-        cfg.timezone   = project.timezone(pp_i); % e.g. 'Europe/Amsterdam'
-        cfg.timeformat = project.timeformat(pp_i); % e.g. 'unixtime' or 'datetime'
-        % === Not all times appear to be filled in, so check here
-        if isempty(cell2mat(cfg.starttime)) || isempty(cell2mat(cfg.endtime))
-            warning('Start or endtime for participant %s, segment %s was not provided. Could not process this segment\n', pp_label, project.segment(segment_i).name);
-            continue;
-        end
-        processed_segment = segment_generic(cfg, raw_data);
-
-        % add the participant label and segment name to the processed data struct
-        processed_segment.pp_label = pp_label;
-        processed_segment.segment_name = project.segment(segment_i).name;        
-
-        % do some reorganizing and rename the conductance field to
-        % conductance_raw === TODO: move this outside the pipiline into a
-        % function
-        [processed_segment.conductance_raw] = processed_segment.conductance; 
-        [processed_segment.conductance_raw_z] = processed_segment.conductance_z; 
-        processed_segment = rmfield(processed_segment,'conductance');
-        processed_segment = rmfield(processed_segment,'conductance_z');
-        processed_segment = orderfields(processed_segment,...
-            {'pp_label', ...
-            'segment_name', ...
-            'datatype','orig', ...
-            'initial_time_stamp', ...
-            'initial_time_stamp_mat', ...
-            'fsample', ...
-            'timeoff', ...
-            'time', ...
-            'conductance_raw', ...
-            'conductance_raw_z' });
-
-        % save the segmented data
-        path_filename = fullfile(project.processed_data_directory, [pp_label '_processed_segment_' project.segment(segment_i).name '.mat']);
-        save(path_filename, 'processed_segment');
-
-        % update bookkeeping
-        cfg = [];
-        cfg.processing_part = 'segmented';
-        cfg.pp_label = pp_label;
         cfg.segment_nr = segment_i;
-        cfg.processing_complete = true;
-        project = update_project_bookkeeping(cfg, project);
-
-        % Provide some feedback
-        fprintf('Data of participant %s is segmented and saved as %s\n', pp_label, path_filename);
+        cfg.pp_nr = pp_i;
+        cfg.handle_already_segmented_data = 'redo'; % 'skip|ask|redo'
+        
+        [processed_segment, project] = belt_get_data_segment(cfg, project);
 
     end
 end
@@ -180,95 +98,95 @@ end
 % plot the raw data per segment 
 % for all participants in one graph
 
+% === to plot the data of all participants, use
+% cfg.pp_labels = 'all'; (default)
+% === to plot data of a few spefic participants, use e.g.
+% cfg.pp_labels = {'P005', 'P007'};
+
+% === the data can be any of the processed data field
+% cfg.data_type = 'conductance_raw';
+% cfg.data_type = 'conductance_raw_z';
+% cfg.data_type = 'conductance_artifact_corrected';
+% cfg.data_type = 'conductance_artifact_corrected_z';
+% cfg.data_type = 'conductance_deconvolved';
+% cfg.data_type = 'conductance_deconvolved_z';
+% === of course, the artifact corrected and deconvolved data do not
+% exist yet, at this point in the pipeline
+
 cfg = [];
 cfg.segment_nr = 1; % AR
 cfg.data_type = 'conductance_raw';
+cfg.pp_labels = 'all';
 plot_segmented_data (cfg, project);
 
 cfg = [];
 cfg.segment_nr = 2; % First half
-cfg.data_type = 'conductance_raw';
+cfg.data_type = 'conductance_raw_z';
+cfg.pp_labels = {'P005', 'P007'};
 plot_segmented_data (cfg, project);
 
 cfg = [];
 cfg.segment_nr = 3; % Second half
-cfg.data_type = 'conductance_raw';
 plot_segmented_data (cfg, project);
+
+
+%% Remove data that is not usable from further processing
+
+cfg = [];
+cfg.segment_nr = 1;
+cfg.pp_labels = {}; % e.g. {'P001', 'P007', 'P012'};
+
+project = belt_set_include_segment_pp(cfg, project);
+
 
 %% ARTIFACT CORRECTION
 %  Check the EDA data for artifacts and select a solution
 
-clc
-
-
-segment_i = 1; % AR
-for pp_i = 1:nof_pps % for all participants
-
-    % check if segmentation is completed
-    if project.segment(segment_i).segmented(pp_i)
+for segment_i = 1:project.nof_segments
+    for pp_i = 1:nof_pps
 
         cfg = [];
-        cfg.timwin    = 20; % define the timewindow for artifact detection (default = 20)
-        cfg.threshold  = 3; % define the threshold for artifact detection (default = 5)
-        cfg.default_solution = 'spline'; % set the default solution of all artifacts (default = 'linear')
-        cfg.show_result_for_each = 'no'; % state that we do not want to see a figure with the solution for each participant (default = 'yes')
+        cfg.segment_nr = segment_i;
+        cfg.pp_nr = pp_i;
         cfg.handle_already_cleaned_segments = 'skip'; % 'skip|redo|ask' (what to do with segments that have already been artifact corrected)
 
-        % check whether artifact correction has already been done
-        if project.segment(segment_i).artifact_corrected(pp_i)
+        % do the artifact correction
+        [processed_segment, project] = belt_artifact_correction(cfg, project);
 
-            % === TODO: move this part out of the pipeline into a function
-            % artifact correction has already been done, check cfg
-            switch cfg.handle_already_cleaned_segments
-                case 'skip'
-                    % continue to the next participant
-                    continue;
-                case 'redo'
-                    % process the data again
-                case 'ask'
-                    % ask whether it should be done again
-                    dlgtitle = 'Redo artifact correction?';
-                    question = sprintf('Artifact correction has already been done for this participant.\nWould you like me to redo it?');
-                    opts.Default = 'Skip';
-                    answer = questdlg(question, dlgtitle, 'Redo','Skip', opts.Default);
-                    % Handle response
-                    switch answer
-                        case 'Skip'
-                            % continue to the next participant
-                            continue;
-                        case 'Redo'
-                            % process the data again
-                    end
-            end
-        end
-
-        % load the data
-        pp_label = cell2mat(project.pp_labels(pp_i));
-        path_filename = fullfile(project.processed_data_directory, [pp_label '_processed_segment_' project.segment(segment_i).name '.mat']);
-        load(path_filename, 'processed_segment');
-
-        % define the raw skin conductance data
-        % cfg.validationdata = segmented_data(pp_i).validation_data; % this is currently not implemented, will do upon request
-        cfg.participant = pp_label;
-        % open the artifact correction window
-        processed_segment = artifact_eda_belt(cfg, processed_segment); 
-    
-        % save the artifact corrected data
-        path_filename = fullfile(project.processed_data_directory, [pp_label '_processed_segment_' project.segment(segment_i).name '.mat']);
-        save(path_filename, 'processed_segment');
-
-        % Provide some feedback
-        fprintf('Data of participant %s is artifact corrected and saved as %s\n', pp_label, path_filename);
-
-        % update bookkeeping
-        cfg = [];
-        cfg.processing_part = 'artifact_corrected';
-        cfg.pp_label = pp_label;
-        cfg.segment_nr = segment_i;
-        cfg.processing_complete = true;
-        project = update_project_bookkeeping(cfg, project);
     end
 end
+
+%% Inspect the cleaned data
+% plot the artifact corrected data per segment 
+% for all participants in one graph
+
+cfg = [];
+cfg.segment_nr = 1; % AR
+cfg.data_type = 'conductance_clean';
+cfg.pp_labels = 'all';
+plot_segmented_data (cfg, project);
+
+cfg = [];
+cfg.segment_nr = 2; % First half
+cfg.data_type = 'conductance_clean_z';
+cfg.pp_labels = 'all';
+plot_segmented_data (cfg, project);
+
+cfg = [];
+cfg.segment_nr = 3; % Second half
+cfg.data_type = 'conductance_clean';
+plot_segmented_data (cfg, project);
+
+
+%% Remove data that is not usable from further processing
+
+cfg = [];
+cfg.segment_nr = 1;
+cfg.pp_labels = {}; % e.g. {'P001', 'P007', 'P012'};
+
+project = belt_set_include_segment_pp(cfg, project);
+
+
 
 
 %% DECONVOLVE and split into phasic and tonic components
@@ -276,86 +194,59 @@ end
 %  split into phasic and tonic components
 
 
-cfg = []; % empty any existing configuration settings.
-cfg.tempdir = fullfile(project.project_directory, '\Temp'); % temporary directory for datafiles
-cfg.conductance   = 'conductance_clean'; % LEDALAB expects a conductance field
-cfg.conductance_z = 'conductance_clean_z';
+for segment_i = 1:project.nof_segments % for all segments
+    for pp_i = 1:nof_pps % for all participants
 
-% create the temp folder, if needed
-if ~exist(cfg.tempdir, "dir")
-    % the folder does not exist
-    [status, msg, msgID] = mkdir(cfg.tempdir); % create it
-    tempfoldercreated = true; % take note that we created the folder. Remove it when we are done
-else
-    tempfoldercreated = false;% folder was already there, so leave it.
-end
-
-
-segment_i = 1; % AR
-for pp_i = 1:nof_pps % for all participants
-
-    % check if artifact correction is completed
-    if project.segment(segment_i).artifact_corrected(pp_i)
-
-        cfg.handle_already_deconvolved_segments = 'ask'; % 'skip|redo|ask' (what to do with segments that have already been artifact corrected)
-   
-        % check whether the deconvolved data already exists
-        if project.segment(segment_i).deconvolved(pp_i)
-            % === TODO: move this part out of the pipeline into a function
-            % artifact correction has already been done, check cfg
-            switch cfg.handle_already_deconvolved_segments
-                case 'skip'
-                    % continue to the next participant
-                    continue;
-                case 'redo'
-                    % process the data again
-                case 'ask'
-                    % ask whether it should be done again
-                    dlgtitle = 'Redo deconvolution?';
-                    question = sprintf('Deconvolution has already been done for this participant.\nWould you like me to redo it?');
-                    opts.Default = 'Skip';
-                    answer = questdlg(question, dlgtitle, 'Redo','Skip', opts.Default);
-                    % Handle response
-                    switch answer
-                        case 'Skip'
-                            % continue to the next participant
-                            continue;
-                        case 'Redo'
-                            % process the data again
-                    end
-            end
-        end
-
-        % load the data
-        pp_label = cell2mat(project.pp_labels(pp_i));
-        path_filename = fullfile(project.processed_data_directory, [pp_label '_processed_segment_' project.segment(segment_i).name '.mat']);
-        load(path_filename, 'processed_segment');
-
-        % do the deconvolution thing
-        processed_segment = deconvolve_eda(cfg, processed_segment);
-
-        % save the deconvolved data
-        path_filename = fullfile(project.processed_data_directory, [pp_label '_processed_segment_' project.segment(segment_i).name '.mat']);
-        save(path_filename, 'processed_segment');
-
-        % Provide some feedback
-        fprintf('Data of participant %s has been deconvolved into a tonic and phasic and saved as %s\n', pp_label, path_filename);
-
-        % update bookkeeping
-        cfg = [];
-        cfg.processing_part = 'deconvolved';
-        cfg.pp_label = pp_label;
+        cfg = []; % empty any existing configuration settings.
+        cfg.tempdir = fullfile(project.project_directory, '\Temp'); % temporary directory for datafiles
+        cfg.conductance   = 'conductance_clean'; % LEDALAB expects a conductance field
+        cfg.conductance_z = 'conductance_clean_z';
         cfg.segment_nr = segment_i;
-        cfg.processing_complete = true;
-        project = update_project_bookkeeping(cfg, project);
+        cfg.pp_nr = pp_i;
+        cfg.handle_already_deconvolved_segments = 'redo';
+
+        % do the deconvolution
+        [processed_segment, project] = belt_deconvolve_eda(cfg, project);
+        
     end
 end
 
-if tempfoldercreated
-    % we created a temporary folder, now remove it
-    rmdir(tempfolder, 's'); % this fails sometimes, don't know why
-end
 
+%% Inspect the deconvolved data
+% plot the artifact corrected data per segment 
+% for all participants in one graph
+
+cfg = [];
+cfg.segment_nr = 1; % AR
+cfg.data_type = 'conductance_phasic';
+cfg.pp_labels = 'all';
+plot_segmented_data (cfg, project);
+
+cfg = [];
+cfg.segment_nr = 2; % First half
+cfg.data_type = 'conductance_phasic';
+cfg.pp_labels = 'all';
+plot_segmented_data (cfg, project);
+
+cfg = [];
+cfg.segment_nr = 3; % Second half
+cfg.data_type = 'conductance_phasic';
+plot_segmented_data (cfg, project);
+
+
+%% Remove data that is not usable from further processing
+
+cfg = [];
+cfg.segment_nr = 1;
+cfg.pp_labels = {}; % e.g. {'P001', 'P007', 'P012'};
+
+project = belt_set_include_segment_pp(cfg, project);
+
+
+%% ============================= PIPELINE IS UPDATE TO THIS POINT =========
+%  TODO:
+%  create some more plot options
+%  export the data for analysis
 
 %% Inspect the phasic components of all participants
 
