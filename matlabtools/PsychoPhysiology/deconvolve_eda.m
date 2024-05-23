@@ -125,7 +125,7 @@ if sum(isnan(data.conductance)) > 0
                 data.conductance(starttime:endtime)   = data.conductance(starttime-1);
                 data.conductance_z(starttime:endtime) = data.conductance_z(starttime-1);
             else
-                data.conductance(starttime-1:endtime+1)   = linspace(data.conductance(starttime-1),data.conductance(endtime+1),(endtime-starttime+3));
+                data.conductance(  starttime-1:endtime+1) = linspace(data.conductance(  starttime-1),data.conductance(  endtime+1),(endtime-starttime+3));
                 data.conductance_z(starttime-1:endtime+1) = linspace(data.conductance_z(starttime-1),data.conductance_z(endtime+1),(endtime-starttime+3));
             end
         end
@@ -174,10 +174,11 @@ clear analysis fileinfo protocol;
 %% now repeat everything but for z-transformed conductance, if present in the data
 clear data;
 data = tmpdata; %re-read original input struct
+
 if ~isfield(data, cfg.conductance_z)
     disp('data does not contain z-transformed conductance. Cannot compute phasic z-transformed conductance. Phasic_z and tonic_z not added to output');
 else
-    data.conductance = data.(cfg.conductance_z); % use z-transformed conductance data 
+    data.conductance = data.conductance_z; % use z-transformed conductance data 
     save(strcat(cfg.tempdir, '\matData'), 'data'); % write temporary file that Ledalab needs to read the data
     Ledalab(strcat(cfg.tempdir, '\'), 'open', 'mat', 'analyze', 'CDA', 'optimize', 6, 'export_scrlist', [0.05 1]);
     load(strcat(cfg.tempdir, '\matData')) %load analysis results into workspace
@@ -218,6 +219,4 @@ out.phasic(nan_booleans) = NaN;
 out.tonic(nan_booleans) = NaN;
 out.phasic_z(nan_booleans) = NaN;
 out.tonic_z(nan_booleans) = NaN;
-out.conductance(nan_booleans) = NaN;
-out.conductance_z(nan_booleans) = NaN;
 
