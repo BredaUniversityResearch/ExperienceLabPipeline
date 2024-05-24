@@ -105,7 +105,7 @@ if project.segment(segment_nr).include(pp_nr)
         cfg.threshold  = 3; % define the threshold for artifact detection (default = 5)
         cfg.default_solution = 'spline'; % set the default solution of all artifacts (default = 'linear')
         cfg.show_result_for_each = 'no'; % state that we do not want to see a figure with the solution for each participant (default = 'yes')
-        cfg.participant = pp_label;
+        cfg.segment_identifier = ['Segment ', segment_name, ', participant ', pp_label];
         
         % open the artifact correction window
         processed_segment = artifact_eda_belt(cfg, processed_segment); 
