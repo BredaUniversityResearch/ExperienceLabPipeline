@@ -91,10 +91,13 @@ hold off;
 dcm = datacursormode;
 dcm.Enable = 'on';
 dcm.DisplayStyle = 'window';
-dcm.UpdateFcn = @displayCoordinates;
+dcm.UpdateFcn = @customdatatip;
 
 end
 
+function output_txt = customdatatip(obj,event_obj,str)
+output_txt = {event_obj.Target.DisplayName};
+end
 
 function txt = displayCoordinates(~,info)
     x = info.Position(1);
