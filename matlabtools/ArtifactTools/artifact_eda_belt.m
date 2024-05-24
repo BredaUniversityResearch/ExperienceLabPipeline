@@ -38,7 +38,7 @@ function data = artifact_eda(cfg, data)
 % cfg.blockreplacement  : determines whether block based artifact replacement should be conducted, can be set to "pre", "post", "both"
 % cfg.replacementartifacts  : the data array containing the artifactdata used for pre - correction replacement. Post-correction replacement, and non-existing replacement data require the python package and connection to be functional
 % cfg.replacementcfg    : option so set custom cfg options for blockreplacement function (must adhere to the cfg options of the artifact_replacement function)
-% cfg.participant       : string with participant number to show in the artifact correction window
+% cfg.segment_identifier: string with the segment name and participant label, this is shown in the artifact correction window
 %
 %
 % *OUTPUT*
@@ -52,9 +52,6 @@ function data = artifact_eda(cfg, data)
 % Marcel, 29-12-2018
 % Wilco, 21-02-2022
 
-% FEATURE REQUESTS
-% 1. Option to check if theres NaN data at the end, if so, segment all data
-% to the moment up until the NaN data begins
 
 %% VARIABLE CHECK
 if isfield (cfg, 'validationdata')
@@ -80,12 +77,12 @@ if ~isfield(cfg, 'default_solution')
     disp('A default solution has not been defined. Using linear interpolation for artifact correction');
 end
 
-if ~isfield(cfg, 'blockreplacement')
-    cfg.blockreplacement = "none";
-end
+% if ~isfield(cfg, 'blockreplacement')
+%     cfg.blockreplacement = "none";
+% end
 
-if ~isfield(cfg, 'participant')
-    cfg.participant = '';
+if ~isfield(cfg, 'segment_identifier')
+    cfg.segment_identifier = '';
 end
 
 
@@ -93,35 +90,35 @@ end
 data.conductance_clean = data.conductance_raw;
 
 
-%% PRE BLOCK REPLACEMENT
-% section for pre-correction block replacement
-if (cfg.blockreplacement == "pre" || cfg.blockreplacement == "both")
-    % check if there is an existing artifact list, if not, then create a new
-    % one using the python package and the provided data
-    if ~isfield(cfg, 'replacementartifacts')
-        pcfg = [];
-        artifacts = artifactmat2matlab(pcfg,data);
-        cfg.replacementartifacts = artifacts.binaryArtifacts;
-        warning("Got Artifacts");
-    end
-    % check if there are configurations set for the replacement function, if
-    % not, create an empty config
-    if ~isfield(cfg, 'replacementarticfg')
-        cfg.replacementcfg = [];
-        warning("Made CFG");
-    end
-
-    % create structure for replacement function
-    rdata.artifacts = cfg.replacementartifacts;
-    rdata.original = data.conductance_clean;
-    rdata.time = data.time;
-
-    % run replacement function, and replace conductance data
-    replacementdata = artifact_replacement(cfg.replacementcfg, rdata);
-    warning("Did a replace");
-
-    data.conductance_clean = replacementdata.corrected;
-end
+% %% PRE BLOCK REPLACEMENT
+% % section for pre-correction block replacement
+% if (cfg.blockreplacement == "pre" || cfg.blockreplacement == "both")
+%     % check if there is an existing artifact list, if not, then create a new
+%     % one using the python package and the provided data
+%     if ~isfield(cfg, 'replacementartifacts')
+%         pcfg = [];
+%         artifacts = artifactmat2matlab(pcfg,data);
+%         cfg.replacementartifacts = artifacts.binaryArtifacts;
+%         warning("Got Artifacts");
+%     end
+%     % check if there are configurations set for the replacement function, if
+%     % not, create an empty config
+%     if ~isfield(cfg, 'replacementarticfg')
+%         cfg.replacementcfg = [];
+%         warning("Made CFG");
+%     end
+% 
+%     % create structure for replacement function
+%     rdata.artifacts = cfg.replacementartifacts;
+%     rdata.original = data.conductance_clean;
+%     rdata.time = data.time;
+% 
+%     % run replacement function, and replace conductance data
+%     replacementdata = artifact_replacement(cfg.replacementcfg, rdata);
+%     warning("Did a replace");
+% 
+%     data.conductance_clean = replacementdata.corrected;
+% end
 
 
 % ARTIFACT DETECTION, semi-automatic artifact detection and correction
@@ -275,110 +272,110 @@ end
 
 %% ARTIFACT CORRECTION
 % Open the correction app, and allow user to select artifacts to correct
-if exist('artifacts','var')
-    appcfg = [];
-    if isfield(cfg, 'prepostvisualization')
-        appcfg.prepostduration = cfg.prepostvisualization;
-    end
-
-    artifactcfg = [];
-    artifactcfg.artifacts = artifacts;
-    artifactcfg.time = data.time;
-    artifactcfg.participant = cfg.participant;
-    artifactcfg.default_solution = cfg.default_solution;
-
-    if isfield(cfg, 'validationdata')
-        artifactcfg.validation = cfg.validationdata;
-    end
-    if isfield(cfg, 'artifactprepostvis')
-        artifactcfg.prepostduration = cfg.artifactprepostvis;
-    end
-    ArtifactApp = BeltApp(data.conductance_clean,artifactcfg); % <======================== calling the new BELT app here
-
-    waitfor(ArtifactApp,'closeapplication',1)
-
-    data.conductance_clean = ArtifactApp.solution;
-    delete(ArtifactApp);
+% NOTE: previous versions would not show the artifact correction app when
+% no artifacts were found. This version always shows the app, so you can
+% inspect the data
+if ~exist('artifacts','var')
+    artifacts = [];
 end
+
+artifactcfg = [];
+artifactcfg.artifacts = artifacts;
+artifactcfg.time = data.time;
+artifactcfg.segment_identifier = cfg.segment_identifier;
+artifactcfg.default_solution = cfg.default_solution;
+
+if isfield(cfg, 'validationdata')
+    artifactcfg.validation = cfg.validationdata;
+end
+if isfield(cfg, 'artifactprepostvis')
+    artifactcfg.prepostduration = cfg.artifactprepostvis;
+end
+ArtifactApp = BeltApp(data.conductance_clean,artifactcfg); % <======================== calling the new BELT app here
+
+waitfor(ArtifactApp,'closeapplication',1)
+
+data.conductance_clean = ArtifactApp.solution;
+delete(ArtifactApp);
 
 %% POST BLOCKREPLACEMENT
-% section for pre-correction block replacement
-if (cfg.blockreplacement == "post" || cfg.blockreplacement == "both")
-    % create new artifact list using the python function using the corrected
-    % data
-    pcfg = [];
-    artifacts = artifactmat2matlab(pcfg,data);
-    cfg.replacementartifacts = artifacts.binaryArtifacts;
-
-    % check if there are configurations set for the replacement function, if
-    % not, create an empty config
-    if ~isfield(cfg, 'replacementarticfg')
-        cfg.replacementcfg = [];
-    end
-
-    % create structure for replacement function
-    rdata.artifacts = cfg.replacementartifacts;
-    rdata.original = data.conductance_clean;
-    rdata.time = data.time;
-
-    % run replacement function, and replace conductance data
-    replacementdata = artifact_replacement(cfg.replacementcfg, rdata);
-    data.conductance_clean = replacementdata.corrected;
-end
+% % section for pre-correction block replacement
+% if (cfg.blockreplacement == "post" || cfg.blockreplacement == "both")
+%     % create new artifact list using the python function using the corrected
+%     % data
+%     pcfg = [];
+%     artifacts = artifactmat2matlab(pcfg,data);
+%     cfg.replacementartifacts = artifacts.binaryArtifacts;
+% 
+%     % check if there are configurations set for the replacement function, if
+%     % not, create an empty config
+%     if ~isfield(cfg, 'replacementarticfg')
+%         cfg.replacementcfg = [];
+%     end
+% 
+%     % create structure for replacement function
+%     rdata.artifacts = cfg.replacementartifacts;
+%     rdata.original = data.conductance_clean;
+%     rdata.time = data.time;
+% 
+%     % run replacement function, and replace conductance data
+%     replacementdata = artifact_replacement(cfg.replacementcfg, rdata);
+%     data.conductance_clean = replacementdata.corrected;
+% end
 
 %% HOUSEKEEPING AND RE-CALCULATE OPTION
 data.conductance_clean_z = normalize(data.conductance_clean); % replace old z-transformed data to new (after correction) z-transformed data
-close;%(99);
-
-if artifact_detected ==1  % if an artifact was found
-    if strcmp(cfg.show_result_for_each, 'yes')
-        figure;
-        subplot(graphCount,1,1), plot(data.time, data.conductance_raw, data.time, data.conductance_clean) % the original data
-        title('Original data (blue = before artifact correction, red = after artifact correction)');
-        subplot(graphCount,1,2), plot(data.time, data.conductance_clean); % the corrected data
-        title('Data after artifact correction.');
-        if isfield(cfg, 'validationdata')
-            subplot(graphCount,1,3), plot(data.time, cfg.validationdata, 'Color', [0.1, 0.5, 0.1])
-            title('Validation Data');
-        end
-    end
-else
-    warning('No artifacts detected. Consider lowering the threshold.');
-    % pause;
-end
+% close;%(99);
+% 
+% if artifact_detected ==1  % if an artifact was found
+%     if strcmp(cfg.show_result_for_each, 'yes')
+%         figure;
+%         subplot(graphCount,1,1), plot(data.time, data.conductance_raw, data.time, data.conductance_clean) % the original data
+%         title('Original data (blue = before artifact correction, red = after artifact correction)');
+%         subplot(graphCount,1,2), plot(data.time, data.conductance_clean); % the corrected data
+%         title('Data after artifact correction.');
+%         if isfield(cfg, 'validationdata')
+%             subplot(graphCount,1,3), plot(data.time, cfg.validationdata, 'Color', [0.1, 0.5, 0.1])
+%             title('Validation Data');
+%         end
+%     end
+% else
+%     warning('No artifacts detected. Consider lowering the threshold.');
+%     % pause;
+% end
 
 end % artifact_eda(cfg, data)
 
-% Function to get a new treshold value
-function new_treshold = get_new_treshold(current_treshold)
-    % Ask for the new treshold value
-    prompt = strcat('Set new threshold: (current treshold=', num2str(current_treshold), ')');
-    dlgtitle = 'Treshold';
-    fieldsize = [1 45];
-    definput = {num2str(current_treshold)};
-
-    while 1  % loop indefinetly until a value is entered
-
-        newtreshold_str = inputdlg(prompt,dlgtitle,fieldsize,definput);
-
-        % Handle the response
-        if isempty(newtreshold_str) % user has pressed 'Cancel', so return
-            disp("Threshold Unchanged");
-            new_treshold = current_treshold;
-            return;
-        else
-            % treshold has changed
-            newtreshold_double = str2double(newtreshold_str); % convert input to a number if possibe
-            % check whether the new value is a positive numer
-            if isnan(newtreshold_double) % this is a NaN if the entered value was not a number
-                prompt = strcat(' Error: ''', newtreshold_str , ''' is not a valid treshold value. Treshold should be a positive number. Set new threshold: (current treshold=', num2str(current_treshold), ')');
-            elseif newtreshold_double <= 0 % the entered value is negative or zero
-                prompt = strcat(' Error: ''', newtreshold_str , ''' is not a valid treshold value. Treshold should be a positive number. Set new threshold: (current treshold=', num2str(current_treshold), ')');
-            else % the entered value is a positive number, so return this value
-                disp(strcat('Threshold changed to: ', newtreshold_str));
-                new_treshold = newtreshold_double;
-                return;
-            end
-        end
-    end
-end % get_new_treshold(current_treshold)
+% % Function to get a new treshold value
+% function new_treshold = get_new_treshold(current_treshold)
+%     % Ask for the new treshold value
+%     prompt = strcat('Set new threshold: (current treshold=', num2str(current_treshold), ')');
+%     dlgtitle = 'Treshold';
+%     fieldsize = [1 45];
+%     definput = {num2str(current_treshold)};
+% 
+%     while 1  % loop indefinetly until a value is entered
+% 
+%         newtreshold_str = inputdlg(prompt,dlgtitle,fieldsize,definput);
+% 
+%         % Handle the response
+%         if isempty(newtreshold_str) % user has pressed 'Cancel', so return
+%             disp("Threshold Unchanged");
+%             new_treshold = current_treshold;
+%             return;
+%         else
+%             % treshold has changed
+%             newtreshold_double = str2double(newtreshold_str); % convert input to a number if possibe
+%             % check whether the new value is a positive numer
+%             if isnan(newtreshold_double) % this is a NaN if the entered value was not a number
+%                 prompt = strcat(' Error: ''', newtreshold_str , ''' is not a valid treshold value. Treshold should be a positive number. Set new threshold: (current treshold=', num2str(current_treshold), ')');
+%             elseif newtreshold_double <= 0 % the entered value is negative or zero
+%                 prompt = strcat(' Error: ''', newtreshold_str , ''' is not a valid treshold value. Treshold should be a positive number. Set new threshold: (current treshold=', num2str(current_treshold), ')');
+%             else % the entered value is a positive number, so return this value
+%                 disp(strcat('Threshold changed to: ', newtreshold_str));
+%                 new_treshold = newtreshold_double;
+%                 return;
+%             end
+%         end
+%     end
+% end % get_new_treshold(current_treshold)
