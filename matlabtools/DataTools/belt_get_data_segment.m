@@ -1,6 +1,6 @@
-function [processed_segment, project] = belt_get_data_segment(cfg, project)
+function belt_get_data_segment(cfg, project)
 %% BELT_GET_DATA_SEGMENT
-%  function segment = belt_get_data_segment(cfg, project)
+%  function belt_get_data_segment(cfg, project)
 % 
 % *DESCRIPTION*
 % Loads the raw data and extracts the segment as specified by the segment
@@ -19,7 +19,9 @@ function [processed_segment, project] = belt_get_data_segment(cfg, project)
 %   'skip' :: if segmenting has already been done, then skip
 %   'ask'  :: if segmenting has already been done, then ask the user what to do
 %   'redo' :: segment the data, even if it has already been done
-%
+% cfg.fsample = <int> Indicates the desired sampling frequency of the data in Hz.
+%   This has effect on Shimmer data only, Empatica is always 4Hz so changing
+%   the frequency would not make sense. (default = 4)
 
 % *OUTPUT*
 % creates directories that do not exist, if specified
@@ -46,6 +48,9 @@ end
 if ~isfield(cfg, 'handle_already_segmented_data')
     cfg.handle_already_segmented_data = 'skip';
 end
+if ~isfield(cfg, 'fsample')
+    cfg.fsample = 4;
+end
 
 
 %%
@@ -54,6 +59,7 @@ pp_nr = cfg.pp_nr;
 pp_label = cell2mat(project.pp_labels(pp_nr));
 segment_nr = cfg.segment_nr;
 segment_name = project.segment(segment_nr).name;
+fsample = cfg.fsample;
 
 % check whether the segment of this participant should be included
 if project.segment(segment_nr).include(pp_nr)
@@ -62,11 +68,8 @@ if project.segment(segment_nr).include(pp_nr)
     if project.segment(segment_nr).segmented(pp_nr)
         switch cfg.handle_already_segmented_data
             case 'skip'
-                % return the existing segmented data
-                % load the data
-                path_filename = fullfile(project.processed_data_directory, [pp_label '_processed_segment_' segment_name '.mat']);
-                processed_segment = load(path_filename, 'processed_segment');
                 % Provide some feedback
+                path_filename = fullfile(project.processed_data_directory, ['segment_raw_' project.segment(segment_nr).name  '_' pp_label '.mat']);
                 fprintf('Data of participant %s was already segmented and saved as %s\n', pp_label, path_filename);
                 return;
             case 'redo'
@@ -80,11 +83,8 @@ if project.segment(segment_nr).include(pp_nr)
                 % Handle response
                 switch answer
                     case 'Skip'
-                        % return the existing segmented data
-                        % load the data
-                        path_filename = fullfile(project.processed_data_directory, [pp_label '_processed_segment_' segment_name '.mat']);
-                        processed_segment = load(path_filename, 'processed_segment');
                         % Provide some feedback
+                        path_filename = fullfile(project.processed_data_directory, ['segment_raw_' project.segment(segment_nr).name  '_' pp_label '.mat']);
                         fprintf('Data of participant %s was already segmented and saved as %s\n', pp_label, path_filename);
                         return;
                     case 'Redo'
@@ -101,7 +101,6 @@ if project.segment(segment_nr).include(pp_nr)
     % with a warning
     if isempty(cell2mat(starttime)) || isempty(cell2mat(endtime))
         warning('Start or endtime for participant %s, segment %s was not provided. Could not process this segment.', pp_label, segment_name);
-        processed_segment = [];
         return;
     end
 
@@ -114,7 +113,7 @@ if project.segment(segment_nr).include(pp_nr)
         raw_data = e4eda2matlab(cfg); % get the raw data
     elseif isfile(fullfile(cfg.datafolder, 'physiodata.csv')) % Shimmer
         cfg.shimmerfile = 'physiodata.csv';
-        cfg.fsample = 4; % resample the data to 4Hz
+        cfg.fsample = fsample; % resample the data to provided fsample (default = 4Hz)
         cfg.allowedsampledifference = 1; % for detection of multiple recordings
         cfg.columnname.unix  = 'Unix'; % get the timestamps
         cfg.columnname.eda   = 'GSR_Skin_Conductance'; % get the skin conductance data
@@ -126,7 +125,6 @@ if project.segment(segment_nr).include(pp_nr)
         raw_data = shimmer2matlab(cfg); % get the raw data
     else % Neither a Shimmer nor an Empatica datafile was found
         warning('No datafile found for %s, segment %s. Please check! There should either be a ''EDA.csv'' or ''physiodata.csv'' file.', pp_label, segment_name);
-        processed_segment = [];
         return;
     end
 
@@ -136,20 +134,19 @@ if project.segment(segment_nr).include(pp_nr)
     cfg.endtime    = project.segment(segment_nr).endtime(pp_nr);
     cfg.timezone   = project.timezone(pp_nr); % e.g. 'Europe/Amsterdam'
     cfg.timeformat = project.timeformat(pp_nr); % e.g. 'unixtime' or 'datetime'
-    processed_segment = segment_generic(cfg, raw_data);
+    segment_raw = segment_generic(cfg, raw_data);
 
     % add the participant label and segment name to the processed data struct
-    processed_segment.pp_label = pp_label;
-    processed_segment.segment_name = segment_name;
+    segment_raw.pp_label = pp_label;
+    segment_raw.segment_name = segment_name;
 
     % do some reorganizing and rename the conductance field to
     % conductance_raw === TODO: move this outside the pipiline into a
     % function
-    [processed_segment.conductance_raw] = processed_segment.conductance;
-    [processed_segment.conductance_raw_z] = processed_segment.conductance_z;
-    processed_segment = rmfield(processed_segment,'conductance');
-    processed_segment = rmfield(processed_segment,'conductance_z');
-    processed_segment = orderfields(processed_segment,...
+    [segment_raw.conductance_raw] = segment_raw.conductance;
+    segment_raw = rmfield(segment_raw,'conductance');
+    segment_raw = rmfield(segment_raw,'conductance_z'); % removed the z-score to keep filesize as small as possible
+    segment_raw = orderfields(segment_raw,...
         {'pp_label', ...
         'segment_name', ...
         'datatype',...
@@ -159,12 +156,11 @@ if project.segment(segment_nr).include(pp_nr)
         'fsample', ...
         'timeoff', ...
         'time', ...
-        'conductance_raw', ...
-        'conductance_raw_z' });
+        'conductance_raw'});
 
     % save the segmented data
-    path_filename = fullfile(project.processed_data_directory, [pp_label '_processed_segment_' segment_name '.mat']);
-    save(path_filename, 'processed_segment');
+    path_filename = fullfile(project.processed_data_directory, ['segment_raw_' project.segment(segment_nr).name  '_' pp_label '.mat']);
+    save(path_filename, 'segment_raw');
 
     % Provide some feedback
     fprintf('Data of participant %s is segmented and saved as %s\n', pp_label, path_filename);
@@ -186,7 +182,7 @@ if project.segment(segment_nr).include(pp_nr)
 
 else % this segment should not be included in analysis
 
-    processed_segment = [];
+    segment_raw = [];
     % Provide some feedback
     fprintf('Data of segment %s for participant %s is indicated to not include. Therefor the data was not segmented, nor saved.\n', segment_name, pp_label);
     return;

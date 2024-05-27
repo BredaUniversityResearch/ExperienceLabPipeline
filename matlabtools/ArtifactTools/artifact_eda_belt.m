@@ -42,7 +42,7 @@ function data = artifact_eda(cfg, data)
 %
 %
 % *OUTPUT*
-% The same as the input structure, but with the artifact corrected conductance added as data.conductance_clean
+% The same as the input structure, but with the artifact corrected conductance added as data.conductance_artifact_corrected
 %
 % *NOTES*
 % Very much developed around the EMPATICA data, might not work optimal with
@@ -87,7 +87,7 @@ end
 
 
 %% create the cleaned conductance field
-data.conductance_clean = data.conductance_raw;
+data.conductance_artifact_corrected = data.conductance_raw;
 
 
 % %% PRE BLOCK REPLACEMENT
@@ -110,14 +110,14 @@ data.conductance_clean = data.conductance_raw;
 % 
 %     % create structure for replacement function
 %     rdata.artifacts = cfg.replacementartifacts;
-%     rdata.original = data.conductance_clean;
+%     rdata.original = data.conductance_artifact_corrected;
 %     rdata.time = data.time;
 % 
 %     % run replacement function, and replace conductance data
 %     replacementdata = artifact_replacement(cfg.replacementcfg, rdata);
 %     warning("Did a replace");
 % 
-%     data.conductance_clean = replacementdata.corrected;
+%     data.conductance_artifact_corrected = replacementdata.corrected;
 % end
 
 
@@ -126,9 +126,9 @@ artifact_detected = 0; % initialize artifact detection flag, no artifact found y
 timwin_samplesize = cfg.timwin * data.fsample; % the length of the window in amount of samples (e.g. 20s * 4Hz = 80 samples)
 sample_i = 1; % start the timewindow at the first data sample
 
-while sample_i < numel(data.conductance_clean) - timwin_samplesize
+while sample_i < numel(data.conductance_artifact_corrected) - timwin_samplesize
 
-    timwin_data = data.conductance_clean(sample_i : sample_i + timwin_samplesize - 1); % get the data of the current window
+    timwin_data = data.conductance_artifact_corrected(sample_i : sample_i + timwin_samplesize - 1); % get the data of the current window
     zvalues = normalize(timwin_data); % calculate zscores (ignoring NaNs)
     [peak,   peakindex]   = max(zvalues); % determine the peak z-value, and its index relative to the start of the time window
     [trough, troughindex] = min(zvalues); % determine the trough z-value, and its index relative to the start of the time window
@@ -291,11 +291,11 @@ end
 if isfield(cfg, 'artifactprepostvis')
     artifactcfg.prepostduration = cfg.artifactprepostvis;
 end
-ArtifactApp = BeltApp(data.conductance_clean,artifactcfg); % <======================== calling the new BELT app here
+ArtifactApp = BeltArtifactCorrectionApp(data.conductance_artifact_corrected, artifactcfg); % <======================== calling the new BELT app here
 
 waitfor(ArtifactApp,'closeapplication',1)
 
-data.conductance_clean = ArtifactApp.solution;
+data.conductance_artifact_corrected = ArtifactApp.solution;
 delete(ArtifactApp);
 
 %% POST BLOCKREPLACEMENT
@@ -315,24 +315,24 @@ delete(ArtifactApp);
 % 
 %     % create structure for replacement function
 %     rdata.artifacts = cfg.replacementartifacts;
-%     rdata.original = data.conductance_clean;
+%     rdata.original = data.conductance_artifact_corrected;
 %     rdata.time = data.time;
 % 
 %     % run replacement function, and replace conductance data
 %     replacementdata = artifact_replacement(cfg.replacementcfg, rdata);
-%     data.conductance_clean = replacementdata.corrected;
+%     data.conductance_artifact_corrected = replacementdata.corrected;
 % end
 
 %% HOUSEKEEPING AND RE-CALCULATE OPTION
-data.conductance_clean_z = normalize(data.conductance_clean); % replace old z-transformed data to new (after correction) z-transformed data
+% data.conductance_clean_z = normalize(data.conductance_artifact_corrected); % skip z-transformed data to keep file size small
 % close;%(99);
 % 
 % if artifact_detected ==1  % if an artifact was found
 %     if strcmp(cfg.show_result_for_each, 'yes')
 %         figure;
-%         subplot(graphCount,1,1), plot(data.time, data.conductance_raw, data.time, data.conductance_clean) % the original data
+%         subplot(graphCount,1,1), plot(data.time, data.conductance_raw, data.time, data.conductance_artifact_corrected) % the original data
 %         title('Original data (blue = before artifact correction, red = after artifact correction)');
-%         subplot(graphCount,1,2), plot(data.time, data.conductance_clean); % the corrected data
+%         subplot(graphCount,1,2), plot(data.time, data.conductance_artifact_corrected); % the corrected data
 %         title('Data after artifact correction.');
 %         if isfield(cfg, 'validationdata')
 %             subplot(graphCount,1,3), plot(data.time, cfg.validationdata, 'Color', [0.1, 0.5, 0.1])

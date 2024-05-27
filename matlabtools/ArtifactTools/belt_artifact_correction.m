@@ -1,6 +1,6 @@
-function [processed_segment, project] = belt_artifact_correction(cfg, project)
+function belt_artifact_correction(cfg, project)
 %% BELT_ARTIFACT_CORRECTION
-%  function segment = belt_artifact_correction(cfg, project)
+%  function belt_artifact_correction(cfg, project)
 % 
 % *DESCRIPTION*
 % Loads the segmented data, marks potential artifacts, and opens a window
@@ -45,6 +45,20 @@ if ~isfield(cfg, 'handle_already_cleaned_segments')
     cfg.handle_already_cleaned_segments = 'skip';
 end
 
+% set the parameters for the artifact detection algorithm
+if ~isfield(cfg, 'timwin')
+    cfg.timwin = 20;
+end
+if ~isfield(cfg, 'threshold')
+    cfg.threshold = 5;
+end
+if ~isfield(cfg, 'default_solution')
+    cfg.default_solution = 'linear';
+end
+if ~isfield(cfg, 'show_result_for_each')
+    cfg.show_result_for_each = 'no';
+end
+
 
 %%
 
@@ -52,6 +66,7 @@ pp_nr = cfg.pp_nr;
 pp_label = cell2mat(project.pp_labels(pp_nr));
 segment_nr = cfg.segment_nr;
 segment_name = project.segment(segment_nr).name;
+cfg.segment_identifier = ['Segment ', segment_name, ', participant ', pp_label];
 
 % check whether the segment of this participant should be included
 if project.segment(segment_nr).include(pp_nr)
@@ -64,11 +79,8 @@ if project.segment(segment_nr).include(pp_nr)
 
             switch cfg.handle_already_cleaned_segments
                 case 'skip'
-                    % return the existing segmented data
-                    % load the data
-                    path_filename = fullfile(project.processed_data_directory, [pp_label '_processed_segment_' segment_name '.mat']);
-                    processed_segment = load(path_filename, 'processed_segment');
                     % Provide some feedback
+                    path_filename = fullfile(project.processed_data_directory, ['segment_artifact_corrected_' project.segment(segment_nr).name  '_' pp_label '.mat']);
                     fprintf('Data of participant %s was already artifact corrected and saved as %s\n', pp_label, path_filename);
                     return;
                 case 'redo'
@@ -82,11 +94,8 @@ if project.segment(segment_nr).include(pp_nr)
                     % Handle response
                     switch answer
                         case 'Skip'
-                            % return the existing segmented data
-                            % load the data
-                            path_filename = fullfile(project.processed_data_directory, [pp_label '_processed_segment_' segment_name '.mat']);
-                            processed_segment = load(path_filename, 'processed_segment');
                             % Provide some feedback
+                            path_filename = fullfile(project.processed_data_directory, ['segment_artifact_corrected_' project.segment(segment_nr).name  '_' pp_label '.mat']);
                             fprintf('Data of participant %s was already segmented and saved as %s\n', pp_label, path_filename);
                             return;
                         case 'Redo'
@@ -95,24 +104,20 @@ if project.segment(segment_nr).include(pp_nr)
             end
         end
 
-        % load the data
-        path_filename = fullfile(project.processed_data_directory, [pp_label '_processed_segment_' project.segment(segment_nr).name '.mat']);
-        load(path_filename, 'processed_segment');
+        % load the segmented raw data
+        path_filename = fullfile(project.processed_data_directory, ['segment_raw_' project.segment(segment_nr).name  '_' pp_label '.mat']);
+        load(path_filename, 'segment_raw');
     
-        % set the parameters for the artifact detection algorithm
-        cfg = [];
-        cfg.timwin    = 20; % define the timewindow for artifact detection (default = 20)
-        cfg.threshold  = 3; % define the threshold for artifact detection (default = 5)
-        cfg.default_solution = 'spline'; % set the default solution of all artifacts (default = 'linear')
-        cfg.show_result_for_each = 'no'; % state that we do not want to see a figure with the solution for each participant (default = 'yes')
-        cfg.segment_identifier = ['Segment ', segment_name, ', participant ', pp_label];
         
         % open the artifact correction window
-        processed_segment = artifact_eda_belt(cfg, processed_segment); 
+        segment_artifact_corrected = artifact_eda_belt(cfg, segment_raw); 
+
+        % remove the raw data (that is already stored in segment_raw)
+        segment_artifact_corrected = rmfield(segment_artifact_corrected, 'conductance_raw');
     
         % save the artifact corrected data
-        path_filename = fullfile(project.processed_data_directory, [pp_label '_processed_segment_' segment_name '.mat']);
-        save(path_filename, 'processed_segment');
+        path_filename = fullfile(project.processed_data_directory, ['segment_artifact_corrected_' project.segment(segment_nr).name '_' pp_label '.mat']);
+        save(path_filename, 'segment_artifact_corrected');
         
         % Provide some feedback
         fprintf('Data of participant %s is artifact corrected and saved as %s\n', pp_label, path_filename);
@@ -130,13 +135,11 @@ if project.segment(segment_nr).include(pp_nr)
         path_filename = fullfile(project.project_directory, ['project_' project.project_name '.mat']);
         save(path_filename, 'project');
     else
-        processed_segment = [];
         % Provide some feedback
         fprintf('Data of segment %s for participant %s has not been segmented, so could not be artifact corrected.\n', segment_name, pp_label);
     end
 else % this segment should not be included in analysis
 
-    processed_segment = [];
     % Provide some feedback
     fprintf('Data of segment %s for participant %s is indicated to not include. Therefor the data was not artifact corrected, nor saved.\n', segment_name, pp_label);
 end

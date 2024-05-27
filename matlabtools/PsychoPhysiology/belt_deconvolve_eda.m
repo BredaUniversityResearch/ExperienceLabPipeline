@@ -1,6 +1,6 @@
-function [processed_segment, project] = belt_deconvolve_eda(cfg, project)
+function belt_deconvolve_eda(cfg, project)
 %% BELT_DECONVOLVE_EDA
-%  function segment = belt_deconvolve_eda(cfg, project)
+%  function belt_deconvolve_eda(cfg, project)
 % 
 % *DESCRIPTION*
 % Loads the artifact corrected data and deconvolves it into a tonic and phasic part.
@@ -44,10 +44,7 @@ if ~isfield(cfg, 'pp_nr')
     error('Provide a cfg.pp_nr');
 end
 if ~isfield(cfg, 'conductance')
-    cfg.conductance = 'conductance_clean';
-end
-if ~isfield(cfg, 'conductance_z')
-    cfg.conductance_z = 'conductance_clean_z';
+    cfg.conductance = 'conductance_artifact_corrected';
 end
 if ~isfield(cfg, 'handle_already_deconvolved_segments')
     cfg.handle_already_deconvolved_segments = 'skip';
@@ -88,11 +85,8 @@ if project.segment(segment_nr).include(pp_nr)
 
             switch cfg.handle_already_deconvolved_segments
                 case 'skip'
-                    % return the existing deconvolved data
-                    % load the data
-                    path_filename = fullfile(project.processed_data_directory, [pp_label '_processed_segment_' segment_name '.mat']);
-                    processed_segment = load(path_filename, 'processed_segment');
                     % Provide some feedback
+                    path_filename = fullfile(project.processed_data_directory, ['segment_deconvolved_' project.segment(segment_nr).name '_' pp_label '.mat']);
                     fprintf('Data of participant %s was already deconvolved and saved as %s\n', pp_label, path_filename);
                     return;
                 case 'redo'
@@ -106,11 +100,8 @@ if project.segment(segment_nr).include(pp_nr)
                     % Handle response
                     switch answer
                         case 'Skip'
-                            % return the existing segmented data
-                            % load the data
-                            path_filename = fullfile(project.processed_data_directory, [pp_label '_processed_segment_' segment_name '.mat']);
-                            processed_segment = load(path_filename, 'processed_segment');
                             % Provide some feedback
+                            path_filename = fullfile(project.processed_data_directory, ['segment_deconvolved_' project.segment(segment_nr).name '_' pp_label '.mat']);
                             fprintf('Data of participant %s was already deconvolved and saved as %s\n', pp_label, path_filename);
                             return;
                         case 'Redo'
@@ -120,24 +111,35 @@ if project.segment(segment_nr).include(pp_nr)
         end
 
         % load the data
-        path_filename = fullfile(project.processed_data_directory, [pp_label '_processed_segment_' project.segment(segment_nr).name '.mat']);
-        load(path_filename, 'processed_segment');
+        path_filename = fullfile(project.processed_data_directory, ['segment_artifact_corrected_' project.segment(segment_nr).name '_' pp_label '.mat']);
+        load(path_filename, 'segment_artifact_corrected');
     
+        if isfield(cfg, 'resample') && strcmp(cfg.resample, 'yes') && isfield(cfg, 'resample')
+            % resample the data before deconvolution
+            cfg_resample = [];
+            cfg_resample.fsample = cfg.fsample;
+            segment_artifact_corrected = resample_generic(cfg_resample,  segment_artifact_corrected);
+        end
+
+        % add the zscored conductance
+        segment_artifact_corrected.conductance_artifact_corrected_z = normalize(segment_artifact_corrected.conductance_artifact_corrected);
+        cfg.conductance_z   = 'conductance_artifact_corrected_z';
+
         % do the deconvolution thing
-        processed_segment = deconvolve_eda(cfg, processed_segment);
+        segment_deconvolved = deconvolve_eda(cfg, segment_artifact_corrected);
     
         % do some reorganizing and renaming
-        [processed_segment.conductance_phasic] = processed_segment.phasic;
-        [processed_segment.conductance_phasic_z] = processed_segment.phasic_z;
-        [processed_segment.conductance_tonic] = processed_segment.tonic;
-        [processed_segment.conductance_tonic_z] = processed_segment.tonic_z;
-        processed_segment = rmfield(processed_segment,'phasic');
-        processed_segment = rmfield(processed_segment,'phasic_z');
-        processed_segment = rmfield(processed_segment,'tonic');
-        processed_segment = rmfield(processed_segment,'tonic_z');
-        processed_segment = rmfield(processed_segment,'conductance');
-        processed_segment = rmfield(processed_segment,'conductance_z');
-        processed_segment = orderfields(processed_segment,...
+        [segment_deconvolved.conductance_phasic] = segment_deconvolved.phasic;
+        [segment_deconvolved.conductance_phasic_z] = segment_deconvolved.phasic_z;
+        [segment_deconvolved.conductance_tonic] = segment_deconvolved.tonic;
+        [segment_deconvolved.conductance_tonic_z] = segment_deconvolved.tonic_z;
+        segment_deconvolved = rmfield(segment_deconvolved,'phasic');
+        segment_deconvolved = rmfield(segment_deconvolved,'phasic_z');
+        segment_deconvolved = rmfield(segment_deconvolved,'tonic');
+        segment_deconvolved = rmfield(segment_deconvolved,'tonic_z');
+        segment_deconvolved = rmfield(segment_deconvolved,'conductance_artifact_corrected');
+        segment_deconvolved = rmfield(segment_deconvolved,'conductance_artifact_corrected_z');
+        segment_deconvolved = orderfields(segment_deconvolved,...
             {'pp_label', ...
             'segment_name', ...
             'datatype',...
@@ -150,10 +152,6 @@ if project.segment(segment_nr).include(pp_nr)
             'analysis', ...
             'time', ...
             'eventchan', ...
-            'conductance_raw', ...
-            'conductance_raw_z', ...
-            'conductance_clean', ...
-            'conductance_clean_z', ...
             'conductance_phasic', ...
             'conductance_phasic_z', ...
             'conductance_tonic', ...
@@ -164,19 +162,19 @@ if project.segment(segment_nr).include(pp_nr)
 
 
         % save the deconvolved data
-        path_filename = fullfile(project.processed_data_directory, [pp_label '_processed_segment_' segment_name '.mat']);
-        save(path_filename, 'processed_segment');
+        path_filename = fullfile(project.processed_data_directory, ['segment_deconvolved_' project.segment(segment_nr).name '_' pp_label '.mat']);
+        save(path_filename, 'segment_deconvolved');
     
         % Provide some feedback
         fprintf('Data of participant %s is deconvolved and saved as %s\n', pp_label, path_filename);
 
         % update bookkeeping
-        % cfg = [];
-        % cfg.processing_part = 'deconvolved';
-        % cfg.pp_label = pp_label;
-        % cfg.segment_nr = segment_nr;
-        % cfg.processing_complete = true;
-        % project = update_project_bookkeeping(cfg, project);
+        cfg = [];
+        cfg.processing_part = 'deconvolved';
+        cfg.pp_label = pp_label;
+        cfg.segment_nr = segment_nr;
+        cfg.processing_complete = true;
+        project = update_project_bookkeeping(cfg, project);
 
         % update the bookkeeping of the project
         project.segment(segment_nr).deconvolved(pp_nr) = true;
@@ -184,13 +182,10 @@ if project.segment(segment_nr).include(pp_nr)
         save(path_filename, 'project');
     
     else
-        processed_segment = [];
         % Provide some feedback
         fprintf('Data of segment %s for participant %s has not aerifact corrected, so could not be deconvolved.\n', segment_name, pp_label);
     end
 else % this segment should not be included in analysis
-
-    processed_segment = [];
     % Provide some feedback
     fprintf('Data of segment %s for participant %s is indicated to not include. Therefor the data was not deconvolved, nor saved.\n', segment_name, pp_label);
 end
