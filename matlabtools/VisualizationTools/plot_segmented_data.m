@@ -20,8 +20,10 @@ function plot_segmented_data (cfg, project)
 %                        'conductance_raw_z', 
 %                        'conductance_artifact_corrected',  
 %                        'conductance_artifact_corrected_z',  
-%                        'conductance_deconvolved',  
-%                        'conductance_deconvolved_z'  
+%                        'conductance_phasic',  
+%                        'conductance_phasic_z'  
+%                        'conductance_tonic',  
+%                        'conductance_tonic_z'  
 %  cfg.pp_labels = 'all' or a cell array of participant labels, e.g.{'P001', 'P002'}; (default = 'all')
 
 %  
@@ -39,47 +41,66 @@ end
 
 %%
 
-
+% keep track of the segment number
 segment_nr = cfg.segment_nr;
+segment_name = project.segment(segment_nr).name;
 
-fig = figure; % create a new figure
+
+% determine which files to load
+switch cfg.data_type
+    case 'conductance_raw'
+        data_struct_name = 'segment_raw';
+    case 'conductance_raw_z'
+        data_struct_name = 'segment_raw';
+    case 'conductance_artifact_corrected'
+        data_struct_name = 'segment_artifact_corrected';
+    case 'conductance_artifact_corrected_z'
+        data_struct_name = 'segment_artifact_corrected';
+    case 'conductance_phasic'
+        data_struct_name = 'segment_deconvolved';
+    case 'conductance_phasic_z'  
+        data_struct_name = 'segment_deconvolved';
+    case 'conductance_tonic'
+        data_struct_name = 'segment_deconvolved';
+    case 'conductance_tonic_z'  
+        data_struct_name = 'segment_deconvolved';
+end
+
+figure; % create a new figure
 hold on; % indicate that we want to plot multiple lines in the same graph
 legend_labels = [];
 
 if strcmp(cfg.pp_labels, 'all'); % show all participants
-    nof_pps = length(project.pp_labels);
+    pp_i_list = 1:length(project.pp_labels);
+else % show only the provided participants
+    pp_i_list = find(ismember(project.pp_labels', cfg.pp_labels));
+end
     
-    for pp_i = 1:nof_pps % for all participants
-        % check if segmentation is completed
-        if project.segment(segment_nr).segmented(pp_i)
-            % load the data
-            pp_label = cell2mat(project.pp_labels(pp_i));
-            path_filename = fullfile(project.processed_data_directory, [pp_label '_processed_segment_' project.segment(segment_nr).name '.mat']);
-            load(path_filename, 'processed_segment');
-       
-            % draw the data, x=time, y=conductance
-            plot(processed_segment.time, processed_segment.(cfg.data_type));
-    
-            % add the pp_label to the list for the legend
-            legend_labels = [legend_labels; pp_label];
-        end
-    end
-else
-    for pp_label_i = 1:length(cfg.pp_labels)
-        pp_label = cfg.pp_labels{pp_label_i};
+for pp_i = pp_i_list % for all participants the list
+    % check if segmentation is completed
+    if project.segment(segment_nr).segmented(pp_i)
         % load the data
-        path_filename = fullfile(project.processed_data_directory, [pp_label '_processed_segment_' project.segment(segment_nr).name '.mat']);
-        if isfile(path_filename) % check if the data file exists
-            load(path_filename, 'processed_segment');
-       
-            % draw the data, x=time, y=conductance
-            plot(processed_segment.time, processed_segment.(cfg.data_type));
-    
-            % add the pp_label to the list for the legend
-            legend_labels = [legend_labels; pp_label];
+        pp_label = cell2mat(project.pp_labels(pp_i));
+        path_filename = fullfile(project.processed_data_directory, [data_struct_name '_' segment_name '_' pp_label '.mat']);
+        data = load(path_filename, data_struct_name);
+        data_fieldnames = fieldnames(data);
+        data = data.(data_fieldnames{1});
+
+        % check whether normalization (zscoring) needs to happen
+        if strcmp(cfg.data_type, 'conductance_raw_z')
+            data.conductance_raw_z = normalize(data.conductance_raw);
+        elseif strcmp(cfg.data_type, 'conductance_artifact_corrected_z')
+            data.conductance_artifact_corrected_z = normalize(data.conductance_artifact_corrected);
         end
+
+        % draw the data, x=time, y=conductance
+        plot(data.time, data.(cfg.data_type));
+
+        % add the pp_label to the list for the legend
+        legend_labels = [legend_labels; pp_label];
     end
 end
+
 xlabel('Time (s)');
 ylabel('Conductance (\muS)')
 title([cfg.data_type ' (' project.segment(segment_nr).name ' segment)'], 'Interpreter', 'none');
@@ -97,10 +118,4 @@ end
 
 function output_txt = customdatatip(obj,event_obj,str)
 output_txt = {event_obj.Target.DisplayName};
-end
-
-function txt = displayCoordinates(~,info)
-    x = info.Position(1);
-    y = info.Position(2);
-    txt = ['t = ' num2str(x) 's, conductance = ', num2str(y) 'uS)'];
 end
