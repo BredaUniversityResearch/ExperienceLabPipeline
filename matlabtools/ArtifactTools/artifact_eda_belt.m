@@ -1,6 +1,6 @@
-function data = artifact_eda(cfg, data)
+function data = artifact_eda_belt(cfg, data)
 %% ARTIFACT EDA
-% function out = artifact_eda (cfg,data)
+% function out = artifact_eda_belt (cfg,data)
 %
 % *DESCRIPTION*
 % If cfg.manual is set to 'yes', artifact detection is skipped, and only a correction is performed (see the configuration options below.
