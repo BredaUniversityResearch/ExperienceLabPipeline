@@ -1,6 +1,6 @@
-function belt_artifact_correction(cfg, project)
+function project = belt_artifact_correction(cfg, project)
 %% BELT_ARTIFACT_CORRECTION
-%  function belt_artifact_correction(cfg, project)
+%  function project = belt_artifact_correction(cfg, project)
 % 
 % *DESCRIPTION*
 % Loads the segmented data, marks potential artifacts, and opens a window

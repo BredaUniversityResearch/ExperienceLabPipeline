@@ -1,6 +1,6 @@
-function belt_deconvolve_eda(cfg, project)
+function project = belt_deconvolve_eda(cfg, project)
 %% BELT_DECONVOLVE_EDA
-%  function belt_deconvolve_eda(cfg, project)
+%  function project = belt_deconvolve_eda(cfg, project)
 % 
 % *DESCRIPTION*
 % Loads the artifact corrected data and deconvolves it into a tonic and phasic part.

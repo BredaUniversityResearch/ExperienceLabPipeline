@@ -1,6 +1,6 @@
-function belt_get_data_segment(cfg, project)
+function project = belt_get_data_segment(cfg, project)
 %% BELT_GET_DATA_SEGMENT
-%  function belt_get_data_segment(cfg, project)
+%  function project = belt_get_data_segment(cfg, project)
 % 
 % *DESCRIPTION*
 % Loads the raw data and extracts the segment as specified by the segment
@@ -141,8 +141,6 @@ if project.segment(segment_nr).include(pp_nr)
     segment_raw.segment_name = segment_name;
 
     % do some reorganizing and rename the conductance field to
-    % conductance_raw === TODO: move this outside the pipiline into a
-    % function
     [segment_raw.conductance_raw] = segment_raw.conductance;
     segment_raw = rmfield(segment_raw,'conductance');
     segment_raw = rmfield(segment_raw,'conductance_z'); % removed the z-score to keep filesize as small as possible
@@ -172,7 +170,7 @@ if project.segment(segment_nr).include(pp_nr)
     % cfg.segment_nr = segment_nr;
     % cfg.processing_complete = true;
     % project = update_project_bookkeeping(cfg, project);
-
+    % 
     % update the bookkeeping of the project
     project.segment(segment_nr).segmented(pp_nr) = true;
     path_filename = fullfile(project.project_directory, ['project_' project.project_name '.mat']);
@@ -182,7 +180,6 @@ if project.segment(segment_nr).include(pp_nr)
 
 else % this segment should not be included in analysis
 
-    segment_raw = [];
     % Provide some feedback
     fprintf('Data of segment %s for participant %s is indicated to not include. Therefor the data was not segmented, nor saved.\n', segment_name, pp_label);
     return;
