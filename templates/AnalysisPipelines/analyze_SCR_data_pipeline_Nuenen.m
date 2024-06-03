@@ -222,14 +222,14 @@ cfg.threshold  = 3; % define the threshold for artifact detection (default = 5)
 cfg.interp_method = 'spline'; % set the default solution of all artifacts (default = 'linear')
 cfg.confirm = 'no'; % state that we do not want to see a figure with the solution for each participant (default = 'yes')
 
-for pp_i = 1:nof_pps % for all participants
+for pp_i = 1 %:nof_pps % for all participants
 
     % get the participant number
     pp_nr = pp_nrs(pp_i); 
     % Paste a P and leading zeros before the number, 
     pp_label = ['P', num2str(pp_nr, '%03d')]; 
     % specify where to save the clean data, with what filename 
-    % (add the '_cleadata' suffix and the '.mat' extension)
+    % (add the '_cleandata' suffix and the '.mat' extension)
     clean_data_path_filename = fullfile(cleandatafolder, [pp_label, '_cleandata.mat']);
 
     % check whether this file alreay exists

@@ -98,7 +98,7 @@ if ~exist(path_filename, "file")
         'Please check. I expected it here: '] path_filename]);
 else
     % read the Excel file 
-    participantData = readtable( path_filename );
+    participantData = readtable(path_filename);
 end
 
 %% Add the relevant particiapnt data to the project struct
