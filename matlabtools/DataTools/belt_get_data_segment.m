@@ -134,7 +134,15 @@ if project.segment(segment_nr).include(pp_nr)
     cfg.endtime    = project.segment(segment_nr).endtime(pp_nr);
     cfg.timezone   = project.timezone(pp_nr); % e.g. 'Europe/Amsterdam'
     cfg.timeformat = project.timeformat(pp_nr); % e.g. 'unixtime' or 'datetime'
-    segment_raw = segment_generic(cfg, raw_data);
+    try
+        segment_raw = segment_generic(cfg, raw_data);
+    catch ME
+        % segmentation caused an error, provide feedback and move on to the
+        % next
+        warning('Segmentation caused an error for segment %s, participant %s.', segment_name, pp_label);
+        warning(ME.message);
+        return;
+    end
 
     % add the participant label and segment name to the processed data struct
     segment_raw.pp_label = pp_label;
