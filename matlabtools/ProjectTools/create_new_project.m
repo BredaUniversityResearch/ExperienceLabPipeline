@@ -66,7 +66,7 @@ if cfg.show_input_window % Open the app to create a new project
         newproject = NewProjectApp.project; % store the project struct
         cfg = NewProjectApp.cfg; % update the config struct
         delete(NewProjectApp); % delete the app from workspace
-        check_project_directories(cfg, newproject); % check directories and create if needed
+        newproject = check_project_directories(cfg, newproject); % check directories and create if needed
     else
         newproject = [];
         delete(NewProjectApp); % delete the app from workspace
