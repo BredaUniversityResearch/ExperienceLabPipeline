@@ -54,7 +54,7 @@ function project = belt_open_project(cfg, project)
 % input is checked in the specific functions
 
 
-%%
+%
 
 % the full path to the location of the project bookkeeping file
 path_filename = fullfile(project.project_directory, ['project_' project.project_name '.mat']);
@@ -62,11 +62,28 @@ path_filename = fullfile(project.project_directory, ['project_' project.project_
 % First check whether a project bookkeeping file already exists
 if isfile(path_filename) % file already exists
 
+    % first construct the project directories that were asked before loading the existing one
+    project_provided = create_new_project(cfg, project); 
+
     % get the existing project struct
     load(path_filename, 'project');
 
     % Provide some feedback
     fprintf('Existing project bookkeeping file "%s" loaded.\n', path_filename);
+
+    % If multiple people are working on a project via Teams/OneDrive
+    % the directories need to change to the ones of the current user
+    if ~strcmp(project.project_directory, project_provided.project_directory)
+        fprintf('Requested directories differ from those in the existing project.\n');
+        fprintf('project_directory changed from "%s" to  "%s".\n', project.project_directory, project_provided.project_directory);
+        project.project_directory        = project_provided.project_directory;
+        fprintf('raw_data_directory changed from "%s" to  "%s".\n', project.raw_data_directory, project_provided.raw_data_directory);
+        project.raw_data_directory       = project_provided.raw_data_directory;
+        fprintf('processed_data_directory changed from "%s" to  "%s".\n', project.processed_data_directory, project_provided.processed_data_directory);
+        project.processed_data_directory = project_provided.processed_data_directory;
+        fprintf('output_directory changed from "%s" to  "%s".\n', project.output_directory, project_provided.output_directory);
+        project.output_directory         = project_provided.output_directory;
+    end
 
     % TODO: compare the project data to the participantdata excel file
     %       and take appropriate action when these differ
