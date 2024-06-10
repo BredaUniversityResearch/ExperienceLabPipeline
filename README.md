@@ -14,3 +14,7 @@ Template data and scripts for using the Empaticas, and Positioning tools these t
 
 ## pythontools
 Python tools developed, or adapted, to function within the Exp Lab pipeline.
+
+## Referencing
+You can reference this toolbox using the DOI: https://zenodo.org/records/11545607
+Or using the Github link
