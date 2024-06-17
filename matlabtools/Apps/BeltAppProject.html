@@ -114,7 +114,12 @@ button.recent:hover {
 	left:0
 }
 
+.property{
+}
 
+.value{
+	font-style: italic;
+}	
 </style>
 
 <script type="text/javascript">      
@@ -172,16 +177,24 @@ button.recent:hover {
 </div>
 <br>
 
-<div class="h2_title">Home</div>
-The Breda Experience Lab Toolbox (BELT) is an app for processing skin conductance data. It is being developed by <a href="https://www.buas.nl/en/research/labs-and-studios#experience" target="_blank">The Experience Lab</a> at <a href="https://www.buas.nl/" target="_blank">Breda University of applied sciences</a> (BUas). 
-<br>
+<div class="h2_title">Project Project name</div>
+<table>
+	<tr>
+		<td class="property">Project directory</td><td class="value">Project name</td>
+	</tr>
+	<tr>
+		<td class="property">Raw data directory</td><td class="value">Project name</td>
+	</tr>
+	<tr>
+		<td class="property">Processed data directory</td><td class="value">Project name</td>
+	</tr>
+	<tr>
+		<td class="property">Output directory</td><td class="value">Project name</td>
+	</tr>
+</table>
 
-<div class="h2_subtitle">Project</div>
-Processing skin conductance data starts with creating a new project or opening an existing  project. 
-<br>
-
-<button id="newProject">New project</button> 
-<button id="openProject">Open existing project</button> <br>
+<button id="artifactCorrection">Artifact Correction</button> 
+<button id="deconvolution">Deconvolution</button> <br>
 <button id="recentProjects">Recent projects :</button>
 <div id ="dataDisplay"></div>
 
