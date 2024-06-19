@@ -101,7 +101,7 @@ else
     participantData = readtable(path_filename);
 end
 
-%% Add the relevant particiapnt data to the project struct
+%% Add the relevant participant data to the project struct
 
 % === TODO: we should check whether these column names exist before using
 %           them. And provide clear feedback. ===

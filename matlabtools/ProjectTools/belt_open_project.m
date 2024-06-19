@@ -85,10 +85,10 @@ if isfile(path_filename) % file already exists
         project.output_directory         = project_provided.output_directory;
     end
 
-    % TODO: compare the project data to the participantdata excel file
-    %       and take appropriate action when these differ
-    %       Like add new participants
-    fprintf('Note that changes in the ParticipantData that were made after project creation are not yet processed by the script. This is on my TODO list.\n');
+    % Compare the project data to the participantdata excel file
+    % check for removed or added participants, and for changed start/end times
+    fprintf('Checking for changes in the ParticipantData ...\n');
+    project = update_participant_data(cfg, project);
 
 
 else % no project bookkeeping file found at location, create a new one
@@ -107,9 +107,10 @@ else % no project bookkeeping file found at location, create a new one
         project.segment(segment_i).include            = ones(size(project.pp_labels));
     end
     
-    % save the project struct as a matlab datafile
-    save(path_filename, 'project');
 end
+
+% save the project struct as a matlab datafile
+save(path_filename, 'project');
 
 end % belt_open_project
 
