@@ -137,6 +137,9 @@ for pp_i = 1:nof_pps
     % cfg.movemeanduration = duration of the moving mean factor (default = 60);
     raw_beacon_data = beacon2matlab(cfg);
 
+
+
+
     % Provide some feedback
     fprintf('Raw beacon data read for participant %s\n', pp_label);
 
@@ -149,6 +152,7 @@ for pp_i = 1:nof_pps
     cfg.txpower = -62; % general txpower of a beacon, for Exp Lab, this is considered -62
     cfg.usegeodata = false; % calculate lat/lon position of the data
     nearest_beacon_data = nearest_beacon(cfg,raw_beacon_data); % calculate the nearest beacon from the raw beacon data
+
 
     % Provide some feedback
     fprintf('Nearest beacon data calculated for participant %s\n', pp_label);
@@ -192,25 +196,74 @@ for pp_i = 1:nof_pps
     phasic = [phasic; deconvolved_data_segmented.phasic];
     phasic_z = [phasic_z; deconvolved_data_segmented.phasic_z];
 
+
+    show_data = false;
+    if show_data
+        figure;
+        % create two panels above each other
+        tiledlayout(2, 1);
+        % top panel
+        nexttile;
+        hold on;
+        legend_labels = [];
+        for beacon_i = 1:length(raw_beacon_data.beaconnames)
+            raw = plot(raw_beacon_data.beaconvalues.(raw_beacon_data.beaconmeta.cBeacon(beacon_i)));
+            legend_labels = [legend_labels, raw_beacon_data.beaconmeta.Name(beacon_i)];
+        end
+        hold off;
+        legend(legend_labels, 'Location','eastoutside');
+        title (['Participant ' pp_label]);
+
+        dt_raw = datatip(raw);    
+
+        % bottom panel
+        nexttile;
+        beacon = plot(nearest_beacon_data_resampled_segmented.nearestBeaconID);
+        title (['Participant ' pp_label]);
+        ax = gca;
+        % sort the beaconIDs in ascending order
+        beaconMetaOrdered = sortrows(nearest_beacon_data_resampled_segmented.beaconmeta, 'BeaconID');
+        % show the beacon names at the y-axis
+        ax.YTick = beaconMetaOrdered.BeaconID;
+        ax.YTickLabel = strcat(num2str(beaconMetaOrdered.BeaconID), beaconMetaOrdered.Name );
+        % show the beacon name at the cursur tip
+        
+        dt_beacon = datatip(beacon);    
+        filename = ['beacon_values_' pp_label]; 
+        savefig(filename);
+        close;
+    end
+
 end
 
 % add the beacon location names
 beaconLocation = {};
 for row_i = 1:length(beaconID)
     if isnan(beaconID(row_i))
-        beaconLocation{row_i, 1} = ' ';
+        beaconLocation{row_i, 1} = 'NaN';
     else
         beaconLocation{row_i, 1} = nearest_beacon_data_resampled_segmented.beaconmeta.Name{find(nearest_beacon_data_resampled_segmented.beaconmeta.BeaconID == beaconID(row_i))};
     end
 end
 
 
-% combine all data in a table
+% set the unusable beacons (42, 45, 46, 47) to NaNs
+unusabale_beacons = [42, 45, 46, 47];
+unusable_idx = find(ismember(beaconID, unusabale_beacons));
+nans_idx = find(isnan(beaconID));
+unusable_percentage = length(unusable_idx)/length(beaconID)*100;
+nans_percentage = length(nans_idx)/length(beaconID)*100;
+
+
+
+%% combine all data in a table
 skinconductance_beacon_table = table(participant,time,beaconID,beaconMajorMinor, beaconLocation,phasic,phasic_z);
 
 % save the table
-writetable(skinconductance_beacon_table, 'skinconductance_beacon_table.csv');
+writetable(skinconductance_beacon_table, 'skinconductance_beacon_table_40_90_limits_12.32_percent_NaNs.csv');
 
 % Provide some feedback
 fprintf('A csv file with the skinconductance beacon data has been saved as "skinconductance_beacon_table.csv" in %s\n', pwd);
+
+
 
