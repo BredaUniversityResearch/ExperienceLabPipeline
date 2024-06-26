@@ -168,13 +168,13 @@ if project.segment(segment_nr).include(pp_nr)
         % Provide some feedback
         fprintf('Data of participant %s is deconvolved and saved as %s\n', pp_label, path_filename);
 
-        % update bookkeeping
-        cfg = [];
-        cfg.processing_part = 'deconvolved';
-        cfg.pp_label = pp_label;
-        cfg.segment_nr = segment_nr;
-        cfg.processing_complete = true;
-        project = update_project_bookkeeping(cfg, project);
+        % % update bookkeeping
+        % cfg = [];
+        % cfg.processing_part = 'deconvolved';
+        % cfg.pp_label = pp_label;
+        % cfg.segment_nr = segment_nr;
+        % cfg.processing_complete = true;
+        % project = update_project_bookkeeping(cfg, project);
 
         % update the bookkeeping of the project
         project.segment(segment_nr).deconvolved(pp_nr) = true;

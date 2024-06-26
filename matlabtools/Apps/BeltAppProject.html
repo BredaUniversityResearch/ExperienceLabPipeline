@@ -66,7 +66,7 @@ button.recent:hover {
   padding: 1.9rem 0 1.5rem .625rem;
   top: 0;
   position: absolute;
-  width: 100%;
+  width: 600px;
   left: 250px;
 }
 .header__slogan:after{
@@ -123,46 +123,27 @@ button.recent:hover {
 </style>
 
 <script type="text/javascript">      
-   function setup(htmlComponent) {           
-
-
-
-       function createOnclickFunction(number) {
-         return function() {
-           //alert("This is button number " + number);
-		   htmlComponent.sendEventToMATLAB("RecentProject", number);
-         }
-       }
-
-       htmlComponent.addEventListener("DataChanged", function(event) {
-           var element = document.getElementById("dataDisplay");
-		   for (let recent_i = 0; recent_i < htmlComponent.Data.length; recent_i++)
-		   {
-			   var newbutton = "<button class='recent'>" + htmlComponent.Data[recent_i] + "</button>" //creates string from data
-			   element.insertAdjacentHTML('beforeend', newbutton);
-		   }
-		   var children = element.children;
-		   for (let recent_i = 0; recent_i < htmlComponent.Data.length; recent_i++)
-		   {
-			   children[recent_i].onclick = createOnclickFunction(recent_i+1)
-		   }
-      });     
-       
-       let button_open = document.getElementById("openProject");
-       button_open.addEventListener("click", function(event) {
-           htmlComponent.sendEventToMATLAB("OpenProject", 1);
-       });
-
-       let button_new = document.getElementById("newProject");
-       button_new.addEventListener("click", function(event) {
-           htmlComponent.sendEventToMATLAB("NewProject", 1);
-       });
-       
-       let button_recent = document.getElementById("recentProject");
-       button_recent.addEventListener("click", function(event) {
-           htmlComponent.sendEventToMATLAB("RecentProject", 1);
-       });
-   }
+	   
+    function setup(htmlComponent) {
+        htmlComponent.addEventListener("DataChanged", function(event) {
+            let div_project_name = document.getElementById("project_name");
+            div_project_name.innerHTML = htmlComponent.Data.ProjectName;
+			
+            let div_project_dir = document.getElementById("project_dir");
+            div_project_dir.innerHTML = htmlComponent.Data.ProjectDir;
+			
+            let div_raw_dir = document.getElementById("raw_dir");
+            div_raw_dir.innerHTML = htmlComponent.Data.RawDir;
+			
+            let div_processed_dir = document.getElementById("processed_dir");
+            div_processed_dir.innerHTML = htmlComponent.Data.ProcessedDir;
+			
+            let div_output_dir = document.getElementById("output_dir");
+            div_output_dir.innerHTML = htmlComponent.Data.OutputDir;
+		});
+	}
+			
+	   
 </script>
 
 
@@ -177,26 +158,22 @@ button.recent:hover {
 </div>
 <br>
 
-<div class="h2_title">Project Project name</div>
+<div class="h2_title" id="project_name">Project Project name</div>
 <table>
 	<tr>
-		<td class="property">Project directory</td><td class="value">Project name</td>
+		<td class="property" width="200px">Project directory</td><td class="value" id="project_dir">project_dir</td>
 	</tr>
 	<tr>
-		<td class="property">Raw data directory</td><td class="value">Project name</td>
+		<td class="property">Raw data directory</td><td class="value" id="raw_dir">raw_dir</td>
 	</tr>
 	<tr>
-		<td class="property">Processed data directory</td><td class="value">Project name</td>
+		<td class="property">Processed data directory</td><td class="value" id="processed_dir">processed_dir</td>
 	</tr>
 	<tr>
-		<td class="property">Output directory</td><td class="value">Project name</td>
+		<td class="property">Output directory</td><td class="value" id="output_dir">output_dir</td>
 	</tr>
 </table>
 
-<button id="artifactCorrection">Artifact Correction</button> 
-<button id="deconvolution">Deconvolution</button> <br>
-<button id="recentProjects">Recent projects :</button>
-<div id ="dataDisplay"></div>
 
 </body>
 </html>

@@ -59,91 +59,37 @@ if ~isfield(cfg, 'show_result_for_each')
     cfg.show_result_for_each = 'no';
 end
 
-
-%%
-
 pp_nr = cfg.pp_nr;
 pp_label = cell2mat(project.pp_labels(pp_nr));
 segment_nr = cfg.segment_nr;
 segment_name = project.segment(segment_nr).name;
-cfg.segment_identifier = ['Segment ', segment_name, ', participant ', pp_label];
 
-% check whether the segment of this participant should be included
-if project.segment(segment_nr).include(pp_nr)
-
-    % check if segmentation is already done
-    if project.segment(segment_nr).segmented(pp_nr)
-
-        % check whether artifact correction has already been done
-        if project.segment(segment_nr).artifact_corrected(pp_nr)
-
-            switch cfg.handle_already_cleaned_segments
-                case 'skip'
-                    % Provide some feedback
-                    path_filename = fullfile(project.processed_data_directory, ['segment_artifact_corrected_' project.segment(segment_nr).name  '_' pp_label '.mat']);
-                    fprintf('Data of participant %s was already artifact corrected and saved as %s\n', pp_label, path_filename);
-                    return;
-                case 'redo'
-                    % process the data again
-                case 'ask'
-                    % ask whether it should be done again
-                    dlgtitle = 'Redo artifact correction?';
-                    question = sprintf('Artifact correction has already been done for this participant.\nWould you like me to redo it?');
-                    opts.Default = 'Skip';
-                    answer = questdlg(question, dlgtitle, 'Redo','Skip', opts.Default);
-                    % Handle response
-                    switch answer
-                        case 'Skip'
-                            % Provide some feedback
-                            path_filename = fullfile(project.processed_data_directory, ['segment_artifact_corrected_' project.segment(segment_nr).name  '_' pp_label '.mat']);
-                            fprintf('Data of participant %s was already segmented and saved as %s\n', pp_label, path_filename);
-                            return;
-                        case 'Redo'
-                            % process the data again
-                    end
-            end
-        end
-
-        % load the segmented raw data
-        path_filename = fullfile(project.processed_data_directory, ['segment_raw_' project.segment(segment_nr).name  '_' pp_label '.mat']);
-        load(path_filename, 'segment_raw');
-    
-        
-        % open the artifact correction window
-        segment_artifact_corrected = artifact_eda_belt(cfg, segment_raw); 
-
-        % remove the raw data (that is already stored in segment_raw)
-        segment_artifact_corrected = rmfield(segment_artifact_corrected, 'conductance_raw');
-    
-        % save the artifact corrected data
-        path_filename = fullfile(project.processed_data_directory, ['segment_artifact_corrected_' project.segment(segment_nr).name '_' pp_label '.mat']);
-        save(path_filename, 'segment_artifact_corrected');
-        
-        % Provide some feedback
-        fprintf('Data of participant %s is artifact corrected and saved as %s\n', pp_label, path_filename);
-    
-        % update bookkeeping
-        % cfg = [];
-        % cfg.processing_part = 'artifact_corrected';
-        % cfg.pp_label = pp_label;
-        % cfg.segment_nr = segment_nr;
-        % cfg.processing_complete = true;
-        % project = update_project_bookkeeping(cfg, project);
-    
-        % update the bookkeeping of the project
-        project.segment(segment_nr).artifact_corrected(pp_nr) = true;
-        path_filename = fullfile(project.project_directory, ['project_' project.project_name '.mat']);
-        save(path_filename, 'project');
-    else
-        % Provide some feedback
-        fprintf('Data of segment %s for participant %s has not been segmented, so could not be artifact corrected.\n', segment_name, pp_label);
-    end
-else % this segment should not be included in analysis
-
-    % Provide some feedback
-    fprintf('Data of segment %s for participant %s is indicated to not include. Therefor the data was not artifact corrected, nor saved.\n', segment_name, pp_label);
+if ~isfield(cfg, 'segment_identifier')
+    cfg.segment_identifier = ['Segment ', segment_name, ', participant ', pp_label];
 end
 
+
+%%
+
+% first check whether artifact correction is even possible and needed
+[answer, msg] = artifact_correction_is_possible(cfg, project);
+fprintf(msg);
+if ~answer % artifact correction is not possible or not needed
+    return; 
+end
+
+
+% load the segmented raw data
+path_filename = fullfile(project.processed_data_directory, ['segment_raw_' project.segment(segment_nr).name  '_' pp_label '.mat']);
+load(path_filename, 'segment_raw');
+
+
+% open the artifact correction window
+segment_artifact_corrected = artifact_eda_belt(cfg, segment_raw); 
+
+% save the artifact corrected segment
+[project, msg] = save_artifact_corrected_data(cfg, project, segment_artifact_corrected);
+fprintf(msg);
 
 
 end %belt_get_data_segment
