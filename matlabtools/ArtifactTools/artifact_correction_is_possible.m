@@ -64,7 +64,7 @@ if project.segment(segment_nr).include(pp_nr)
 
         % check whether artifact correction has already been done
         if project.segment(segment_nr).artifact_corrected(pp_nr)
-
+            % segment has already been artifact corrected, check what to do
             switch cfg.handle_already_cleaned_segments
                 case 'skip'
                     % Provide some feedback
@@ -92,6 +92,8 @@ if project.segment(segment_nr).include(pp_nr)
                             answer = true;
                     end
             end
+        else % segment has not yet been artifact corrected
+            answer = true;
         end
     else % this data is not yet segmented
         % Provide some feedback
