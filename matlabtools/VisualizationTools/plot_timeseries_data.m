@@ -23,6 +23,8 @@ function plot_timeseries_data(cfg, varargin)
 %        sem  = standard error of the mean (as sd/sqrt(N))
 %        ci   = 95% confidence interval (as 1.96 * sem)
 %        none = the shaded area will not be plotted
+%   cfg.smoothing        = 'yes|no' (default = 'no')
+%        Whether to perform smoothing on the data before plotting
 %
 %   Some figure configuration is done, but these can be overruled by simply adding
 %   the desired settings after calling the plot_ERPs function
@@ -74,6 +76,9 @@ if ~isfield(cfg, 'legendnumcolumns')
 end
 if ~isfield(cfg, 'errorbar')
     cfg.errorbar = 'sem';
+end
+if ~isfield(cfg, 'smoothing')
+    cfg.smoothing = 'no';
 end
 if ~isfield(cfg, 'colours')
     for dataset_i = 1:nof_datasets
@@ -147,6 +152,11 @@ for dataset_i = nof_datasets:-1:1
 
     % mean EEG amplitude, averaged over pps
     y(dataset_i).mean = mean(squeeze(the_data),1,"omitnan"); 
+
+    % smoothing
+    if strcmp(cfg.smoothing, 'yes')
+        y(dataset_i).mean = smoothdata(y(dataset_i).mean);
+    end
 
     % e = sd|sem|ci|none 
     switch cfg.errorbar
