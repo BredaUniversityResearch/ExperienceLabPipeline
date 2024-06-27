@@ -126,7 +126,7 @@ artifact_detected = 0; % initialize artifact detection flag, no artifact found y
 timwin_samplesize = cfg.timwin * data.fsample; % the length of the window in amount of samples (e.g. 20s * 4Hz = 80 samples)
 sample_i = 1; % start the timewindow at the first data sample
 
-while sample_i < numel(data.conductance_artifact_corrected) - timwin_samplesize
+while sample_i < height(data.conductance_artifact_corrected) - timwin_samplesize
 
     timwin_data = data.conductance_artifact_corrected(sample_i : sample_i + timwin_samplesize - 1); % get the data of the current window
     zvalues = normalize(timwin_data); % calculate zscores (ignoring NaNs)
@@ -141,7 +141,7 @@ while sample_i < numel(data.conductance_artifact_corrected) - timwin_samplesize
         % datasample to the left of the peak where the incline started, within the 20-second time window
         leftindex = peakindex; % start at the peak
         while leftindex > 1 % stay within the current window
-            if zvalues(leftindex - 1) < zvalues(leftindex) % the left value was smaller than the current value
+            if zvalues(leftindex - 1) <= zvalues(leftindex) % the left value was smaller than the current value
                 leftindex = leftindex - 1; % so move (further) to the left
             else % until the left value is not smaller than the current value
                 break
@@ -152,7 +152,7 @@ while sample_i < numel(data.conductance_artifact_corrected) - timwin_samplesize
         % datasample to the right of the peak where the decline stops, within the 20-second time window
         rightindex = peakindex; % start at the peak
         while rightindex < timwin_samplesize % stay within the current window
-            if zvalues(rightindex + 1) < zvalues(rightindex) % the right value is smaller than the current value
+            if zvalues(rightindex + 1) <= zvalues(rightindex) % the right value is smaller than the current value
                 rightindex = rightindex + 1; % so move (further) to the right
             else % until the right value is not smaller than the current value
                 break
@@ -188,7 +188,7 @@ while sample_i < numel(data.conductance_artifact_corrected) - timwin_samplesize
 
             % add the current artifact to the end of the artifact list
             if exist('artifacts','var')
-                artifacts(length(artifacts) + 1) = artifact;
+                artifacts(end + 1) = artifact;
             else
                 artifacts(1) = artifact;
             end
@@ -206,7 +206,7 @@ while sample_i < numel(data.conductance_artifact_corrected) - timwin_samplesize
         % datasample to the left of the peak where the decline started, within the 20-second time window
         leftindex = troughindex; % start at the peak
         while leftindex > 1 % stay within the current window
-            if zvalues(leftindex - 1) > zvalues(leftindex) % the left value was larger than the current value
+            if zvalues(leftindex - 1) >= zvalues(leftindex) % the left value was larger than the current value
                 leftindex = leftindex - 1; % so move (further) to the left
             else % until the left value is not larger than the current value
                 break
@@ -217,7 +217,7 @@ while sample_i < numel(data.conductance_artifact_corrected) - timwin_samplesize
         % datasample to the right of the peak where the incline stops, within the 20-second time window
         rightindex = troughindex; % start at the peak
         while rightindex < timwin_samplesize % stay within the current window
-            if zvalues(rightindex +1 ) > zvalues(rightindex) % the right value is larger than the current value
+            if zvalues(rightindex +1 ) >= zvalues(rightindex) % the right value is larger than the current value
                 rightindex = rightindex + 1; % so move (further) to the right
             else % until the right value is not larger than the current value
                 break
