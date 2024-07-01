@@ -65,7 +65,7 @@ segment_nr = cfg.segment_nr;
 segment_name = project.segment(segment_nr).name;
 
 if ~isfield(cfg, 'segment_identifier')
-    cfg.segment_identifier = ['Segment ', segment_name, ', participant ', pp_label];
+    cfg.segment_identifier = ['Segment: ', segment_name, ', participant: ', pp_label];
 end
 
 
@@ -82,7 +82,6 @@ end
 % load the segmented raw data
 path_filename = fullfile(project.processed_data_directory, ['segment_raw_' project.segment(segment_nr).name  '_' pp_label '.mat']);
 load(path_filename, 'segment_raw');
-
 
 % open the artifact correction window
 segment_artifact_corrected = artifact_eda_belt(cfg, segment_raw); 
