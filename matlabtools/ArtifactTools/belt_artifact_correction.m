@@ -55,11 +55,9 @@ end
 if ~isfield(cfg, 'default_solution')
     cfg.default_solution = 'linear';
 end
-if ~isfield(cfg, 'show_result_for_each')
-    cfg.show_result_for_each = 'no';
-end
 
-pp_nr = cfg.pp_nr;
+ % for readability of the code
+ pp_nr = cfg.pp_nr;
 pp_label = cell2mat(project.pp_labels(pp_nr));
 segment_nr = cfg.segment_nr;
 segment_name = project.segment(segment_nr).name;
@@ -69,13 +67,11 @@ if ~isfield(cfg, 'segment_identifier')
 end
 
 
-%%
-
-% first check whether artifact correction is even possible and needed
+%  check whether artifact correction is even possible and needed
 [answer, msg] = artifact_correction_is_possible(cfg, project);
 fprintf(msg);
 if ~answer % artifact correction is not possible or not needed
-    return; 
+    return; % skip the rest of the function
 end
 
 
@@ -83,12 +79,19 @@ end
 path_filename = fullfile(project.processed_data_directory, ['segment_raw_' project.segment(segment_nr).name  '_' pp_label '.mat']);
 load(path_filename, 'segment_raw');
 
-% open the artifact correction window
-segment_artifact_corrected = artifact_eda_belt(cfg, segment_raw); 
+% get potential artifacts
+cfg.artifacts = get_potential_artifacts(cfg, segment_raw);
 
-% save the artifact corrected segment
-[project, msg] = save_artifact_corrected_data(cfg, project, segment_artifact_corrected);
-fprintf(msg);
+% open the artifact correction window to get the artifact corrected data
+corrected_data = open_artifact_correction_window(cfg, segment_raw);
+
+% check whether cleaned data has been returned
+if ~isempty(corrected_data)
+    % save the artifact corrected segment
+    segment_raw.conductance_artifact_corrected = corrected_data;
+    [project, msg] = save_artifact_corrected_data(cfg, project, segment_raw);
+    fprintf('%s', msg);
+end
 
 
 end %belt_get_data_segment

@@ -1,4 +1,4 @@
-function [project, msg] = save_artifact_corrected_data(cfg, project, segment_artifact_corrected)
+function [project, msg] = save_artifact_corrected_data(cfg, project, data_artifact_corrected)
 %% SAVE_ARTIFACT_CORRECTED_DATA
 %  function project = save_artifact_corrected_data(cfg, project)
 % 
@@ -49,11 +49,11 @@ segment_name = project.segment(segment_nr).name;
 
 
 % remove the raw data (that is already stored in segment_raw)
-segment_artifact_corrected = rmfield(segment_artifact_corrected, 'conductance_raw');
+data_artifact_corrected = rmfield(data_artifact_corrected, 'conductance_raw');
 
 % save the artifact corrected data
 path_filename = fullfile(project.processed_data_directory, ['segment_artifact_corrected_' segment_name '_' pp_label '.mat']);
-save(path_filename, 'segment_artifact_corrected');
+save(path_filename, 'data_artifact_corrected');
 
 % update the bookkeeping of the project
 project.segment(segment_nr).artifact_corrected(pp_nr) = true;

@@ -54,7 +54,9 @@ end
 answer = false;
 msg = '';
 pp_nr = cfg.pp_nr;
+pp_label = project.pp_labels{pp_nr};
 segment_nr = cfg.segment_nr;
+segment_name = project.segment(segment_nr).name;
 
 % check whether the segment of this participant should be included
 if project.segment(segment_nr).include(pp_nr)
@@ -69,7 +71,7 @@ if project.segment(segment_nr).include(pp_nr)
                 case 'skip'
                     % Provide some feedback
                     path_filename = fullfile(project.processed_data_directory, ['segment_artifact_corrected_' project.segment(segment_nr).name  '_' pp_label '.mat']);
-                    msg = sprintf('Data of participant %s was already artifact corrected and saved as %s\n', pp_label, path_filename);
+                    msg = sprintf('Data of participant %s was already artifact corrected and saved as %s', pp_label, path_filename);
                     return;
                 case 'redo'
                     % process the data again
@@ -85,7 +87,7 @@ if project.segment(segment_nr).include(pp_nr)
                         case 'Skip'
                             % Provide some feedback
                             path_filename = fullfile(project.processed_data_directory, ['segment_artifact_corrected_' project.segment(segment_nr).name  '_' pp_label '.mat']);
-                            msg = sprintf('Data of participant %s was already segmented and saved as %s\n', pp_label, path_filename);
+                            msg = sprintf('Data of participant %s was already segmented and saved as %s', pp_label, path_filename);
                             return;
                         case 'Redo'
                             % process the data again
@@ -97,11 +99,11 @@ if project.segment(segment_nr).include(pp_nr)
         end
     else % this data is not yet segmented
         % Provide some feedback
-        msg = sprintf('Data of segment %s for participant %s has not been segmented, so could not be artifact corrected.\n', segment_name, pp_label);
+        msg = sprintf('Data of segment %s for participant %s has not been segmented, so could not be artifact corrected.', segment_name, pp_label);
     end
 else % include is set to false
     % Provide some feedback
-    msg = sprintf('Data of segment %s for participant %s is indicated to not include. Therefor the data was not artifact corrected, nor saved.\n', segment_name, pp_label);
+    msg = sprintf('Data of segment %s for participant %s is indicated to not include. So artifact correction is not needed.', segment_name, pp_label);
 end
 
 
