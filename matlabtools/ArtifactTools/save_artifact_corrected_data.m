@@ -52,16 +52,16 @@ segment_name = project.segment(segment_nr).name;
 data_artifact_corrected = rmfield(data_artifact_corrected, 'conductance_raw');
 
 % save the artifact corrected data
-path_filename = fullfile(project.processed_data_directory, ['segment_artifact_corrected_' segment_name '_' pp_label '.mat']);
-save(path_filename, 'data_artifact_corrected');
+path_filename_data = fullfile(project.processed_data_directory, ['segment_artifact_corrected_' segment_name '_' pp_label '.mat']);
+save(path_filename_data, 'data_artifact_corrected');
 
 % update the bookkeeping of the project
 project.segment(segment_nr).artifact_corrected(pp_nr) = true;
-path_filename = fullfile(project.project_directory, ['project_' project.project_name '.mat']);
-save(path_filename, 'project');
+path_filename_project = fullfile(project.project_directory, ['project_' project.project_name '.belt']);
+save(path_filename_project, 'project');
 
 % Provide some feedback
-msg = sprintf('Data of participant %s is artifact corrected and saved as %s\n', pp_label, path_filename);
+msg = sprintf('Data of participant %s is artifact corrected and saved as %s', pp_label, path_filename_data);
 
 
 end % save_artifact_corrected_data

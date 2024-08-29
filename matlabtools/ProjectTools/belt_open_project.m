@@ -57,7 +57,13 @@ function project = belt_open_project(cfg, project)
 %
 
 % the full path to the location of the project bookkeeping file
-path_filename = fullfile(project.project_directory, ['project_' project.project_name '.mat']);
+path_filename = fullfile(project.project_directory, ['project_' project.project_name '.belt']);
+
+% temp fix for ongoing projects, to be removed later
+old_path_filename = fullfile(project.project_directory, ['project_' project.project_name '.mat']); 
+if ~isfile(path_filename) && isfile(old_path_filename)
+    path_filename = old_path_filename;
+end
 
 % First check whether a project bookkeeping file already exists
 if isfile(path_filename) % file already exists
