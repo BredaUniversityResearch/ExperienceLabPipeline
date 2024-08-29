@@ -104,23 +104,10 @@ button.recent:hover {
 	margin-bottom:.625rem
 }
 
-.h2_title:after{
-	content:'';
-	height:2px;
-	width:100px;
-	background-color:#00406b;
-	position:absolute;
-	bottom:-2px;
-	left:0
-}
-
-
 </style>
 
 <script type="text/javascript">      
    function setup(htmlComponent) {           
-
-
 
        function createOnclickFunction(number) {
          return function() {
@@ -131,12 +118,12 @@ button.recent:hover {
 
        htmlComponent.addEventListener("DataChanged", function(event) {
            var element = document.getElementById("dataDisplay");
+		   var children = element.children;
 		   for (let recent_i = 0; recent_i < htmlComponent.Data.length; recent_i++)
 		   {
 			   var newbutton = "<button class='recent'>" + htmlComponent.Data[recent_i] + "</button>" //creates string from data
 			   element.insertAdjacentHTML('beforeend', newbutton);
 		   }
-		   var children = element.children;
 		   for (let recent_i = 0; recent_i < htmlComponent.Data.length; recent_i++)
 		   {
 			   children[recent_i].onclick = createOnclickFunction(recent_i+1)
