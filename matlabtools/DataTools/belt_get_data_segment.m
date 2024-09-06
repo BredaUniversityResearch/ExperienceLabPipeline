@@ -1,4 +1,4 @@
-function project = belt_get_data_segment(cfg, project)
+function [project, msg] = belt_get_data_segment(cfg, project)
 %% BELT_GET_DATA_SEGMENT
 %  function project = belt_get_data_segment(cfg, project)
 % 
@@ -56,7 +56,7 @@ end
 %%
 
 pp_nr = cfg.pp_nr;
-pp_label = cell2mat(project.pp_labels(pp_nr));
+pp_label = project.pp_labels{pp_nr};
 segment_nr = cfg.segment_nr;
 segment_name = project.segment(segment_nr).name;
 fsample = cfg.fsample;
@@ -70,7 +70,7 @@ if project.segment(segment_nr).include(pp_nr)
             case 'skip'
                 % Provide some feedback
                 path_filename = fullfile(project.processed_data_directory, ['segment_raw_' project.segment(segment_nr).name  '_' pp_label '.mat']);
-                fprintf('Data of participant %s was already segmented and saved as %s\n', pp_label, path_filename);
+                msg = sprintf('Data of participant %s was already segmented and saved as %s', pp_label, path_filename);
                 return;
             case 'redo'
                 % process the data again
@@ -85,7 +85,7 @@ if project.segment(segment_nr).include(pp_nr)
                     case 'Skip'
                         % Provide some feedback
                         path_filename = fullfile(project.processed_data_directory, ['segment_raw_' project.segment(segment_nr).name  '_' pp_label '.mat']);
-                        fprintf('Data of participant %s was already segmented and saved as %s\n', pp_label, path_filename);
+                        msg = sprintf('Data of participant %s was already segmented and saved as %s', pp_label, path_filename);
                         return;
                     case 'Redo'
                         % process the data again
@@ -100,7 +100,7 @@ if project.segment(segment_nr).include(pp_nr)
     % If not both the start and end times are present, abort processing
     % with a warning
     if isempty(cell2mat(starttime)) || isempty(cell2mat(endtime))
-        warning('Start or endtime for participant %s, segment %s was not provided. Could not process this segment.', pp_label, segment_name);
+        msg = sprintf('Warning: Start or endtime for participant %s, segment %s was not provided. Could not process this segment.', pp_label, segment_name);
         return;
     end
 
@@ -124,7 +124,7 @@ if project.segment(segment_nr).include(pp_nr)
         cfg.columnname.hr    = 'ignore'; % ignore hr
         raw_data = shimmer2matlab(cfg); % get the raw data
     else % Neither a Shimmer nor an Empatica datafile was found
-        warning('No datafile found for %s, segment %s. Please check! There should either be a ''EDA.csv'' or ''physiodata.csv'' file.', pp_label, segment_name);
+        msg = sprintf('Warning: No datafile found for %s, segment %s. Please check! There should either be a ''EDA.csv'' or ''physiodata.csv'' file.', pp_label, segment_name);
         return;
     end
 
@@ -137,9 +137,8 @@ if project.segment(segment_nr).include(pp_nr)
     try
         segment_raw = segment_generic(cfg, raw_data);
     catch ME
-        % segmentation caused an error, provide feedback and move on to the
-        % next
-        warning('Segmentation caused an error for segment %s, participant %s.', segment_name, pp_label);
+        % segmentation caused an error, provide feedback and move on to the next
+        msg = sprintf('Warning: Segmentation caused an error for segment %s, participant %s.', segment_name, pp_label);
         warning(ME.message);
         return;
     end
@@ -169,27 +168,18 @@ if project.segment(segment_nr).include(pp_nr)
     save(path_filename, 'segment_raw');
 
     % Provide some feedback
-    fprintf('Data of participant %s is segmented and saved as %s\n', pp_label, path_filename);
+    msg = sprintf('Data of participant %s is segmented and saved as %s', pp_label, path_filename);
 
-    % update bookkeeping
-    % cfg = [];
-    % cfg.processing_part = 'segmented';
-    % cfg.pp_label = pp_label;
-    % cfg.segment_nr = segment_nr;
-    % cfg.processing_complete = true;
-    % project = update_project_bookkeeping(cfg, project);
-    % 
     % update the bookkeeping of the project
     project.segment(segment_nr).segmented(pp_nr) = true;
-    path_filename = fullfile(project.project_directory, ['project_' project.project_name '.mat']);
-    save(path_filename, 'project');
+    save_project(project);
 
 
 
 else % this segment should not be included in analysis
 
     % Provide some feedback
-    fprintf('Data of segment %s for participant %s is indicated to not include. Therefor the data was not segmented, nor saved.\n', segment_name, pp_label);
+    msg = sprintf('Data of segment %s for participant %s is indicated to not include. Therefor the data was not segmented, nor saved.', segment_name, pp_label);
     return;
 end
 
