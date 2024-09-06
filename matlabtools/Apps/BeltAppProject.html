@@ -1,5 +1,5 @@
 <html>
-<header>
+<head>
 <style>
 
 body {
@@ -28,7 +28,7 @@ button {
   text-transform: uppercase;
   box-sizing: border-box;
   color: #5b6670;
-  border: 1px;
+  border: 1px solid;
   cursor: pointer;
 }
 button:hover {
@@ -47,7 +47,7 @@ button.recent {
   margin-right: .625rem;
   margin-top: .625rem;
   box-sizing: border-box;
-  border: 1px;
+  border: 1px solid;
   cursor: pointer;
 }
 button.recent:hover {
@@ -104,7 +104,7 @@ button.recent:hover {
 	margin-bottom:.625rem
 }
 
-.h2_title:after{
+.h2_titleTEST:after{
 	content:'';
 	height:2px;
 	width:100px;
@@ -131,15 +131,34 @@ button.recent:hover {
 			
             let div_project_dir = document.getElementById("project_dir");
             div_project_dir.innerHTML = htmlComponent.Data.ProjectDir;
+			let project_link = "file://";
+			project_link = project_link.concat(htmlComponent.Data.ProjectDir);
+			div_project_dir.href = project_link;
 			
-            let div_raw_dir = document.getElementById("raw_dir");
-            div_raw_dir.innerHTML = htmlComponent.Data.RawDir;
+            let div_condition1 = document.getElementById("condition1");
+            div_condition1.innerHTML = htmlComponent.Data.Condition1;
 			
-            let div_processed_dir = document.getElementById("processed_dir");
-            div_processed_dir.innerHTML = htmlComponent.Data.ProcessedDir;
+            let div_condition2 = document.getElementById("condition2");
+            div_condition2.innerHTML = htmlComponent.Data.Condition2;
 			
-            let div_output_dir = document.getElementById("output_dir");
-            div_output_dir.innerHTML = htmlComponent.Data.OutputDir;
+            let div_nof_segmented1 = document.getElementById("nof_segmented1");
+            div_nof_segmented1.innerHTML = htmlComponent.Data.NofSegmented1;
+			
+            let div_nof_segmented2 = document.getElementById("nof_segmented2");
+            div_nof_segmented2.innerHTML = htmlComponent.Data.NofSegmented2;
+			
+            let div_nof_cleaned1 = document.getElementById("nof_cleaned1");
+            div_nof_cleaned1.innerHTML = htmlComponent.Data.NofCleaned1;
+			
+            let div_nof_cleaned2 = document.getElementById("nof_cleaned2");
+            div_nof_cleaned2.innerHTML = htmlComponent.Data.NofCleaned2;
+			
+            let div_nof_deconvolved1 = document.getElementById("nof_deconvolved1");
+            div_nof_deconvolved1.innerHTML = htmlComponent.Data.NofDeconvolved1;
+			
+            let div_nof_deconvolved2 = document.getElementById("nof_deconvolved2");
+            div_nof_deconvolved2.innerHTML = htmlComponent.Data.NofDeconvolved2;
+			
 		});
 	}
 			
@@ -147,33 +166,47 @@ button.recent:hover {
 </script>
 
 
-</header>
-<body leftmargin="20" topmargin="20";>
+</head>
+<body style="margin-left: 20px; margin-top: 20px;">
 
 <div>
 	<a href="http://www.buas.nl" title="Breda University of Applied Sciences" target = "_blank" style="target-new: tab;" class="navbar__logo">                                  
-		<img src="Logo BUas_RGB.png" alt="Breda University of Applied Sciences"  height="60px"\>
+		<img src="Logo BUas_RGB.png" alt="Breda University of Applied Sciences"  height="60px">
 	</a>
 	<div class="header__slogan">Creating meaningful experiences</div>
 </div>
 <br>
 
-<div class="h2_title" id="project_name">Project Project name</div>
-<table>
+<div class="h2_title" id="project_name">Project name</div>
+Processing skin conductance data involves several steps: segmenting (cut), artifact correction (clean), deconvolution (split). See the help files for an explanation of each step. <br><br>
+Your project is located in <span class="value" id="project_dir">project_dir</span>.
+<br><br>
+Processing status:<br>
+<table style="margin-left: 20px;">
 	<tr>
-		<td class="property" width="200px">Project directory</td><td class="value" id="project_dir">project_dir</td>
+		<td class="property" width="200px">Conditions</td>
+		<td class="property" id="condition1" style="font-weight: bold">Condition 1</td>
+		<td width="10px"></td>
+		<td class="property" id="condition2" style="font-weight: bold">Condition 2</td>
 	</tr>
 	<tr>
-		<td class="property">Raw data directory</td><td class="value" id="raw_dir">raw_dir</td>
+		<td class="property" width="200px">Segmentation (Cut)</td>
+		<td class="value" id="nof_segmented1" style="text-align: center">0</td>
+		<td width="10px"></td>
+		<td class="value" id="nof_segmented2" style="text-align: center">0</td>
 	</tr>
 	<tr>
-		<td class="property">Processed data directory</td><td class="value" id="processed_dir">processed_dir</td>
+		<td class="property">Artifact correction (Clean)</td>
+		<td class="value" id="nof_cleaned1" style="text-align: center">0</td>
+		<td width="10px"></td>
+		<td class="value" id="nof_cleaned2" style="text-align: center">0</td>
 	</tr>
 	<tr>
-		<td class="property">Output directory</td><td class="value" id="output_dir">output_dir</td>
+		<td class="property">Deconvolution (Split)</td>
+		<td class="value" id="nof_deconvolved1" style="text-align: center">0</td>
+		<td width="10px"></td>
+		<td class="value" id="nof_deconvolved2" style="text-align: center">0</td>
 	</tr>
 </table>
-
-
 </body>
 </html>
