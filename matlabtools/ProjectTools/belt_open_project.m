@@ -55,14 +55,17 @@ function project = belt_open_project(cfg, project)
 
 
 %
-
-% the full path to the location of the project bookkeeping file
-path_filename = fullfile(project.project_directory, ['project_' project.project_name '.belt']);
-
-% temp fix for ongoing projects, to be removed later
-old_path_filename = fullfile(project.project_directory, ['project_' project.project_name '.mat']); 
-if ~isfile(path_filename) && isfile(old_path_filename)
-    path_filename = old_path_filename;
+if isfield(project, 'project_directory') && isfield(project, 'project_name')
+    % the full path to the location of the project bookkeeping file
+    path_filename = fullfile(project.project_directory, ['project_' project.project_name '.belt']);
+    
+    % temp fix for ongoing projects, to be removed later
+    old_path_filename = fullfile(project.project_directory, ['project_' project.project_name '.mat']); 
+    if ~isfile(path_filename) && isfile(old_path_filename)
+        path_filename = old_path_filename;
+    end
+else
+    path_filename = ''; % no project data has been provided, show the create project window
 end
 
 % First check whether a project bookkeeping file already exists
