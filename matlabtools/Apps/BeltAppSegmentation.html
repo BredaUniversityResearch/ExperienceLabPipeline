@@ -1,0 +1,179 @@
+<html>
+<head>
+<style>
+
+body {
+  font-family: "Open Sans",sans-serif;
+  font-size: 1.0rem;
+  font-weight: 400;
+  line-height: 1.6875;
+  color: #5b6670;
+  text-align: left;
+	background-color: white;
+}
+
+a{
+	color: #3BB4E5;
+}
+
+
+button {
+  background-color: #eeeff0;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 400;
+  padding: .3125rem;
+  margin-right: .625rem;
+  margin-top: .625rem;
+  text-transform: uppercase;
+  box-sizing: border-box;
+  color: #5b6670;
+  border: 1px;
+  cursor: pointer;
+}
+button:hover {
+  background-color: #ee7622;
+  color: white;
+}
+
+button.recent {
+  background-color: #5b6670;
+  color: #eeeff0;
+  font-size: 12px;
+  line-height: 12px;
+  font-weight: 400;
+  padding: .3125rem;
+  margin-left: .625rem;
+  margin-right: .625rem;
+  margin-top: .625rem;
+  box-sizing: border-box;
+  border: 1px;
+  cursor: pointer;
+}
+button.recent:hover {
+  background-color: #ee7622;
+  color: white;
+}
+
+
+.header__slogan {
+  font-size: .875rem;
+  font-family: "ffscalaweb",serif;
+  color: #ee7622;
+  text-transform: uppercase;
+  letter-spacing: 5px;
+  font-weight: bold;
+  padding: 1.9rem 0 1.5rem .625rem;
+  top: 0;
+  position: absolute;
+  width: 600px;
+  left: 250px;
+}
+.header__slogan:after{
+	content:'';
+	height:2px;
+	width:100%;
+	background-color:#ee7622;
+	position:absolute;
+	bottom:-2px;
+	left:0
+}
+
+.h2_subtitle {
+  color: #00406b;
+  font-size: 1.4rem;
+  font-weight: 300;
+  font-family: "ffscalaweb",serif;
+  margin-top: 1.4rem;
+  margin-bottom: .4rem;
+  line-height: 1.2;
+}
+
+.navbar__logo{
+	display:block
+}
+
+.h2_title{
+	font-family:"ffscalaweb",serif;
+	color:#00406b;
+	font-weight: 500;
+	line-height: 1.4;
+	font-feature-settings: "kern","calt";
+	font-variant-ligatures: common-ligatures;
+	font-size:1.6rem;
+	margin-bottom:.625rem
+}
+
+.h2_title:after{
+	content:'';
+	height:2px;
+	width:100px;
+	background-color:#00406b;
+	position:absolute;
+	bottom:-2px;
+	left:0
+}
+
+.property{
+}
+
+.value{
+	font-style: italic;
+}	
+progress[value]{
+	width: 500px;
+	height: 40px;
+	color:  #ee7622;
+	accent-color: #ee7622;
+}
+</style>
+
+<script type="text/javascript">      
+	   
+    function setup(htmlComponent) {
+        htmlComponent.addEventListener("DataChanged", function(event) {
+            let div_segmentation_segment = document.getElementById("segmentation_segment");
+            div_segmentation_segment.innerHTML = htmlComponent.Data.SegmentationSegment;
+			
+            let div_segmentation_progress = document.getElementById("segmentation_progress");
+            div_segmentation_progress.innerHTML = htmlComponent.Data.SegmentationProgress;
+			
+            let div_segmentation_status = document.getElementById("segmentation_status");
+            div_segmentation_status.innerHTML = htmlComponent.Data.SegmentationStatus;
+			
+		});
+	}
+			
+	   
+</script>
+
+
+</head>
+<body leftmargin="20" topmargin="20";>
+
+<div>
+	<a href="http://www.buas.nl" title="Breda University of Applied Sciences" target = "_blank" style="target-new: tab;" class="navbar__logo">                                  
+		<img src="Logo BUas_RGB.png" alt="Breda University of Applied Sciences"  height="60px"\>
+	</a>
+	<div class="header__slogan">Creating meaningful experiences</div>
+</div>
+<br>
+
+<div class="h2_title">Segmentation</div>
+Usually we are only interested in the part of the skin conductance data that was recorded during a condition. We will cut out these segments first. The start and endtimes of these segments are extracted from the columns 'StartTime<i>ConditionName</i>' and 'EndTime<i>ConditionName</i>' in the 'ParticipantData' excel file that is located in the '0.RawData' folder of the project.
+<p/>
+<table>
+	<tr>
+		<td class="value" id="segmentation_segment">pp_label, segment name</td>
+	</tr>
+	<tr>
+		<td  class="value" id="segmentation_progress"><label><progress value="80" max="100" width="600px"></progress></label></td>
+	</tr>
+	<tr>
+		<td class="value" id="segmentation_status">. . . </td>
+	</tr>
+</table>
+
+
+</body>
+</html>
