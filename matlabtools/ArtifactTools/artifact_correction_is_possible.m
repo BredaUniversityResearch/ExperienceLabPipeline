@@ -81,9 +81,9 @@ if project.segment(segment_nr).include(pp_nr)
                     dlgtitle = 'Redo artifact correction?';
                     question = sprintf('Artifact correction has already been done for this participant.\nWould you like me to redo it?');
                     opts.Default = 'Skip';
-                    answer = questdlg(question, dlgtitle, 'Redo','Skip', opts.Default);
+                    question_answer = questdlg(question, dlgtitle, 'Redo','Skip', opts.Default);
                     % Handle response
-                    switch answer
+                    switch question_answer
                         case 'Skip'
                             % Provide some feedback
                             path_filename = fullfile(project.processed_data_directory, ['segment_artifact_corrected_' project.segment(segment_nr).name  '_' pp_label '.mat']);
