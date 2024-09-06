@@ -60,9 +60,17 @@ end
 
 
 pp_nr = cfg.pp_nr;
-pp_label = cell2mat(project.pp_labels(pp_nr));
+pp_label = project.pp_labels{pp_nr};
 segment_nr = cfg.segment_nr;
 segment_name = project.segment(segment_nr).name;
+
+
+% check whether artifact correction is even possible and needed
+[answer, msg] = deconvolution_is_possible(cfg, app.project);
+app.AppendLog(msg);
+if ~answer % artifact correction is not possible or not needed
+    return; % skip the rest of the function
+end
 
 % create the temp folder, if needed
 if ~exist(cfg.tempdir, "dir")
@@ -73,125 +81,69 @@ else
     tempfoldercreated = false;% folder was already there, so leave it.
 end
 
+% load the data
+path_filename = fullfile(project.processed_data_directory, ['segment_artifact_corrected_' project.segment(segment_nr).name '_' pp_label '.mat']);
+load(path_filename, 'segment_artifact_corrected');
 
-% check whether the segment of this participant should be included
-if project.segment(segment_nr).include(pp_nr)
-
-    % check if artifact correction has been done
-    if project.segment(segment_nr).artifact_corrected(pp_nr)
-
-        % check whether artifact correction has already been done
-        if project.segment(segment_nr).deconvolved(pp_nr)
-
-            switch cfg.handle_already_deconvolved_segments
-                case 'skip'
-                    % Provide some feedback
-                    path_filename = fullfile(project.processed_data_directory, ['segment_deconvolved_' project.segment(segment_nr).name '_' pp_label '.mat']);
-                    fprintf('Data of participant %s was already deconvolved and saved as %s\n', pp_label, path_filename);
-                    return;
-                case 'redo'
-                    % process the data again
-                case 'ask'
-                    % ask whether it should be done again
-                    dlgtitle = 'Redo deconvolution?';
-                    question = sprintf('Deconvolution has already been done for this participant.\nWould you like me to redo it?');
-                    opts.Default = 'Skip';
-                    answer = questdlg(question, dlgtitle, 'Redo','Skip', opts.Default);
-                    % Handle response
-                    switch answer
-                        case 'Skip'
-                            % Provide some feedback
-                            path_filename = fullfile(project.processed_data_directory, ['segment_deconvolved_' project.segment(segment_nr).name '_' pp_label '.mat']);
-                            fprintf('Data of participant %s was already deconvolved and saved as %s\n', pp_label, path_filename);
-                            return;
-                        case 'Redo'
-                            % process the data again
-                    end
-            end
-        end
-
-        % load the data
-        path_filename = fullfile(project.processed_data_directory, ['segment_artifact_corrected_' project.segment(segment_nr).name '_' pp_label '.mat']);
-        load(path_filename, 'segment_artifact_corrected');
-    
-        if isfield(cfg, 'resample') && strcmp(cfg.resample, 'yes') && isfield(cfg, 'resample')
-            % resample the data before deconvolution
-            cfg_resample = [];
-            cfg_resample.fsample = cfg.fsample;
-            segment_artifact_corrected = resample_generic(cfg_resample,  segment_artifact_corrected);
-        end
-
-        % add the zscored conductance
-        segment_artifact_corrected.conductance_artifact_corrected_z = normalize(segment_artifact_corrected.conductance_artifact_corrected);
-        cfg.conductance_z   = 'conductance_artifact_corrected_z';
-
-        % do the deconvolution thing
-        segment_deconvolved = deconvolve_eda(cfg, segment_artifact_corrected);
-    
-        % do some reorganizing and renaming
-        [segment_deconvolved.conductance_phasic] = segment_deconvolved.phasic;
-        [segment_deconvolved.conductance_phasic_z] = segment_deconvolved.phasic_z;
-        [segment_deconvolved.conductance_tonic] = segment_deconvolved.tonic;
-        [segment_deconvolved.conductance_tonic_z] = segment_deconvolved.tonic_z;
-        segment_deconvolved = rmfield(segment_deconvolved,'phasic');
-        segment_deconvolved = rmfield(segment_deconvolved,'phasic_z');
-        segment_deconvolved = rmfield(segment_deconvolved,'tonic');
-        segment_deconvolved = rmfield(segment_deconvolved,'tonic_z');
-        segment_deconvolved = rmfield(segment_deconvolved,'conductance_artifact_corrected');
-        segment_deconvolved = rmfield(segment_deconvolved,'conductance_artifact_corrected_z');
-        segment_deconvolved = orderfields(segment_deconvolved,...
-            {'pp_label', ...
-            'segment_name', ...
-            'datatype',...
-            'orig', ...
-            'initial_time_stamp', ...
-            'initial_time_stamp_mat', ...
-            'fsample', ...
-            'timeoff', ...
-            'event', ...
-            'analysis', ...
-            'time', ...
-            'eventchan', ...
-            'conductance_phasic', ...
-            'conductance_phasic_z', ...
-            'conductance_tonic', ...
-            'conductance_tonic_z' ...
-            });
-
-
-
-
-        % save the deconvolved data
-        path_filename = fullfile(project.processed_data_directory, ['segment_deconvolved_' project.segment(segment_nr).name '_' pp_label '.mat']);
-        save(path_filename, 'segment_deconvolved');
-    
-        % Provide some feedback
-        fprintf('Data of participant %s is deconvolved and saved as %s\n', pp_label, path_filename);
-
-        % % update bookkeeping
-        % cfg = [];
-        % cfg.processing_part = 'deconvolved';
-        % cfg.pp_label = pp_label;
-        % cfg.segment_nr = segment_nr;
-        % cfg.processing_complete = true;
-        % project = update_project_bookkeeping(cfg, project);
-
-        % update the bookkeeping of the project
-        project.segment(segment_nr).deconvolved(pp_nr) = true;
-        path_filename = fullfile(project.project_directory, ['project_' project.project_name '.mat']);
-        save(path_filename, 'project');
-    
-    else
-        % Provide some feedback
-        fprintf('Data of segment %s for participant %s has not aerifact corrected, so could not be deconvolved.\n', segment_name, pp_label);
-    end
-else % this segment should not be included in analysis
-    % Provide some feedback
-    fprintf('Data of segment %s for participant %s is indicated to not include. Therefor the data was not deconvolved, nor saved.\n', segment_name, pp_label);
+if isfield(cfg, 'resample') && strcmp(cfg.resample, 'yes') && isfield(cfg, 'fsample')
+    % resample the data before deconvolution
+    cfg_resample = [];
+    cfg_resample.fsample = cfg.fsample;
+    segment_artifact_corrected = resample_generic(cfg_resample,  segment_artifact_corrected);
 end
 
+% add the zscored conductance
+segment_artifact_corrected.conductance_artifact_corrected_z = normalize(segment_artifact_corrected.conductance_artifact_corrected);
+cfg.conductance_z   = 'conductance_artifact_corrected_z';
+
+% do the deconvolution thing
+segment_deconvolved = deconvolve_eda(cfg, segment_artifact_corrected);
+
+% do some reorganizing and renaming
+[segment_deconvolved.conductance_phasic] = segment_deconvolved.phasic;
+[segment_deconvolved.conductance_phasic_z] = segment_deconvolved.phasic_z;
+[segment_deconvolved.conductance_tonic] = segment_deconvolved.tonic;
+[segment_deconvolved.conductance_tonic_z] = segment_deconvolved.tonic_z;
+segment_deconvolved = rmfield(segment_deconvolved,'phasic');
+segment_deconvolved = rmfield(segment_deconvolved,'phasic_z');
+segment_deconvolved = rmfield(segment_deconvolved,'tonic');
+segment_deconvolved = rmfield(segment_deconvolved,'tonic_z');
+segment_deconvolved = rmfield(segment_deconvolved,'conductance_artifact_corrected');
+segment_deconvolved = rmfield(segment_deconvolved,'conductance_artifact_corrected_z');
+segment_deconvolved = orderfields(segment_deconvolved,...
+    {'pp_label', ...
+    'segment_name', ...
+    'datatype',...
+    'orig', ...
+    'initial_time_stamp', ...
+    'initial_time_stamp_mat', ...
+    'fsample', ...
+    'timeoff', ...
+    'event', ...
+    'analysis', ...
+    'time', ...
+    'eventchan', ...
+    'conductance_phasic', ...
+    'conductance_phasic_z', ...
+    'conductance_tonic', ...
+    'conductance_tonic_z' ...
+    });
+
+% save the deconvolved data
+path_filename = fullfile(project.processed_data_directory, ['segment_deconvolved_' project.segment(segment_nr).name '_' pp_label '.mat']);
+save(path_filename, 'segment_deconvolved');
+
+% Provide some feedback
+fprintf('Data of participant %s is deconvolved and saved as %s\n', pp_label, path_filename);
+
+% update the bookkeeping of the project
+project.segment(segment_nr).deconvolved(pp_nr) = true;
+
+% save the project bookkeeping
+save_project(project);
+
+% if we created a temporary folder, clean up
 if tempfoldercreated
-    % we created a temporary folder, now remove it
     rmdir(cfg.tempdir, 's'); % this fails sometimes, don't know why
 end
 
