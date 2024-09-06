@@ -40,11 +40,16 @@ function project = add_participant_data(cfg, project)
 % cfg.segment(3).endtimes   = 'EndTimeSecondHalf';
 %
 
+
 %% Check input
 % project
 if ~isfield(project, 'raw_data_directory')
     error('The project does not have the correct format. For instance, it has no raw_data_directory field. Type help check_project_directories for info on the project struct.');
 end
+
+
+%% Get the participant data from the excel file
+ 
 % path to participant data file
 if ~isfield(cfg, 'participant_data_dir')
     cfg.participant_data_dir = project.raw_data_directory;
@@ -53,42 +58,6 @@ end
 if ~isfield(cfg, 'participant_data_filename')
     cfg.participant_data_filename = 'ParticipantData.xlsx';
 end
-% column name of the participant labels
-if ~isfield(cfg, 'participants')
-    cfg.participants = 'Participant';
-end
-% column name of the timeformat
-if ~isfield(cfg, 'timeformat')
-    cfg.timeformat = 'TimeFormat';
-end
-% column name of the timezone
-if ~isfield(cfg, 'timezone')
-    cfg.timezone = 'TimeZone';
-end
-% array of segment names
-if ~isfield(cfg, 'segment_names')
-    cfg.segment_names = {'Segment1'};
-end
-% the number of segments
-if ~isfield(cfg, 'number_of_segments')
-    cfg.number_of_segments = length(cfg.segment_names);
-end
-% names of the columns that hold the start and end times of each segment
-for segment_i = 1:cfg.number_of_segments
-    if ~isfield(cfg, ['segment(' segment_i ')'])
-        cfg.segment(segment_i).starttimes = ['StartTime' cell2mat(cfg.segment_names(segment_i))];
-    else    
-        if ~isfield(cfg.segment(segment_i), 'starttimes')
-            cfg.segment(segment_i).starttimes = ['StartTime' cell2mat(cfg.segment_names(segment_i))];
-        end
-    end
-    if ( ~isfield(cfg.segment(segment_i), 'endtimes') || isempty(cfg.segment(segment_i).endtimes) )
-        cfg.segment(segment_i).endtimes = ['EndTime' cell2mat(cfg.segment_names(segment_i))];
-    end
-end
-
-%% Get the participant data from the excel file
- 
 % participant Datafile
 path_filename = fullfile(cfg.participant_data_dir, cfg.participant_data_filename);
 if ~exist(path_filename, "file")
@@ -101,20 +70,80 @@ else
     participantData = readtable(path_filename);
 end
 
+
 %% Add the relevant participant data to the project struct
 
-% === TODO: we should check whether these column names exist before using
-%           them. And provide clear feedback. ===
+% check whether column names are provide, use defaults if not
+% column name of the participant labels
+if ~isfield(cfg, 'participants')
+    cfg.participants = 'Participant';
+end
+% column name of the timeformat
+if ~isfield(cfg, 'timeformat')
+    cfg.timeformat = 'TimeFormat';
+end
+% column name of the timezone
+if ~isfield(cfg, 'timezone')
+    cfg.timezone = 'TimeZone';
+end
+
+%  check whether these column names exist before using them
+if ~any(cfg.participants == string(participantData.Properties.VariableNames))
+    error('The participant datafile does not have a participants column ''%s'', please check ''%s''.', cfg.participants, path_filename);
+end
+if ~any(cfg.timeformat == string(participantData.Properties.VariableNames))
+    error('The participant datafile does not have a timeformat column ''%s'', please check ''%s''.', cfg.timeformat, path_filename);
+end
+if ~any(cfg.timezone == string(participantData.Properties.VariableNames))
+    error('The participant datafile does not have a timezone column ''%s'', please check ''%s''.', cfg.timezone, path_filename);
+end
 
 % Participant labels
-% pp_nrs = [1:5];
 project.pp_labels = participantData.(cfg.participants);
 % time properties
 project.timeformat  = participantData.(cfg.timeformat);
 project.timezone    = participantData.(cfg.timezone);
 
-% data segments
-project.nof_segments = cfg.number_of_segments; % the number of data segments to analyze per participant
+
+%% Add the segment data (the conditions)
+
+% array of segment names
+if ~isfield(cfg, 'segment_names') % segment names have not been provided
+    % let's extract them from the columns in the participant data
+    
+    fields = fieldnames(participantData); % get all columns headers
+    field_starttimes_idx = startsWith(fields, 'StartTime', 'IgnoreCase',true); % find the indices of headers starting with 'StartTime'
+    field_endtimes_idx = startsWith(fields, 'EndTime', 'IgnoreCase',true); % find the indices of headers starting with 'EndTime'
+    if sum(field_starttimes_idx) == 0 || sum(field_endtimes_idx) == 0 % no start or no end times were found
+        % TODO: perhaps we should use the whole segment if no start/end
+        % times are provided. For now, trigger an error.
+        error('The participant datafile has no start or end times. Please add a column containing the start and end-times of each condition in columns with header ''StartTime<name of the condition>'' and  ''EndTime<name of the condition>'' for each condition (e.g. StartTimeCondition1).');
+    end
+    starttime_fieldnames = fields(field_starttimes_idx); % make an array of those header names
+    endtime_fieldnames = fields(field_endtimes_idx);
+    starttime_segmentnames = extractAfter(starttime_fieldnames, length('StartTime')); % remove the 'StartTime' part so that the segment/condition names remain
+    endtime_segmentnames = extractAfter(endtime_fieldnames, length('EndTime'));
+    cfg.segment_names = intersect(starttime_segmentnames, endtime_segmentnames); % get the segment names that have bot a start and an end time
+end
+
+% get the number of segments
+project.nof_segments = length(cfg.segment_names);
+
+% names of the columns that hold the start and end times of each segment
+for segment_i = 1:project.nof_segments
+    if ~isfield(cfg, ['segment(' num2str(segment_i) ')'])
+        cfg.segment(segment_i).starttimes = ['StartTime' cfg.segment_names{segment_i}];
+    else    
+        if ~isfield(cfg.segment(segment_i), 'starttimes')
+            cfg.segment(segment_i).starttimes = ['StartTime' cfg.segment_names{segment_i}];
+        end
+    end
+    if ( ~isfield(cfg.segment(segment_i), 'endtimes') || isempty(cfg.segment(segment_i).endtimes) )
+        cfg.segment(segment_i).endtimes = ['EndTime' cfg.segment_names{segment_i}];
+    end
+end
+
+
 
 % segment names, start and end times
 for segment_i = 1:project.nof_segments
