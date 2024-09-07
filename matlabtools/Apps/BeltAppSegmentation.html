@@ -149,7 +149,7 @@ progress[value]{
 
 
 </head>
-<body leftmargin="20" topmargin="20";>
+<body style="margin-left: 20px; margin-top: 20px;">
 
 <div>
 	<a href="http://www.buas.nl" title="Breda University of Applied Sciences" target = "_blank" style="target-new: tab;" class="navbar__logo">                                  
@@ -160,14 +160,14 @@ progress[value]{
 <br>
 
 <div class="h2_title">Segmentation</div>
-Usually we are only interested in the part of the skin conductance data that was recorded during a condition. We will cut out these segments first. The start and endtimes of these segments are extracted from the columns 'StartTime<i>ConditionName</i>' and 'EndTime<i>ConditionName</i>' in the 'ParticipantData' excel file that is located in the '0.RawData' folder of the project.
+First, we will cut out the relevant parts of the data using the start and endtimes from the columns 'StartTime<i>ConditionName</i>' and 'EndTime<i>ConditionName</i>'. See the excel file '0.RawData\ParticipantData.xlsx' in the project directory.
 <p/>
 <table>
 	<tr>
 		<td class="value" id="segmentation_segment">pp_label, segment name</td>
 	</tr>
 	<tr>
-		<td  class="value" id="segmentation_progress"><label><progress value="80" max="100" width="600px"></progress></label></td>
+		<td  class="value" id="segmentation_progress"><label><progress value="0" max="100" width="600px"></progress></label></td>
 	</tr>
 	<tr>
 		<td class="value" id="segmentation_status">. . . </td>
