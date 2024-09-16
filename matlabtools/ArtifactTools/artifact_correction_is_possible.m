@@ -64,39 +64,44 @@ if project.segment(segment_nr).include(pp_nr)
     % check if segmentation is already done
     if project.segment(segment_nr).segmented(pp_nr)
 
-        % check whether artifact correction has already been done
-        if project.segment(segment_nr).artifact_corrected(pp_nr)
-            % segment has already been artifact corrected, check what to do
-            switch cfg.handle_already_cleaned_segments
-                case 'skip'
-                    % Provide some feedback
-                    path_filename = fullfile(project.processed_data_directory, ['segment_artifact_corrected_' project.segment(segment_nr).name  '_' pp_label '.mat']);
-                    msg = sprintf('Data of participant %s was already artifact corrected and saved as %s', pp_label, path_filename);
-                    return;
-                case 'redo'
-                    % process the data again
-                    answer = true;
-                case 'ask'
-                    % ask whether it should be done again
-                    dlgtitle = 'Redo artifact correction?';
-                    question = sprintf('Artifact correction has already been done for this participant.\nWould you like me to redo it?');
-                    opts.Default = 'Skip';
-                    question_answer = questdlg(question, dlgtitle, 'Redo','Skip', opts.Default);
-                    % Handle response
-                    switch question_answer
-                        case 'Skip'
-                            % Provide some feedback
-                            path_filename = fullfile(project.processed_data_directory, ['segment_artifact_corrected_' project.segment(segment_nr).name  '_' pp_label '.mat']);
-                            msg = sprintf('Data of participant %s was already segmented and saved as %s', pp_label, path_filename);
-                            return;
-                        case 'Redo'
-                            % process the data again
-                            answer = true;
-                    end
-            end
-        else % segment has not yet been artifact corrected
-            answer = true;
-        end
+        % NOTE: 
+        % The 'if aleady artifact corrected' part has been removed here
+        % to facilitate functionality in the Belt app.
+        % This part needs to be incorporated in the pipeline in another way.
+
+        % % check whether artifact correction has already been done
+        % if project.segment(segment_nr).artifact_corrected(pp_nr)
+        %     % segment has already been artifact corrected, check what to do
+        %     switch cfg.handle_already_cleaned_segments
+        %         case 'skip'
+        %             % Provide some feedback
+        %             path_filename = fullfile(project.processed_data_directory, ['segment_artifact_corrected_' project.segment(segment_nr).name  '_' pp_label '.mat']);
+        %             msg = sprintf('Data of participant %s was already artifact corrected and saved as %s', pp_label, path_filename);
+        %             return;
+        %         case 'redo'
+        %             % process the data again
+        %             answer = true;
+        %         case 'ask'
+        %             % ask whether it should be done again
+        %             dlgtitle = 'Redo artifact correction?';
+        %             question = sprintf('Artifact correction has already been done for this participant.\nWould you like me to redo it?');
+        %             opts.Default = 'Skip';
+        %             question_answer = questdlg(question, dlgtitle, 'Redo','Skip', opts.Default);
+        %             % Handle response
+        %             switch question_answer
+        %                 case 'Skip'
+        %                     % Provide some feedback
+        %                     path_filename = fullfile(project.processed_data_directory, ['segment_artifact_corrected_' project.segment(segment_nr).name  '_' pp_label '.mat']);
+        %                     msg = sprintf('Data of participant %s was already segmented and saved as %s', pp_label, path_filename);
+        %                     return;
+        %                 case 'Redo'
+        %                     % process the data again
+        %                     answer = true;
+        %             end
+        %     end
+        % else % segment has not yet been artifact corrected
+             answer = true;
+        % end
     else % this data is not yet segmented
         % Provide some feedback
         msg = sprintf('Data of segment %s for participant %s has not been segmented, so could not be artifact corrected.', segment_name, pp_label);
