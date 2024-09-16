@@ -57,6 +57,8 @@ save(path_filename_data, 'segment_artifact_corrected');
 
 % update the bookkeeping of the project
 project.segment(segment_nr).artifact_corrected(pp_nr) = true;
+% since artifact correction may have changed, set deconvolved to false
+project.segment(segment_nr).deconvolved(pp_nr) = false;
 
 % save the project bookkeeping
 save_project(project);
