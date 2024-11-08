@@ -217,8 +217,10 @@ end
 % out.conductance_z_interpolated  = out.conductance_z;
 
 % set all timepoints that originally contained NaNs back to NaN
-out.phasic(nan_booleans) = NaN;
-out.tonic(nan_booleans) = NaN;
-out.phasic_z(nan_booleans) = NaN;
-out.tonic_z(nan_booleans) = NaN;
+out.phasic(nan_booleans)         = NaN;
+out.phasicDriver(nan_booleans)   = NaN;
+out.tonic(nan_booleans)          = NaN;
+out.phasic_z(nan_booleans)       = NaN;
+out.phasicDriver_z(nan_booleans) = NaN;
+out.tonic_z(nan_booleans)        = NaN;
 
