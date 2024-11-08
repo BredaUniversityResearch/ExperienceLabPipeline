@@ -99,7 +99,7 @@ if project.segment(segment_nr).include(pp_nr)
 
     % If not both the start and end times are present, abort processing
     % with a warning
-    if isempty(cell2mat(starttime)) || isempty(cell2mat(endtime))
+    if isempty(starttime) || isempty(endtime)
         msg = sprintf('Warning: Start or endtime for participant %s, segment %s was not provided. Could not process this segment.', pp_label, segment_name);
         return;
     end
