@@ -160,6 +160,7 @@ load batchmode_protocol.mat; % automatically-generated file (by Ledalab) with an
 %eval(sprintf('cd %s', curdir));
 
 out.phasic = analysis.phasicData';
+out.phasicDriver = analysis.driver';
 out.tonic = analysis.tonicData';
 out.analysis = analysis; % keep analysis info and all other output details
 out.analysis.fileinfo = fileinfo; % keep file generation log
@@ -183,6 +184,7 @@ else
     Ledalab(strcat(cfg.tempdir, '\'), 'open', 'mat', 'analyze', 'CDA', 'optimize', 6, 'export_scrlist', [0.05 1]);
     load(strcat(cfg.tempdir, '\matData')) %load analysis results into workspace
     out.phasic_z = analysis.phasicData';
+    out.phasicDriver_z = analysis.driver';
     out.tonic_z = analysis.tonicData';
     eval(sprintf('delete %s\\matData.mat', cfg.tempdir));
     eval(sprintf('delete batchmode_protocol.mat'));
