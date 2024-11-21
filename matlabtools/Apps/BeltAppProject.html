@@ -135,29 +135,127 @@ button.recent:hover {
 			project_link = project_link.concat(htmlComponent.Data.ProjectDir);
 			div_project_dir.href = project_link;
 			
-            let div_condition1 = document.getElementById("condition1");
-            div_condition1.innerHTML = htmlComponent.Data.Condition1;
+			nof_segments = Number(htmlComponent.Data.NofSegments);
+				
+            if (nof_segments >=1)
+            {
+				let div_condition1 = document.getElementById("condition1");
+				div_condition1.innerHTML = htmlComponent.Data.Condition1;
+				let div_nof_segmented1 = document.getElementById("nof_segmented1");
+				div_nof_segmented1.innerHTML = htmlComponent.Data.NofSegmented1;
+				let div_nof_cleaned1 = document.getElementById("nof_cleaned1");
+				div_nof_cleaned1.innerHTML = htmlComponent.Data.NofCleaned1;
+				let div_nof_deconvolved1 = document.getElementById("nof_deconvolved1");
+				div_nof_deconvolved1.innerHTML = htmlComponent.Data.NofDeconvolved1;
+            }
 			
-            let div_condition2 = document.getElementById("condition2");
-            div_condition2.innerHTML = htmlComponent.Data.Condition2;
+			if (nof_segments >= 2)
+			{
+				let div_condition2 = document.getElementById("condition2");
+				div_condition2.innerHTML = htmlComponent.Data.Condition2;
+				let div_nof_segmented2 = document.getElementById("nof_segmented2");
+				div_nof_segmented2.innerHTML = htmlComponent.Data.NofSegmented2;
+				let div_nof_cleaned2 = document.getElementById("nof_cleaned2");
+				div_nof_cleaned2.innerHTML = htmlComponent.Data.NofCleaned2;
+				let div_nof_deconvolved2 = document.getElementById("nof_deconvolved2");
+				div_nof_deconvolved2.innerHTML = htmlComponent.Data.NofDeconvolved2;
+			}
 			
-            let div_nof_segmented1 = document.getElementById("nof_segmented1");
-            div_nof_segmented1.innerHTML = htmlComponent.Data.NofSegmented1;
+			if (nof_segments >= 3)
+			{
+				let div_condition3 = document.getElementById("condition3");
+				div_condition3.innerHTML = htmlComponent.Data.Condition3;
+				let div_nof_segmented3 = document.getElementById("nof_segmented3");
+				div_nof_segmented3.innerHTML = htmlComponent.Data.NofSegmented3;
+				let div_nof_cleaned3 = document.getElementById("nof_cleaned3");
+				div_nof_cleaned3.innerHTML = htmlComponent.Data.NofCleaned3;
+				let div_nof_deconvolved3 = document.getElementById("nof_deconvolved3");
+				div_nof_deconvolved3.innerHTML = htmlComponent.Data.NofDeconvolved3;
+			}
 			
-            let div_nof_segmented2 = document.getElementById("nof_segmented2");
-            div_nof_segmented2.innerHTML = htmlComponent.Data.NofSegmented2;
+			if (nof_segments >= 4)
+			{
+				let div_condition4 = document.getElementById("condition4");
+				div_condition4.innerHTML = htmlComponent.Data.Condition4;
+				let div_nof_segmented4 = document.getElementById("nof_segmented4");
+				div_nof_segmented4.innerHTML = htmlComponent.Data.NofSegmented4;
+				let div_nof_cleaned4 = document.getElementById("nof_cleaned4");
+				div_nof_cleaned4.innerHTML = htmlComponent.Data.NofCleaned4;
+				let div_nof_deconvolved4 = document.getElementById("nof_deconvolved4");
+				div_nof_deconvolved4.innerHTML = htmlComponent.Data.NofDeconvolved4;
+			}
 			
-            let div_nof_cleaned1 = document.getElementById("nof_cleaned1");
-            div_nof_cleaned1.innerHTML = htmlComponent.Data.NofCleaned1;
+			if (nof_segments >= 5)
+			{
+				let div_condition5 = document.getElementById("condition5");
+				div_condition5.innerHTML = htmlComponent.Data.Condition5;
+				let div_nof_segmented5 = document.getElementById("nof_segmented5");
+				div_nof_segmented5.innerHTML = htmlComponent.Data.NofSegmented5;
+				let div_nof_cleaned5 = document.getElementById("nof_cleaned5");
+				div_nof_cleaned5.innerHTML = htmlComponent.Data.NofCleaned5;
+				let div_nof_deconvolved5 = document.getElementById("nof_deconvolved5");
+				div_nof_deconvolved5.innerHTML = htmlComponent.Data.NofDeconvolved5;
+			}
 			
-            let div_nof_cleaned2 = document.getElementById("nof_cleaned2");
-            div_nof_cleaned2.innerHTML = htmlComponent.Data.NofCleaned2;
+			if (nof_segments >= 6)
+			{
+				let div_condition6 = document.getElementById("condition6");
+				div_condition6.innerHTML = htmlComponent.Data.Condition6;
+				let div_nof_segmented6 = document.getElementById("nof_segmented6");
+				div_nof_segmented6.innerHTML = htmlComponent.Data.NofSegmented6;
+				let div_nof_cleaned6 = document.getElementById("nof_cleaned6");
+				div_nof_cleaned6.innerHTML = htmlComponent.Data.NofCleaned6;
+				let div_nof_deconvolved6 = document.getElementById("nof_deconvolved6");
+				div_nof_deconvolved6.innerHTML = htmlComponent.Data.NofDeconvolved6;
+			}
 			
-            let div_nof_deconvolved1 = document.getElementById("nof_deconvolved1");
-            div_nof_deconvolved1.innerHTML = htmlComponent.Data.NofDeconvolved1;
+			if (nof_segments >= 7)
+			{
+				let div_condition7 = document.getElementById("condition7");
+				div_condition7.innerHTML = htmlComponent.Data.Condition7;
+				let div_nof_segmented7 = document.getElementById("nof_segmented7");
+				div_nof_segmented7.innerHTML = htmlComponent.Data.NofSegmented7;
+				let div_nof_cleaned7 = document.getElementById("nof_cleaned7");
+				div_nof_cleaned7.innerHTML = htmlComponent.Data.NofCleaned7;
+				let div_nof_deconvolved7 = document.getElementById("nof_deconvolved7");
+				div_nof_deconvolved7.innerHTML = htmlComponent.Data.NofDeconvolved7;
+			}
 			
-            let div_nof_deconvolved2 = document.getElementById("nof_deconvolved2");
-            div_nof_deconvolved2.innerHTML = htmlComponent.Data.NofDeconvolved2;
+			if (nof_segments >= 8)
+			{
+				let div_condition8 = document.getElementById("condition8");
+				div_condition8.innerHTML = htmlComponent.Data.Condition8;
+				let div_nof_segmented8 = document.getElementById("nof_segmented8");
+				div_nof_segmented8.innerHTML = htmlComponent.Data.NofSegmented8;
+				let div_nof_cleaned8 = document.getElementById("nof_cleaned8");
+				div_nof_cleaned8.innerHTML = htmlComponent.Data.NofCleaned8;
+				let div_nof_deconvolved8 = document.getElementById("nof_deconvolved8");
+				div_nof_deconvolved8.innerHTML = htmlComponent.Data.NofDeconvolved8;
+			}
+			
+			if (nof_segments >= 9)
+			{
+				let div_condition9 = document.getElementById("condition9");
+				div_condition9.innerHTML = htmlComponent.Data.Condition9;
+				let div_nof_segmented9 = document.getElementById("nof_segmented9");
+				div_nof_segmented9.innerHTML = htmlComponent.Data.NofSegmented9;
+				let div_nof_cleaned9 = document.getElementById("nof_cleaned9");
+				div_nof_cleaned9.innerHTML = htmlComponent.Data.NofCleaned9;
+				let div_nof_deconvolved9 = document.getElementById("nof_deconvolved9");
+				div_nof_deconvolved9.innerHTML = htmlComponent.Data.NofDeconvolved9;
+			}
+			
+			if (nof_segments >= 10)
+			{
+				let div_condition10 = document.getElementById("condition10");
+				div_condition10.innerHTML = htmlComponent.Data.Condition10;
+				let div_nof_segmented10 = document.getElementById("nof_segmented10");
+				div_nof_segmented10.innerHTML = htmlComponent.Data.NofSegmented10;
+				let div_nof_cleaned10 = document.getElementById("nof_cleaned10");
+				div_nof_cleaned10.innerHTML = htmlComponent.Data.NofCleaned10;
+				let div_nof_deconvolved10 = document.getElementById("nof_deconvolved10");
+				div_nof_deconvolved10.innerHTML = htmlComponent.Data.NofDeconvolved10;
+			}
 			
 		});
 	}
@@ -188,24 +286,88 @@ Processing status:<br>
 		<td class="property" id="condition1" style="font-weight: bold">Condition 1</td>
 		<td width="10px"></td>
 		<td class="property" id="condition2" style="font-weight: bold">Condition 2</td>
+		<td width="10px"></td>
+		<td class="property" id="condition3" style="font-weight: bold"></td>
+		<td width="10px"></td>
+		<td class="property" id="condition4" style="font-weight: bold"></td>
+		<td width="10px"></td>
+		<td class="property" id="condition5" style="font-weight: bold"></td>
+		<td width="10px"></td>
+		<td class="property" id="condition6" style="font-weight: bold"></td>
+		<td width="10px"></td>
+		<td class="property" id="condition7" style="font-weight: bold"></td>
+		<td width="10px"></td>
+		<td class="property" id="condition8" style="font-weight: bold"></td>
+		<td width="10px"></td>
+		<td class="property" id="condition9" style="font-weight: bold"></td>
+		<td width="10px"></td>
+		<td class="property" id="condition10" style="font-weight: bold"></td>
 	</tr>
 	<tr>
 		<td class="property" width="200px">Segmentation (Cut)</td>
 		<td class="value" id="nof_segmented1" style="text-align: center">0</td>
 		<td width="10px"></td>
 		<td class="value" id="nof_segmented2" style="text-align: center">0</td>
+		<td width="10px"></td>
+		<td class="value" id="nof_segmented3" style="text-align: center"></td>
+		<td width="10px"></td>
+		<td class="value" id="nof_segmented4" style="text-align: center"></td>
+		<td width="10px"></td>
+		<td class="value" id="nof_segmented5" style="text-align: center"></td>
+		<td width="10px"></td>
+		<td class="value" id="nof_segmented6" style="text-align: center"></td>
+		<td width="10px"></td>
+		<td class="value" id="nof_segmented7" style="text-align: center"></td>
+		<td width="10px"></td>
+		<td class="value" id="nof_segmented8" style="text-align: center"></td>
+		<td width="10px"></td>
+		<td class="value" id="nof_segmented9" style="text-align: center"></td>
+		<td width="10px"></td>
+		<td class="value" id="nof_segmented10" style="text-align: center"></td>
 	</tr>
 	<tr>
 		<td class="property">Artifact correction (Clean)</td>
 		<td class="value" id="nof_cleaned1" style="text-align: center">0</td>
 		<td width="10px"></td>
 		<td class="value" id="nof_cleaned2" style="text-align: center">0</td>
+		<td width="10px"></td>
+		<td class="value" id="nof_cleaned3" style="text-align: center"></td>
+		<td width="10px"></td>
+		<td class="value" id="nof_cleaned4" style="text-align: center"></td>
+		<td width="10px"></td>
+		<td class="value" id="nof_cleaned5" style="text-align: center"></td>
+		<td width="10px"></td>
+		<td class="value" id="nof_cleaned6" style="text-align: center"></td>
+		<td width="10px"></td>
+		<td class="value" id="nof_cleaned7" style="text-align: center"></td>
+		<td width="10px"></td>
+		<td class="value" id="nof_cleaned8" style="text-align: center"></td>
+		<td width="10px"></td>
+		<td class="value" id="nof_cleaned9" style="text-align: center"></td>
+		<td width="10px"></td>
+		<td class="value" id="nof_cleaned10" style="text-align: center"></td>
 	</tr>
 	<tr>
 		<td class="property">Deconvolution (Split)</td>
 		<td class="value" id="nof_deconvolved1" style="text-align: center">0</td>
 		<td width="10px"></td>
 		<td class="value" id="nof_deconvolved2" style="text-align: center">0</td>
+		<td width="10px"></td>
+		<td class="value" id="nof_deconvolved3" style="text-align: center"></td>
+		<td width="10px"></td>
+		<td class="value" id="nof_deconvolved4" style="text-align: center"></td>
+		<td width="10px"></td>
+		<td class="value" id="nof_deconvolved5" style="text-align: center"></td>
+		<td width="10px"></td>
+		<td class="value" id="nof_deconvolved6" style="text-align: center"></td>
+		<td width="10px"></td>
+		<td class="value" id="nof_deconvolved7" style="text-align: center"></td>
+		<td width="10px"></td>
+		<td class="value" id="nof_deconvolved8" style="text-align: center"></td>
+		<td width="10px"></td>
+		<td class="value" id="nof_deconvolved9" style="text-align: center"></td>
+		<td width="10px"></td>
+		<td class="value" id="nof_deconvolved10" style="text-align: center"></td>
 	</tr>
 </table>
 </body>
