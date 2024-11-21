@@ -83,7 +83,7 @@ if project.segment(segment_nr).include(pp_nr)
                 case 'skip'
                     % Provide some feedback
                     path_filename = fullfile(project.processed_data_directory, ['segment_deconvolved_' project.segment(segment_nr).name '_' pp_label '.mat']);
-                    msg = sprintf('Data of participant %s was already deconvolved and saved as %s\n', pp_label, path_filename);
+                    msg = sprintf('Data of participant %s was already deconvolved and saved as %s', pp_label, path_filename);
                     return;
                 case 'redo'
                     % process the data again
@@ -99,7 +99,7 @@ if project.segment(segment_nr).include(pp_nr)
                         case 'Skip'
                             % Provide some feedback
                             path_filename = fullfile(project.processed_data_directory, ['segment_deconvolved_' project.segment(segment_nr).name '_' pp_label '.mat']);
-                            msg = sprintf('Data of participant %s was already deconvolved and saved as %s\n', pp_label, path_filename);
+                            msg = sprintf('Data of participant %s was already deconvolved and saved as %s', pp_label, path_filename);
                             return;
                         case 'Redo'
                             % process the data again
@@ -112,10 +112,10 @@ if project.segment(segment_nr).include(pp_nr)
         end
     else
         % sement has not been artifact corected
-        msg = sprintf('Data of segment %s for participant %s has not arifact corrected, so could not be deconvolved.\n', segment_name, pp_label);
+        msg = sprintf('Data of segment %s for participant %s has not been arifact corrected yet, so could not be deconvolved.', segment_name, pp_label);
     end
 else % this segment should not be included in analysis
-    msg = sprintf('Data of segment %s for participant %s is indicated to not include. Therefor the data was not deconvolved, nor saved.\n', segment_name, pp_label);
+    msg = sprintf('Data of segment %s for participant %s is indicated to not include. Therefor the data was not deconvolved.', segment_name, pp_label);
 end
 
 
