@@ -128,12 +128,20 @@ if project.segment(segment_nr).include(pp_nr)
         return;
     end
 
+
+    % The first measurement of a recording is not reliable and messes up the graphs
+    % So if starttime = 'startfile', change this to skip the first measurement
+    if strcmp(starttime, 'startfile')
+        starttime = raw_data.time(2);
+    end
+
     % extract the [starttime - endtime] segment of the data
     cfg = [];
-    cfg.starttime  = project.segment(segment_nr).starttime(pp_nr);
-    cfg.endtime    = project.segment(segment_nr).endtime(pp_nr);
+    cfg.starttime  = starttime;
+    cfg.endtime    = endtime;
     cfg.timezone   = project.timezone(pp_nr); % e.g. 'Europe/Amsterdam'
     cfg.timeformat = project.timeformat(pp_nr); % e.g. 'unixtime' or 'datetime'
+
     try
         segment_raw = segment_generic(cfg, raw_data);
     catch ME
