@@ -258,9 +258,15 @@ button.recent:hover {
 			}
 			
 		});
-	}
+
 			
 	   
+		let button_updateParticipantData = document.getElementById("updateParticipantData");
+		button_updateParticipantData.addEventListener("click", function(event) {
+		   htmlComponent.sendEventToMATLAB("updateParticipantData", 1);
+		});
+		
+	}
 </script>
 
 
@@ -277,9 +283,10 @@ button.recent:hover {
 
 <div class="h2_title" id="project_name">Project name</div>
 Processing skin conductance data involves several sequential steps: segmenting (cut), artifact correction (clean), deconvolution (split). See the help files for an explanation of each step. <br><br>
-Your project is located in <span class="value" id="project_dir">project_dir</span>.
-<br><br>
-Processing status:<br>
+Your project is located in <span class="value" id="project_dir">project_dir</span>. <br>
+If ParticipantData.xlsx has changed, click <a href="" id="updateParticipantData">here</a> to update the data.
+<br>
+<u>Processing status</u>:<br>
 <table style="margin-left: 20px;">
 	<tr>
 		<td class="property" width="200px">Conditions</td>
