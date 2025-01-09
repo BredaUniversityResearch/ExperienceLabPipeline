@@ -75,7 +75,7 @@ if isfile(path_filename) % file already exists
     project_provided = create_new_project(cfg, project); 
 
     % get the existing project struct
-    load(path_filename, 'project');
+    load(path_filename, 'project', "-mat");
 
     % Provide some feedback
     fprintf('Existing project bookkeeping file "%s" loaded.\n', path_filename);
