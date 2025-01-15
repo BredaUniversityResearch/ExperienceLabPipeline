@@ -58,6 +58,9 @@ nof_default_colours     = length(default_colours);
 if ~isfield(cfg, 'latency')
     cfg.latency = 'all';
 end
+if ~isfield(cfg, 'Ylabel')
+    cfg.Ylabel = 'Amplitude';
+end
 if ~isfield(cfg, 'legend')
     cfg.legend = 'no';
 end
@@ -79,10 +82,12 @@ if ~isfield(cfg, 'errorbar')
 end
 if ~isfield(cfg, 'smoothing')
     cfg.smoothing = 'no';
+elseif ~isfield(cfg, 'smoothing_window')
+    cfg.smoothing = 20;
 end
 if ~isfield(cfg, 'colours')
     for dataset_i = 1:nof_datasets
-        cfg.colours{dataset_i} = default_colours(rem(dataset_i, nof_default_colours)+1,:);
+        cfg.colours(dataset_i, :) = default_colours(rem(dataset_i, nof_default_colours)+1,:);
     end
 elseif ~(height(cfg.colours) == nof_datasets)
     warning('plot_physiodata_timeseries: the number of specified colours does not match the number of datasets, using default colours instead.');
@@ -155,7 +160,7 @@ for dataset_i = nof_datasets:-1:1
 
     % smoothing
     if strcmp(cfg.smoothing, 'yes')
-        y(dataset_i).mean = smoothdata(y(dataset_i).mean);
+        y(dataset_i).mean = smoothdata(y(dataset_i).mean, "gaussian",cfg.smoothing_window);
     end
 
     % e = sd|sem|ci|none 
@@ -218,7 +223,12 @@ end
 % specifying them after calling this function
 set(gca,'FontSize',12);
 set(gca,'box','off');
-set(gca, "XLim", cfg.latency);
-ylabel('Set y-label (unit)');
+%set(gca, "XLim", cfg.latency);
+
+if isfield(cfg, 'YLim')
+    set(gca, 'YLim', cfg.YLim); 
+end
+
+ylabel(cfg.Ylabel);
 
 end
