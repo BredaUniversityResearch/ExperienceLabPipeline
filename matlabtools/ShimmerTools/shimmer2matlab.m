@@ -105,10 +105,25 @@ end
 curdir = pwd;
 cd(cfg.datafolder)
 
-% read shimmer data from file
+% Check if shimmer file exists
+if ~exist(cfg.shimmerfile,"file")
+    error(strcat("SHIMMER FILE: (",cfg.shimmerfile,") DOES NOT EXIST"));
+end
+
+% Get import options for file
 opts = detectImportOptions(cfg.shimmerfile);
-opts.DataLines = 4;
-opts.VariableNamesLine = 2;
+
+% Check if first line is header file
+fid = fopen(cfg.shimmerfile);
+firstLine = strsplit(fgetl(fid));
+fclose(fid);
+if max(contains(firstLine,"sep="))
+    opts.DataLines = 4;
+    opts.VariableNamesLine = 2;
+else
+    opts.DataLines = 3;
+    opts.VariableNamesLine = 1;
+end
 
 % determine find provided data and column names
 datanames = opts.VariableNames;
@@ -127,7 +142,6 @@ for isamp = 1:length(columnnames)
     if (max(size(c))==1)
         datacolumns.(columnnames{isamp}) = datanames{c};
         opts.SelectedVariableNames{end+1} = datanames{c};
-
     else
         result = 0;
         while result == 0
