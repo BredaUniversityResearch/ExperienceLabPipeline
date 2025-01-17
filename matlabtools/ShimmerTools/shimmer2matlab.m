@@ -110,7 +110,6 @@ opts = detectImportOptions(cfg.shimmerfile);
 opts.DataLines = 4;
 opts.VariableNamesLine = 2;
 
-
 % determine find provided data and column names
 datanames = opts.VariableNames;
 columnnames = fieldnames(cfg.columnname);
