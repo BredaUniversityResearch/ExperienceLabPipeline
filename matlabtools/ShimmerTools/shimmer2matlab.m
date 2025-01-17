@@ -125,13 +125,11 @@ else
     opts.VariableNamesLine = 1;
 end
 
-% read shimmer data from file
-shimmerraw = readtable(cfg.shimmerfile,opts);
-
 % determine find provided data and column names
-datanames= fieldnames(shimmerraw);
+datanames = opts.VariableNames;
 columnnames = fieldnames(cfg.columnname);
 datacolumns = [];
+opts.SelectedVariableNames = {}; % to read only the variables that we need
 
 % iterate over the columnnames to find the corresponding dataname, and
 % store this in a structure for later use
@@ -143,6 +141,7 @@ for isamp = 1:length(columnnames)
     end
     if (max(size(c))==1)
         datacolumns.(columnnames{isamp}) = datanames{c};
+        opts.SelectedVariableNames{end+1} = datanames{c};
     else
         result = 0;
         while result == 0
@@ -171,6 +170,10 @@ for isamp = 1:length(columnnames)
         end
     end
 end
+
+% read the data
+shimmerraw = readtable(cfg.shimmerfile,opts);
+
 
 %% DATA RESTRUCTURING INTO MATLAB STRUCT
 
