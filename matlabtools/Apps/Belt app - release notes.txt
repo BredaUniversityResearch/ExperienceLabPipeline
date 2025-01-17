@@ -3,6 +3,16 @@ Release notes:
 
 
 ============================================
+Version 0.3 (still beta)
+
+New features:
+- Recent projects are now displayed in the Home screen.
+
+Bugfix:
+- Small segments would sometimes cause the app to not respond after loading or saving. Changes to the 'Loading ...'/'Saving ...' messages seems to have solved this.
+
+
+============================================
 Version 0.2 (still beta)
 
 New features:
