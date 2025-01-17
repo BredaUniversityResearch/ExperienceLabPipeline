@@ -10,8 +10,8 @@
 %  The script expects to find the raw data and an excel file that holds
 %  time information for each participant in certain folders. Results of the
 %  artifact cleaning, and the phasic and tonic components are saved.
-%  The folder structure is specified below. It can be changed however it
-%  fits tour needs. Ideally you would only adjust the project location.
+%  The folder structure is specified below. It can be changed to fit your needs,
+%  however, Ideally you would only adjust the project location.
 %
 %  If you encounter any problems, or have ideas for improving the pipeline,
 %    let me know.
@@ -20,248 +20,233 @@
 
 
 
-%% SETUP
-% Remove all data currently in the workspace
+%% Start with a clean workspace
+%  Remove all data currently in the workspace
 clearvars;
 
-%% Specify where to find and save data
+%% Open the project   
+% 
+%  Open an existing project or create a new one if non exists 
 
-%%%%%%%%%%% New GUI version %%%%%%%%%%%%
-% opens a window to set and check the directories
-% it also creates a bookkeeping file (project_name.belt)
-
-% Optionally, you can fill in the input fields here
 project = [];
-project.project_name = "test_project";
-project.project_directory = "c:\projects\test_project";
-% project.raw_data_directory = "raw";
-% project.segmented_data_directory = "segm";
-% project.artifact_corrected_data_directory = "art";
-% project.deconvolved_data_directory = "decon";
-% project.output_directory = "out";
-project.ask_create_directory = "create"; % "ask" or "create"
+project.project_name       = 'PSV';
+project.project_directory  = 'c:\projects\PSV';
+% === Optional settings ===
+% === the defaults directory structure is recommended. An alternative structure can be set via 
+    % project.raw_data_directory       = fullfile(project.project_directory, '0.RawData');       % (default = '<project_directory>\0.RawData')
+    % project.processed_data_directory = fullfile(project.project_directory, '2.ProcessedData'); % (default = '<project_directory>\2.ProcessedData')
+    % project.output_directory         = fullfile(project.project_directory, '3.Output');        % (default = '<project_directory>\3.Output')
+% === or ask for an input window via cfg.show_input_window = true
+
+cfg = [];
+cfg.ask_create_directory    =  'create'; % 'create" directories that do not exist, or 'ask' (default = 'create')
+cfg.show_input_window       = false; %  show an input window to check and edit the directories
+
+% Get project details from the ParticipantData file and add to the project struct
+cfg.segment_names      = {'AR', 'FirstHalf', 'SecondHalf'};
+
+% === optional settings === 
+% === the defaults should be fine if the ParticipantData.xlsx template was used
+    % cfg.participant_data_dir      = project.raw_data_directory;          % the folder that has the participant data
+    % cfg.participant_data_filename = 'ParticipantData.xlsx';              % the filename of the participant data 
+    % cfg.participants          = 'Participant';                           % the column that has the participant labels 
+    % cfg.timeformat            = 'TimeFormat';                            % the column that has the time format ('unixtime' or 'datetime') 
+    % cfg.timezone              = 'TimeZone';                              % the column that has the timezone ('Europe/Amsterdam') 
+    % cfg.number_of_segments    =  3;                                      % the number of segments that each eda datafile contains (if omitted, this is determined from the segment names) 
+    % cfg.segment(1).starttimes = 'StartTimeAR';                           % the column that has the starttimes of the first segment 
+    % cfg.segment(1).endtimes   = 'EndTimeAR';                             % the column that has the endtimes of the first segment 
+    % cfg.segment(2).starttimes = 'StartTimeFirstHalf';                    % the column that has the starttimes of the second segment 
+    % cfg.segment(2).endtimes   = 'EndTimeFirstHalf';                      % the column that has the endtimes of the second segment 
+    % cfg.segment(3).starttimes = 'StartTimeSecondHalf';                   % the column that has the starttimes of the third segment 
+    % cfg.segment(3).endtimes   = 'EndTimeSecondHalf';                     % the column that has the endtimes of the third segment 
+
+% === note that the match number and condition are not included ===
+% === those can be added to the processed data through a script, if needed ===
+
+project = belt_open_project(cfg, project);
 
 
-% create the new project
-project = create_new_project(project);
+%% Store the number of participants
+
+nof_pps = length(project.pp_labels);  % number of participants
 
 
-%%
+%%  SEGMENTATION
+% Find all data, cut out the proper segments, store in a variable
+% 'processed_segment, and save that as
+% <pp_label>_processed_segment_<segment_name>.mat
+% The project bookkeeping is updated to note for which segment/pp the
+% segmenting is complete.
 
-
-% define temporary directory for datafiles
-tempfolder = fullfile(projectfolder, '\Temp');
-
-
-%% 
- 
-
-% participant Datafile
-if ~exist(participantDataFile, "file")
-    % the datafile is not in the specified location
-    error(['The participant datafile cannot be found. ' ...
-        ['This is an Excel file that contains the starttime and duration per participant. ' ...
-        'Please check. I expected it here: '] deconvolveddatafolder]);
-else
-    % read the Excel file 
-    participantData = readtable( participantDataFile );
-end
-
-
-%% Participant numbers
-%  Here listed as numbers because the participant data Excel file has them
-%  as numbers. However, the corresponding folders al start with P and have leading zeros, 
-%  so we will have to fix that further down.
-%  Example: pp_nrs = [1:8, 12:15, 123];
-pp_nrs = [1:5];
-
-% the number of participants
-nof_pps = length(pp_nrs);  
-
-
-
-%%  Find all data, cut out the proper segments, and store in a variable
 
 % for each participant, do ...
 % (note that pp_i is the index in the participant list, not the participant number)
-for pp_i = 1:nof_pps 
-    
-    % we get the participant number here
-    pp_nr = pp_nrs(pp_i); 
-    % The folders with data have a P before the number, and leading zeros
-    % to make it a 3 digit number
-    pp_label = ['P', num2str(pp_nr, '%03d')]; 
-    % create the full path to the data folder of this participant
-    pp_datafolder = fullfile(datafolder, pp_label); 
+for segment_i = 1:project.nof_segments
+    for pp_i = 1:nof_pps
 
-    % find the row in the participantData file that has the current participant number
-    participantData_index = find(strcmp(participantData.Participant,pp_label)); % use this if the excel file contains participant labels (P003)
-    % participantData_index = find(participantData.Participant==pp_nr); % use this if the excel file contains participant numbers (3)
-    
-    % read the starttime, duration, and timezone from that row
-    timeformat = participantData.TimeFormat(participantData_index); % e.g. 'UnixTime'
-    starttimeIndoor = participantData.StartTimeIndoor(participantData_index); 
-    durationIndoor = participantData.DurationIndoor(participantData_index); 
-    timezone = string(participantData.TimeZone(participantData_index)); % e.g. 'Europe/Amsterdam'
+        cfg = [];
+        cfg.segment_nr = segment_i;
+        cfg.pp_nr = pp_i;
+        cfg.handle_already_segmented_data = 'redo'; % 'skip|ask|redo'
+        
+        [processed_segment, project] = belt_get_data_segment(cfg, project);
 
-    % get the data
-    cfg = []; 
-    cfg.datafolder = pp_datafolder; 
-    cfg.timezone = timezone; 
-    raw_data = e4eda2matlab(cfg);
-
-    % extract the [starttime - starttime+duration] segment of the data
-    cfg = []; 
-    cfg.starttime = starttimeIndoor; 
-    cfg.duration = durationIndoor; 
-    cfg.timeformat = timeformat; 
-    segmented_data(pp_i) = segment_generic(cfg, raw_data);
-
-    % Provide some feedback
-    fprintf('Data of participant %s loaded and segmented\n', pp_label);
+    end
 end
-
 
 %% Inspect the raw data
-% plot the segments of all participants in one graph
+% plot the raw data per segment 
+% for all participants in one graph
 
-figure; % create a new figure
-hold on; % indicate that we want to plot multiple lines in the same graph
+% === to plot the data of all participants, use
+% cfg.pp_labels = 'all'; (default)
+% === to plot data of a few spefic participants, use e.g.
+% cfg.pp_labels = {'P005', 'P007'};
 
-for pp_i = 1:nof_pps % for all participants
-    % draw the data, x=time, y=conductance
-    plot(segmented_data(pp_i).time, segmented_data(pp_i).conductance);
-end
+% === the data can be any of the processed data field
+% cfg.data_type = 'conductance_raw';
+% cfg.data_type = 'conductance_raw_z';
+% cfg.data_type = 'conductance_artifact_corrected';
+% cfg.data_type = 'conductance_artifact_corrected_z';
+% cfg.data_type = 'conductance_deconvolved';
+% cfg.data_type = 'conductance_deconvolved_z';
+% === of course, the artifact corrected and deconvolved data do not
+% exist yet, at this point in the pipeline
 
-% get the first and last time value to set the x range
-min_t = segmented_data(1).time(1);
-max_t = segmented_data(1).time(end);
+cfg = [];
+cfg.segment_nr = 1; % AR
+cfg.data_type = 'conductance_raw';
+cfg.pp_labels = 'all';
+plot_segmented_data (cfg, project);
 
-xlabel('Time (s)');
-xlim([min_t max_t]);
-ylabel('Conductance (\muS)')
-title('Raw skin conductance data');
-legend(string(pp_nrs), 'Location', 'eastoutside');
+cfg = [];
+cfg.segment_nr = 2; % First half
+cfg.data_type = 'conductance_raw_z';
+cfg.pp_labels = {'P005', 'P007'};
+plot_segmented_data (cfg, project);
 
-hold off;
+cfg = [];
+cfg.segment_nr = 3; % Second half
+plot_segmented_data (cfg, project);
+
+
+%% Remove data that is not usable from further processing
+
+cfg = [];
+cfg.segment_nr = 1;
+cfg.pp_labels = {}; % e.g. {'P001', 'P007', 'P012'};
+
+project = belt_set_include_segment_pp(cfg, project);
 
 
 %% ARTIFACT CORRECTION
 %  Check the EDA data for artifacts and select a solution
 
-cfg = [];
-cfg.timwin    = 20; % define the timewindow for artifact detection (default = 20)
-cfg.threshold  = 3; % define the threshold for artifact detection (default = 5)
-cfg.interp_method = 'spline'; % set the default solution of all artifacts (default = 'linear')
-cfg.confirm = 'no'; % state that we do not want to see a figure with the solution for each participant (default = 'yes')
+for segment_i = 1:project.nof_segments
+    for pp_i = 1:nof_pps
 
-for pp_i = 1:nof_pps % for all participants
+        cfg = [];
+        cfg.segment_nr = segment_i;
+        cfg.pp_nr = pp_i;
+        cfg.handle_already_cleaned_segments = 'skip'; % 'skip|redo|ask' (what to do with segments that have already been artifact corrected)
 
-    % get the participant number
-    pp_nr = pp_nrs(pp_i); 
-    % Paste a P and leading zeros before the number, 
-    pp_label = ['P', num2str(pp_nr, '%03d')]; 
-    % specify where to save the clean data, with what filename 
-    % (add the '_cleadata' suffix and the '.mat' extension)
-    clean_data_path_filename = fullfile(cleandatafolder, [pp_label, '_cleandata.mat']);
+        % do the artifact correction
+        [processed_segment, project] = belt_artifact_correction(cfg, project);
 
-    % check whether this file alreay exists
-    if exist(clean_data_path_filename, 'file')
-        % the file already exist, ask whether user wants to process again
-        % or skip this file
-        dlgtitle = 'Cleaned data file already exists';
-        question = sprintf('A cleaned datafile already exists for participant P%03d.\nWould you like to redo the artifact correction? (This deletes the previous file)\nOr skip this one?', pp_nrs(pp_i));
-        opts.Default = 'Skip';
-        answer = questdlg(question, dlgtitle, 'Redo','Skip', opts.Default);
-
-        % Handle response
-        switch answer
-            case 'Skip'
-                % continue to the next participant
-                continue;
-            case 'Redo'
-                % process the data again
-        end
     end
-
-    % define the raw skin conductance data
-    cfg.validationdata = segmented_data(pp_i).conductance;
-    cfg.participant = pp_label;
-    % open the artifact correction window
-    clean_data = artifact_eda(cfg, segmented_data(pp_i)); 
-    % save the cleaned up skin conductance data
-    save(clean_data_path_filename, 'clean_data');
-
 end
+
+%% Inspect the cleaned data
+% plot the artifact corrected data per segment 
+% for all participants in one graph
+
+cfg = [];
+cfg.segment_nr = 1; % AR
+cfg.data_type = 'conductance_clean';
+cfg.pp_labels = 'all';
+plot_segmented_data (cfg, project);
+
+cfg = [];
+cfg.segment_nr = 2; % First half
+cfg.data_type = 'conductance_clean_z';
+cfg.pp_labels = 'all';
+plot_segmented_data (cfg, project);
+
+cfg = [];
+cfg.segment_nr = 3; % Second half
+cfg.data_type = 'conductance_clean';
+plot_segmented_data (cfg, project);
+
+
+%% Remove data that is not usable from further processing
+
+cfg = [];
+cfg.segment_nr = 1;
+cfg.pp_labels = {}; % e.g. {'P001', 'P007', 'P012'};
+
+project = belt_set_include_segment_pp(cfg, project);
+
+
 
 
 %% DECONVOLVE and split into phasic and tonic components
 %  Next step is to run LedaLab over the corrected data to deconvolve it, and
 %  split into phasic and tonic components
 
-cfg = []; % empty any existing configuration settings.
-cfg.tempdir = tempfolder; % temporary directory for datafiles, this directory is defined above (one of the first things in this pipeline)
 
-% create the temp folder, if needed
-if ~exist(tempfolder, "dir")
-    % the folder does not exist, ask whether it should be created
-    [status, msg, msgID] = mkdir(tempfolder); % create the folder
-    tempfoldercreated = true;
-else
-    tempfoldercreated = false;
-end
+for segment_i = 1:project.nof_segments % for all segments
+    for pp_i = 1:nof_pps % for all participants
 
+        cfg = []; % empty any existing configuration settings.
+        cfg.tempdir = fullfile(project.project_directory, '\Temp'); % temporary directory for datafiles
+        cfg.conductance   = 'conductance_clean'; % LEDALAB expects a conductance field
+        cfg.conductance_z = 'conductance_clean_z';
+        cfg.segment_nr = segment_i;
+        cfg.pp_nr = pp_i;
+        cfg.handle_already_deconvolved_segments = 'redo';
 
-for pp_i=1:nof_pps
-
-    % get the participant number
-    pp_nr = pp_nrs(pp_i); 
-    % Paste a P and leading zeros before the number, 
-    pp_label = ['P', num2str(pp_nr, '%03d')]; 
-    % specify where to save the clean data, with what filename 
-    % (add the '_deconvolved_data' suffix and the '.mat' extension)
-    deconvolved_data_path_filename = fullfile(deconvolveddatafolder, [pp_label, '_deconvolved_data.mat']);
-    
-    % check whether the deconvolved data already exists
-    if exist(deconvolved_data_path_filename, 'file')
-        % the file already exist, ask whether user wants to process again
-        % or skip this file
-        dlgtitle = 'Devonvolved data file already exists';
-        question = sprintf('A deconvolved datafile already exists for participant P%03d.\nWould you like to redo the deconvolution? (This deletes the previous file)\nOr skip this one?', pp_nrs(pp_i));
-        opts.Default = 'Skip';
-        answer = questdlg(question, dlgtitle, 'Redo','Skip', opts.Default);
-        % Handle response
-        switch answer
-            case 'Skip'
-                % continue to the next participant
-                continue;
-            case 'Redo'
-                % process the data again
-        end
+        % do the deconvolution
+        [processed_segment, project] = belt_deconvolve_eda(cfg, project);
+        
     end
-
-    % get the cleaned up data of this participant
-    clean_data_path_filename = fullfile(cleandatafolder, [pp_label, '_cleandata.mat']);
-    load(clean_data_path_filename);
-
-    % do the deconvolution thing
-    deconvolved_data = deconvolve_eda(cfg, clean_data);
-
-    % show the results in a graph
-    figure; plot(deconvolved_data.time, deconvolved_data.conductance_z, deconvolved_data.time, deconvolved_data.tonic_z, deconvolved_data.time, deconvolved_data.phasic_z, 'k');
-
-    % save the deconvolved data
-    save(deconvolved_data_path_filename, 'deconvolved_data');
-
 end
 
-clear deconvolved_data;
 
-if tempfoldercreated
-    % we created a temporary folder, now remove it
-    rmdir(tempfolder, 's'); % this fails sometimes, don't know why
-end
+%% Inspect the deconvolved data
+% plot the artifact corrected data per segment 
+% for all participants in one graph
 
+cfg = [];
+cfg.segment_nr = 1; % AR
+cfg.data_type = 'conductance_phasic';
+cfg.pp_labels = 'all';
+plot_segmented_data (cfg, project);
+
+cfg = [];
+cfg.segment_nr = 2; % First half
+cfg.data_type = 'conductance_phasic';
+cfg.pp_labels = 'all';
+plot_segmented_data (cfg, project);
+
+cfg = [];
+cfg.segment_nr = 3; % Second half
+cfg.data_type = 'conductance_phasic';
+plot_segmented_data (cfg, project);
+
+
+%% Remove data that is not usable from further processing
+
+cfg = [];
+cfg.segment_nr = 1;
+cfg.pp_labels = {}; % e.g. {'P001', 'P007', 'P012'};
+
+project = belt_set_include_segment_pp(cfg, project);
+
+
+%% ============================= PIPELINE IS UPDATE TO THIS POINT =========
+%  TODO:
+%  create some more plot options
+%  export the data for analysis
 
 %% Inspect the phasic components of all participants
 
@@ -280,13 +265,13 @@ for pp_i=1: nof_pps
     deconvolved_data_path_filename = fullfile(deconvolveddatafolder, [pp_label, '_deconvolved_data.mat']);
     load(deconvolved_data_path_filename);
 
-    plot(deconvolved_data.time, deconvolved_data.phasic);
+    plot(processed_segment.time, processed_segment.phasic);
 end
 
 
 % get the first and last time value to set the x range
-min_t = deconvolved_data.time(1);
-max_t = deconvolved_data.time(end);
+min_t = processed_segment.time(1);
+max_t = processed_segment.time(end);
 
 xlabel('Time (s)');
 xlim([min_t max_t]);
@@ -313,7 +298,7 @@ for pp_i=1:nof_pps
 
     load(deconvolved_data_path_filename);
 
-    all_deconvolved_data(pp_i) = deconvolved_data;
+    all_deconvolved_data(pp_i) = processed_segment;
 end
 
 % calculate the grand averages over participants
@@ -368,7 +353,7 @@ load(deconvolved_data_path_filename);
 figure;
 
 % specify what is on the x-axis
-x = deconvolved_data.time;
+x = processed_segment.time;
 
 % Draw the original raw conductance in red
 y = segmented_data(pp_i).conductance;
@@ -379,11 +364,11 @@ hold on;
 
 % Draw the cleaned conductance in green over the raw conductance
 % Only the removed artifacts will be visible in red
-y = deconvolved_data.conductance;
+y = processed_segment.conductance;
 plot(x, y, 'LineWidth', 1, 'Color', 'g');
 
 % Draw the phasic data in the same figure
-y = deconvolved_data.phasic;
+y = processed_segment.phasic;
 plot(x, y, 'LineWidth', 1, 'Color', 'b');
 
 % Set the labels at the x- and y-axes, the title, and the legend

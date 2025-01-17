@@ -1,0 +1,26 @@
+Belt app
+Release notes:
+
+
+============================================
+Version 0.3 (still beta)
+
+New features:
+- Recent projects are now displayed in the Home screen.
+
+Bugfix:
+- Small segments would sometimes cause the app to not respond after loading or saving. Changes to the 'Loading ...'/'Saving ...' messages seems to have solved this.
+
+
+============================================
+Version 0.2 (still beta)
+
+New features:
+- An export function. Currently only exports in long format.
+- Update participant data function. Updates the project data to the latest version of the excel file ParticipantData.xlsx
+- Phasic driver. The data now includes the phasic driver
+- Graphs now lets you choose which data to display
+
+============================================
+Version 0.1 (beta)
+- demo version for lab training day (24 Sep 2024)

@@ -1,22 +1,10 @@
-%% This script runs an analysis pipeline for skin conductance data 
+%% This script runs an analysis pipeline for positioning data 
 %
-%  This loads raw skin conductance data.
-%  Selects the relevant time interval of that data.
-%  Shows the raw data of all participants in a single graph, for a quick
-%    visual inspection of the data.
-%  Lets you remove artifacts in a graphical interface.
-%  Splits the cleaned up data in its tonic and phasic parts.
-%
-%  The script expects to find the raw data and an excel file that holds
-%  time information for each participant in certain folders. Results of the
-%  artifact cleaning, and the phasic and tonic components are saved.
-%  The folder structure is specified below. It can be changed however it
-%  fits tour needs. Ideally you would only adjust the project location.
-%
-%  If you encounter any problems, or have ideas for improving the pipeline,
-%    let me know.
+%  This loads the beacon data per participant
+%  determines the closest beacon for each timepoint.
+%  and adds this to the datafile containing the processed skin conductance
 % 
-%  Created 15-12-2023, Hans Revers
+%  Created 26-04-2024, Hans Revers
 
 
 
@@ -45,25 +33,11 @@ deconvolveddatafolder = fullfile(projectfolder, '\2.ProcessedData\1.DeconvolvedD
 tempfolder = fullfile(projectfolder, '\Temp');
 
 
-%% Check whether these folders exist. Ask to create, if needed.
+%% Skin conductance processing has already been done, so these folders should be good.
 
 % project folder
 if ~exist(projectfolder, "dir")
-    % the folder does not exist, ask whether it should be created
-    dlgtitle = 'Project folder does not exist';
-    question = sprintf('The specified project folder cannot be found.\nWould you like me to create it?');
-    opts.Default = 'No';
-    answer = questdlg(question, dlgtitle, 'Yes','No', opts.Default);
-
-    % Handle response
-    switch answer
-        case 'Yes'
-            % create the folder
-            [status, msg, msgID] = mkdir(projectfolder); % create the folder
-        case 'No'
-            % abort the program and show an error message
-            error("The project folder was not found at the specified location. Please check.");
-    end
+    error("The project folder was not found at the specified location. Please check.");
 end
 
 % data folder
@@ -171,11 +145,21 @@ for pp_i = 1:nof_pps
     durationIndoor = participantData.DurationIndoor(participantData_index); 
     timezone = string(participantData.TimeZone(participantData_index)); % e.g. 'Europe/Amsterdam'
 
-    % get the data
+    % get the beacon data
     cfg = []; 
-    cfg.datafolder = pp_datafolder; 
+    cfg.beaconDataFolder =     datafolder;
+    cfg.beaconPositions  =      'BeaconPositions.csv';
+    cfg.datafolder = pp_datafolder; % String value specifying the lcoation of the beaconFile.
+    cfg.beaconfile =   'Beacon.csv';
     cfg.timezone = timezone; 
-    raw_data = e4eda2matlab(cfg);
+    % Other config options
+    % cfg.nullvalue =    minimum value that can be received (for creating NaN values)
+    % cfg.smoothen =     boolean (true/false) (default = true);
+    % cfg.smoothingFactor = amount of smoothing (default = 0.2)
+    % cfg.smoothingMethod = method for smoothing. 
+    % cfg.movemean =     use a moving mean to get smoother data (default = true)
+    % cfg.movemeanduration = duration of the moving mean factor (default = 60);
+    raw_data = beacon2matlab(cfg);
 
     % extract the [starttime - starttime+duration] segment of the data
     cfg = []; 

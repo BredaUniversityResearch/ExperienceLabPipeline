@@ -49,6 +49,25 @@ end
 if ~isfield(cfg, 'export_scrlist')
     cfg.export_scrlist = [0.05 1];
 end
+if ~isfield(cfg, 'conductance') % for backward compatibility
+    cfg.conductance = 'conductance';   
+end
+if ~isfield(cfg, 'conductance_z') % for backward compatibility
+    cfg.conductance = 'conductance_z';   
+end
+
+% create the dataset that ledalab needs
+% create dummy event field if it doesn't exist
+if ~isfield(data, 'event')
+    data.event.time = 0;
+    data.event.nid = 1;
+    data.event.name = 'dummy_event';
+    data.event.userdata = [];
+end
+if ~isfield(data, 'timeoff') % and add a dummy offset if it isn't there
+    data.timeoff = 0;
+end
+
 
 %% Deal with NaNs in the data
 %  Ledalab does not like NaNs, but our data may contain them if the
@@ -56,6 +75,13 @@ end
 %  correction step.
 %  To solve this issue, NaN parts are replace by inear interpolation first.
 %  After the deconvolution process, the NaNs are reinserted into the data.
+
+out = data; % data is overwritten by ledalab later, so make a backup to restore
+
+% make sure the data to be deconvolved is stored in data.conductance 
+data.conductance = data.(cfg.conductance);
+data.conductance_z = data.(cfg.conductance_z);
+
 
 % store which timepoints contained NaNs
 nan_booleans = isnan(data.conductance);
@@ -99,28 +125,15 @@ if sum(isnan(data.conductance)) > 0
                 data.conductance(starttime:endtime)   = data.conductance(starttime-1);
                 data.conductance_z(starttime:endtime) = data.conductance_z(starttime-1);
             else
-                data.conductance(starttime-1:endtime+1)   = linspace(data.conductance(starttime-1),data.conductance(endtime+1),(endtime-starttime+3));
+                data.conductance(  starttime-1:endtime+1) = linspace(data.conductance(  starttime-1),data.conductance(  endtime+1),(endtime-starttime+3));
                 data.conductance_z(starttime-1:endtime+1) = linspace(data.conductance_z(starttime-1),data.conductance_z(endtime+1),(endtime-starttime+3));
             end
         end
     end
 end
 
-out = data;% keep track of data, is overwritten by ledalab later
 
-% create the dataset that ledalab needs
-%create dummy event field if it doesn't exist
-if ~isfield(data, 'event')
-    data.event.time = 0;
-    data.event.nid = 1;
-    data.event.name = 'dummy_event';
-    data.event.userdata = [];
-    out.event = data.event;
-end
 
-if ~isfield(data, 'timeoff') % and add a dummy offset if it isn't there
-    data.timeoff = 0;
-end
 tmpdata = data; % to be used for deconvolution on z-transformed data.
 save(strcat(cfg.tempdir, '\matData'), 'data'); % write temporary file that Ledalab needs to read the data
 
@@ -142,10 +155,12 @@ load(strcat(cfg.tempdir, '\matData')) %load analysis results into workspace
 %curdir = pwd;
 %eval(sprintf('cd %s', cfg.tempdir));
 load batchmode_protocol.mat; % automatically-generated file (by Ledalab) with analysis settings
+
 %% add phasic SCR data to data struct. 
 %eval(sprintf('cd %s', curdir));
 
 out.phasic = analysis.phasicData';
+out.phasicDriver = analysis.driver';
 out.tonic = analysis.tonicData';
 out.analysis = analysis; % keep analysis info and all other output details
 out.analysis.fileinfo = fileinfo; % keep file generation log
@@ -156,10 +171,12 @@ eval(sprintf('delete %s\\matData.mat', cfg.tempdir));
 eval(sprintf('delete batchmode_protocol.mat'));
 eval(sprintf('delete matData_scrlist.mat'));
 clear analysis fileinfo protocol;
+
 %% now repeat everything but for z-transformed conductance, if present in the data
 clear data;
 data = tmpdata; %re-read original input struct
-if ~isfield(data, 'conductance_z')
+
+if ~isfield(data, cfg.conductance_z)
     disp('data does not contain z-transformed conductance. Cannot compute phasic z-transformed conductance. Phasic_z and tonic_z not added to output');
 else
     data.conductance = data.conductance_z; % use z-transformed conductance data 
@@ -167,6 +184,7 @@ else
     Ledalab(strcat(cfg.tempdir, '\'), 'open', 'mat', 'analyze', 'CDA', 'optimize', 6, 'export_scrlist', [0.05 1]);
     load(strcat(cfg.tempdir, '\matData')) %load analysis results into workspace
     out.phasic_z = analysis.phasicData';
+    out.phasicDriver_z = analysis.driver';
     out.tonic_z = analysis.tonicData';
     eval(sprintf('delete %s\\matData.mat', cfg.tempdir));
     eval(sprintf('delete batchmode_protocol.mat'));
@@ -191,18 +209,18 @@ end
 %% Put the NaNs back in place
 
 % first, let's make a copy of the interpolated data
-out.phasic_interpolated   = out.phasic;
-out.tonic_interpolated    = out.tonic;
-out.phasic_z_interpolated = out.phasic_z;
-out.tonic_z_interpolated  = out.tonic_z;
-out.conductance_interpolated  = out.conductance;
-out.conductance_z_interpolated  = out.conductance_z;
+% out.phasic_interpolated   = out.phasic;
+% out.tonic_interpolated    = out.tonic;
+% out.phasic_z_interpolated = out.phasic_z;
+% out.tonic_z_interpolated  = out.tonic_z;
+% out.conductance_interpolated  = out.conductance;
+% out.conductance_z_interpolated  = out.conductance_z;
 
 % set all timepoints that originally contained NaNs back to NaN
-out.phasic(nan_booleans) = NaN;
-out.tonic(nan_booleans) = NaN;
-out.phasic_z(nan_booleans) = NaN;
-out.tonic_z(nan_booleans) = NaN;
-out.conductance(nan_booleans) = NaN;
-out.conductance_z(nan_booleans) = NaN;
+out.phasic(nan_booleans)         = NaN;
+out.phasicDriver(nan_booleans)   = NaN;
+out.tonic(nan_booleans)          = NaN;
+out.phasic_z(nan_booleans)       = NaN;
+out.phasicDriver_z(nan_booleans) = NaN;
+out.tonic_z(nan_booleans)        = NaN;
 

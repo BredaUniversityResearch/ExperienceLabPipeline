@@ -30,12 +30,15 @@ function out = resample_generic(cfg, data)
 if ~isfield (cfg,'fsample')
     error('no sample frequency is defined');
 end
+if ~isfield (cfg,'keepNans')
+   cfg.keepNaNs = true;
+end
 
 if ~isfield (data,'time')
     error('no time data provided')
 end
 
-%Deterine wheter any datavalues are provided, if not, give a warning
+% Deterine wheter any datavalues are provided, if not, give a warning
 if ~isfield (cfg,'valueList')
     warning('no data values provided, using all arrays with length as time');
     cfg.valueList = [];
@@ -58,7 +61,14 @@ datalength = 0;
 %an accurate representaiton, and remove any overfitting
 for i=1:length(datanames)
     if isfield(data,datanames{i})
-        newdata.(datanames{i}) = resample(data.(datanames{i}),data.time,cfg.fsample,1,1);
+        % resample
+        newdata.(datanames{i}) = resample(data.(datanames{i}),data.time,cfg.fsample,1,1);        
+        if cfg.keepNaNs
+            % restore NaN values
+            data_nans = double(isnan(data.(datanames{i}))); % get the NaNs from the original data
+            data_nans_resampled = resample(data_nans,data.time,cfg.fsample,1,1); % resample those in the same way as the data
+            newdata.(datanames{i})(logical(data_nans_resampled)) = NaN; % put back the NaN values in the resampled data
+        end
         datalength = length(newdata.(datanames{i}));
     end
 end
