@@ -67,7 +67,8 @@ if ~exist(path_filename, "file")
         'Please check. I expected it here: '] path_filename]);
 else
     % read the Excel file 
-    participantData = readtable(path_filename);
+    opts = detectImportOptions(path_filename);
+    participantData = readtable(path_filename, opts); % without these opts, readtable returns NaNs for empty columns, which cause issues on updating the ParticipantData
 end
 
 

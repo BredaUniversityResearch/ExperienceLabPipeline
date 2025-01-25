@@ -50,7 +50,8 @@ if ~exist(path_filename, "file")
         'Please check. I expected it here: '] path_filename]);
 else
     % read the Excel file 
-    participantData_new = readtable(path_filename);
+    opts = detectImportOptions(path_filename);
+    participantData_new = readtable(path_filename, opts); % without these opts, readtable returns NaNs for empty columns, which cause issues on updating the ParticipantData
 end
 % === TODO: we should check the column names 
 
@@ -332,9 +333,9 @@ for segment_i = 1:project.nof_segments
             starttimes_column = ['StartTime' project.segment(segment_i).name]; % the name of the column in excel
             endtimes_column   = ['EndTime' project.segment(segment_i).name]; % the name of the column in excel
             starttime_project = project.segment(segment_i).starttime(pp_i);
-            starttime_excel   = participantData_new.(starttimes_column){pp_i_excel};
+            starttime_excel   = participantData_new.(starttimes_column)(pp_i_excel);
             endtime_project   = project.segment(segment_i).endtime(pp_i);
-            endtime_excel     = participantData_new.(endtimes_column){pp_i_excel};
+            endtime_excel   = participantData_new.(endtimes_column)(pp_i_excel);
             if ~(strcmp(starttime_project, starttime_excel) && strcmp(endtime_project, endtime_excel))
                 changed_i = changed_i + 1;
                 % the times, they are a-changin'
@@ -414,12 +415,8 @@ if ~isempty(changed_pp)
 end
 
 if ~data_changed
-    msg = [msg, 'no changes were made to the participant data.'];
+    msg = [msg, 'no changes were made to the participant data.\n'];
 end
-
-
-
-% === TODO :: we should also check the number and names of the segments ===
 
 
 end % update_participant_data

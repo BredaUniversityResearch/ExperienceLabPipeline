@@ -97,7 +97,8 @@ if isfile(path_filename) % file already exists
     % Compare the project data to the participantdata excel file
     % check for removed or added participants, and for changed start/end times
     fprintf('Checking for changes in the ParticipantData ...\n');
-    project = update_participant_data(cfg, project);
+    [project, msg] = update_participant_data(cfg, project);
+    fprintf(msg);
 
 
 else % no project bookkeeping file found at location, create a new one
@@ -106,7 +107,7 @@ else % no project bookkeeping file found at location, create a new one
     project = create_new_project(cfg, project); 
     
     % Add the relevant participant data to the project struct
-    project = add_participant_data(cfg, project);
+    [project, msg] = add_participant_data(cfg, project);
     
     % add the bookkeeping part to the project
     for segment_i = 1:project.nof_segments
