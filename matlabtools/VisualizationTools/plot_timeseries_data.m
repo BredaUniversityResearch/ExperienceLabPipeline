@@ -8,6 +8,7 @@ function plot_timeseries_data(cfg, varargin)
 %   cfg.parameter        = what type of data to plot, for skin conductance data 
 %       this could be 'phasic', 'pasic_z', 'tonic', 'conductance', etc.
 %   cfg.latency          = 'all', [start end] (default = 'all')
+%   cfg.YLim             = [min max] (if omitted, Y range fits to graph)
 %   cfg.colours          = {colour1, colour2, ...} colour is either a RGB array or a MatLAB named colour
 %       if not provided, default MatLAB colours will be used
 %       if the number of colours is smaller than that of the data, 
@@ -25,6 +26,8 @@ function plot_timeseries_data(cfg, varargin)
 %        none = the shaded area will not be plotted
 %   cfg.smoothing        = 'yes|no' (default = 'no')
 %        Whether to perform smoothing on the data before plotting
+%   cfg.smoothing_window        = length of the smoothing window (default = 20)
+%   cfg.smoothing_method        = 'movmean|gaussian' (default = 'movmean')
 %
 %   Some figure configuration is done, but these can be overruled by simply adding
 %   the desired settings after calling the plot_ERPs function
@@ -82,8 +85,18 @@ if ~isfield(cfg, 'errorbar')
 end
 if ~isfield(cfg, 'smoothing')
     cfg.smoothing = 'no';
-elseif ~isfield(cfg, 'smoothing_window')
-    cfg.smoothing = 20;
+elseif strcmp(cfg.smoothing, 'yes')
+    if ~isfield(cfg, 'smoothing_window')
+        cfg.smoothing_window = 20;
+    elseif ~isnumeric(cfg.smoothing_window)
+        cfg.smoothing_window = 20;
+    end
+    if ~isfield(cfg, 'smoothing_method')
+        cfg.smoothing_method = 'movmean';
+    elseif ~strcmp(cfg.smoothing_method, 'gaussian') && ~strcmp(cfg.smoothing_method, 'movmean')
+        cfg.smoothing_method = 'movmean';
+    end
+    
 end
 if ~isfield(cfg, 'colours')
     for dataset_i = 1:nof_datasets
@@ -155,13 +168,17 @@ for dataset_i = nof_datasets:-1:1
         the_data(pp_i, :) =  varargin{dataset_i}(pp_i).(cfg.parameter)(startindex:endindex)';
     end
 
-    % mean EEG amplitude, averaged over pps
-    y(dataset_i).mean = mean(squeeze(the_data),1,"omitnan"); 
 
     % smoothing
     if strcmp(cfg.smoothing, 'yes')
-        y(dataset_i).mean = smoothdata(y(dataset_i).mean, "gaussian",cfg.smoothing_window);
+        the_data = smoothdata(the_data, 2, cfg.smoothing_method, cfg.smoothing_window);
     end
+
+
+    % mean EEG amplitude, averaged over pps
+    y(dataset_i).mean = mean(squeeze(the_data),1,"omitnan"); 
+
+
 
     % e = sd|sem|ci|none 
     switch cfg.errorbar
@@ -170,7 +187,11 @@ for dataset_i = nof_datasets:-1:1
         case 'sem'  % the standard error of the mean
             y(dataset_i).e = std(squeeze(the_data),1,"omitnan") ./ sqrt(size(the_data, 1)); 
         case 'ci'   % 95% confidence interval
-            y(dataset_i).e = 1.96 .* (std(squeeze(the_data),1,"omitnan") ./ sqrt(size(the_data, 1))); 
+            N = size(the_data, 1);
+            data_sem = std(squeeze(the_data),1,"omitnan") ./ sqrt(N);
+            CI95 = tinv(0.975, N-1); % Calculate 95% Probability Intervals Of t-Distribution
+            y(dataset_i).e = bsxfun(@times, data_sem, CI95(:)); % Calculate 95% Confidence Interval
+            % y(dataset_i).e = 1.96 .* (std(squeeze(the_data),1,"omitnan") ./ sqrt(size(the_data, 1))); % old method, incorrect for small N
         case 'none' % no shaded area
             y(dataset_i).e = zeros(1, size(squeeze(the_data),2)); 
         otherwise   % user provided an unknow error-bar type. Display a warning message.
@@ -223,11 +244,22 @@ end
 % specifying them after calling this function
 set(gca,'FontSize',12);
 set(gca,'box','off');
-%set(gca, "XLim", cfg.latency);
 
 if isfield(cfg, 'YLim')
     set(gca, 'YLim', cfg.YLim); 
 end
+
+if isfield(cfg, 'latency') 
+    if strcmp(cfg.latency, 'all')
+        set(gca, "XLim", [x(1) x(end)]);
+    else
+        set(gca, "XLim", cfg.latency);
+    end
+end
+if isfield(cfg, 'Xlabel')
+    xlabel(cfg.Xlabel);
+end
+
 
 ylabel(cfg.Ylabel);
 
