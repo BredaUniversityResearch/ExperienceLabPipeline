@@ -122,7 +122,11 @@ if project.segment(segment_nr).include(pp_nr)
         cfg.columnname.acc_z = 'ignore';  % ignore acc_z
         cfg.columnname.temp  = 'ignore'; % ignore temp
         cfg.columnname.hr    = 'ignore'; % ignore hr
-        raw_data = shimmer2matlab(cfg); % get the raw data
+        [raw_data, msg] = shimmer2matlab(cfg); % get the raw data
+        if isempty(raw_data)
+            msg = sprintf('%s The Shimmer data for %s, segment %s could not be read. Please check the file format.', msg, pp_label, segment_name);
+            return;
+        end
     else % Neither a Shimmer nor an Empatica datafile was found
         msg = sprintf('Warning: No datafile found for %s, segment %s. Please check! There should either be a ''EDA.csv'' or ''physiodata.csv'' file.', pp_label, segment_name);
         return;
@@ -176,7 +180,7 @@ if project.segment(segment_nr).include(pp_nr)
     save(path_filename, 'segment_raw');
 
     % Provide some feedback
-    msg = sprintf('Data of participant %s is segmented and saved as %s', pp_label, path_filename);
+    msg = sprintf('%s Data of participant %s is segmented and saved as %s', msg, pp_label, path_filename);
 
     % update the bookkeeping of the project
     project.segment(segment_nr).segmented(pp_nr) = true;
@@ -187,7 +191,7 @@ if project.segment(segment_nr).include(pp_nr)
 else % this segment should not be included in analysis
 
     % Provide some feedback
-    msg = sprintf('Data of segment %s for participant %s is indicated to not include. Therefor the data was not segmented, nor saved.', segment_name, pp_label);
+    msg = sprintf('Data of segment %s for participant %s is indicated to not include.', segment_name, pp_label);
     return;
 end
 

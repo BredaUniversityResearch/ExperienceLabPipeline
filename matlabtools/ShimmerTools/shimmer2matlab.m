@@ -1,4 +1,4 @@
-function out = shimmer2matlab(cfg)
+function [out, msg] = shimmer2matlab(cfg)
 %% SHIMMER 2 MATLAB
 % function out = shimmer2matlab(cfg)
 %
@@ -73,6 +73,9 @@ if ~isfield(cfg, 'fsample')
     cfg.fsample = 128;
     warning(strcat('fsample not specified. Using default: ',mat2str(cfg.fsample)));
 end
+
+% initialize msg
+msg = '';
 
 %% DATA FILE CHECK
 %check whether the data column names are specified, if not use default values
@@ -178,14 +181,24 @@ shimmerraw = readtable(cfg.shimmerfile,opts);
 %% DATA RESTRUCTURING INTO MATLAB STRUCT
 
 %make initial time stamp in UNIX time Seconds
-data.initial_time_stamp = shimmerraw.(datacolumns.unix)(1)/1000;
+try
+    data.initial_time_stamp = shimmerraw.(datacolumns.unix)(1)/1000;
+catch ME
+    % Do not throw an error, return a warning message instead and
+    % continue with the next participant
+    out = [];
+    msg = "WARNING: Initial timestamp could not be read.";
+    return;
+end
 
 %make initial time stamp human-readable
 data.initial_time_stamp_mat = datetime(data.initial_time_stamp,'ConvertFrom','posixtime','TicksPerSecond',1,'Format','dd-MMM-yyyy HH:mm:ss.SSS','TimeZone',cfg.timezone);
 
 %check if the sample interval difference is larger than the maximum required (could indicate multiple sessions in one file) 
 if max(diff(shimmerraw.(datacolumns.unix)/1000)) > cfg.allowedsampledifference
-    error(strcat('Largest interfal between samples is : ',mat2str(max(diff(shimmerraw.(datacolumns.unix)/1000))),'s Maximum allowed sample difference is: ', mat2str(cfg.allowedsampledifference),'s'));
+    msg = strcat('WARNING: Largest interval between samples is : ',mat2str(max(diff(shimmerraw.(datacolumns.unix)/1000))),'s Maximum allowed sample difference is: ', mat2str(cfg.allowedsampledifference),'s');
+    warning(strcat('Largest interval between samples is : ',mat2str(max(diff(shimmerraw.(datacolumns.unix)/1000))),'s Maximum allowed sample difference is: ', mat2str(cfg.allowedsampledifference),'s'));
+
 end
 
 %create new time array based on updated 
