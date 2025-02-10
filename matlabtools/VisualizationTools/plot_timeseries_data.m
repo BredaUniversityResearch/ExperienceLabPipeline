@@ -195,7 +195,7 @@ for dataset_i = nof_datasets:-1:1
         case 'none' % no shaded area
             y(dataset_i).e = zeros(1, size(squeeze(the_data),2)); 
         otherwise   % user provided an unknow error-bar type. Display a warning message.
-            ft_warning('unknown error-bar type "%s", shaded area cannot be plotted', errorbar);
+            warning('unknown error-bar type "%s", shaded area cannot be plotted', errorbar);
             y(dataset_i).e = zeros(1, size(squeeze(the_data),2)); 
     end
 

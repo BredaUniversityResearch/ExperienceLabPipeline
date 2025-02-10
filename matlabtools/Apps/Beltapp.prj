@@ -1,0 +1,158 @@
+<deployment-project plugin="plugin.ezdeploy" plugin-version="1.0">
+  <configuration build-checksum="1825684698" file="C:\Hans\ExperienceLabPipeline\matlabtools\Apps\Beltapp.prj" location="C:\Hans\ExperienceLabPipeline\matlabtools\Apps" name="Beltapp" preferred-package-location="C:\Hans\ExperienceLabPipeline\matlabtools\Apps\Beltapp\for_redistribution" preferred-package-type="package.type.exe" target="target.ezdeploy.standalone" target-name="Application Compiler">
+    <param.appname>Beltapp</param.appname>
+    <param.icon />
+    <param.icons />
+    <param.version>0.4</param.version>
+    <param.authnamewatermark>Hans Revers</param.authnamewatermark>
+    <param.email />
+    <param.company />
+    <param.summary>Still a Beta version.</param.summary>
+    <param.description>New features:
+- An export function. Currently only exports in long format.
+- Update participant data function. Updates the project data to the latest version of the excel file ParticipantData.xlsx
+- Phasic driver. The data now includes the phasic driver
+- Graphs now lets you choose which data to display</param.description>
+    <param.screenshot>${PROJECT_ROOT}\BELTapp_splash.png</param.screenshot>
+    <param.guid />
+    <param.installpath.string>\Beltapp\</param.installpath.string>
+    <param.installpath.combo>option.installpath.programfiles</param.installpath.combo>
+    <param.logo>${PROJECT_ROOT}\BELTapp_splash.png</param.logo>
+    <param.install.notes />
+    <param.target.install.notes />
+    <param.intermediate>${PROJECT_ROOT}\Beltapp\for_testing</param.intermediate>
+    <param.files.only>${PROJECT_ROOT}\Beltapp\for_redistribution_files_only</param.files.only>
+    <param.output>${PROJECT_ROOT}\Beltapp\for_redistribution</param.output>
+    <param.logdir>${PROJECT_ROOT}\Beltapp</param.logdir>
+    <param.enable.clean.build>false</param.enable.clean.build>
+    <param.user.defined.mcr.options />
+    <param.target.type>subtarget.standalone</param.target.type>
+    <param.support.packages />
+    <param.web.mcr>true</param.web.mcr>
+    <param.package.mcr>false</param.package.mcr>
+    <param.no.mcr>false</param.no.mcr>
+    <param.web.mcr.name>MyAppInstaller_web</param.web.mcr.name>
+    <param.package.mcr.name>MyAppInstaller_mcr</param.package.mcr.name>
+    <param.no.mcr.name>MyAppInstaller_app</param.no.mcr.name>
+    <param.windows.command.prompt>true</param.windows.command.prompt>
+    <param.create.log>false</param.create.log>
+    <param.log.file />
+    <param.native.matlab>false</param.native.matlab>
+    <param.checkbox>false</param.checkbox>
+    <param.example />
+    <param.help.text>Syntax 
+	  -? 
+	 
+ Input Arguments 
+	 -?  print help on how to use the application 
+	 input arguments 
+ Description 
+ 	 New features and bug fixes:
+
+version 0.4
+- now catching some data error and displaying informative warnings
+
+version 0.3
+- An export function. Currently only exports in long format.
+- Update participant data function. Updates the project data to the latest version of the excel file ParticipantData.xlsx
+- Phasic driver. The data now includes the phasic driver
+- Graphs now lets you choose which data to display</param.help.text>
+    <unset>
+      <param.icon />
+      <param.icons />
+      <param.email />
+      <param.company />
+      <param.guid />
+      <param.installpath.string />
+      <param.installpath.combo />
+      <param.install.notes />
+      <param.target.install.notes />
+      <param.intermediate />
+      <param.files.only />
+      <param.output />
+      <param.logdir />
+      <param.enable.clean.build />
+      <param.user.defined.mcr.options />
+      <param.target.type />
+      <param.support.packages />
+      <param.web.mcr />
+      <param.package.mcr />
+      <param.no.mcr />
+      <param.web.mcr.name />
+      <param.package.mcr.name />
+      <param.no.mcr.name />
+      <param.windows.command.prompt />
+      <param.create.log />
+      <param.log.file />
+      <param.native.matlab />
+      <param.checkbox />
+      <param.example />
+    </unset>
+    <fileset.main>
+      <file>${PROJECT_ROOT}\BeltApp.mlapp</file>
+    </fileset.main>
+    <fileset.resources />
+    <fileset.package>
+      <file>${PROJECT_ROOT}\BELTapp_icon.png</file>
+      <file>${PROJECT_ROOT}\BELTapp_splash.png</file>
+    </fileset.package>
+    <fileset.depfun>
+      <file>${PROJECT_ROOT}\BeltArtifactCorrectionComponent.mlapp</file>
+      <file>${PROJECT_ROOT}\CreateNewProjectApp.mlapp</file>
+      <file>${PROJECT_ROOT}\icons\add.png</file>
+      <file>${PROJECT_ROOT}\icons\remove.png</file>
+      <file>${PROJECT_ROOT}\icons\undo.png</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\ArtifactTools\artifact_correction_is_possible.m</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\ArtifactTools\get_potential_artifacts.m</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\ArtifactTools\save_artifact_corrected_data.m</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\DataTools\belt_get_data_segment.m</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\DataTools\clamp.m</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\DataTools\resample_generic.m</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\DataTools\segment_generic.m</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\EmpaticaTools\e4eda2matlab.m</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\ProjectTools\add_participant_data.m</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\ProjectTools\check_directory.m</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\ProjectTools\check_project_directories.m</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\ProjectTools\create_new_project.m</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\ProjectTools\save_project.m</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\ProjectTools\update_participant_data.m</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\PsychoPhysiology\deconvolution_is_possible.m</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\PsychoPhysiology\deconvolve_eda.m</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\PsychoPhysiology\save_deconvolved_data.m</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\ShimmerTools\shimmer2matlab.m</file>
+      <file>C:\Tools\fieldtrip-20230908\utilities\ft_error.m</file>
+      <file>C:\Tools\fieldtrip-20230908\utilities\ft_platform_supports.m</file>
+      <file>C:\Tools\fieldtrip-20230908\utilities\ft_version.m</file>
+      <file>C:\Tools\fieldtrip-20230908\utilities\ft_warning.m</file>
+      <file>C:\Tools\fieldtrip-20230908\utilities\istrue.m</file>
+      <file>C:\Tools\fieldtrip-20230908\utilities\private\defaultId.m</file>
+      <file>C:\Tools\fieldtrip-20230908\utilities\private\ft_notification.m</file>
+      <file>C:\Tools\ledalab-349\Ledalab.m</file>
+    </fileset.depfun>
+    <build-deliverables>
+      <file location="${PROJECT_ROOT}\Beltapp\for_testing" name="splash.png" optional="false">C:\Hans\ExperienceLabPipeline\matlabtools\Apps\Beltapp\for_testing\splash.png</file>
+      <file location="${PROJECT_ROOT}\Beltapp\for_testing" name="Beltapp.exe" optional="false">C:\Hans\ExperienceLabPipeline\matlabtools\Apps\Beltapp\for_testing\Beltapp.exe</file>
+      <file location="${PROJECT_ROOT}\Beltapp\for_testing" name="readme.txt" optional="true">C:\Hans\ExperienceLabPipeline\matlabtools\Apps\Beltapp\for_testing\readme.txt</file>
+    </build-deliverables>
+    <workflow />
+    <matlab>
+      <root>C:\Program Files\MATLAB\R2024a</root>
+      <toolboxes />
+    </matlab>
+    <platform>
+      <unix>false</unix>
+      <mac>false</mac>
+      <windows>true</windows>
+      <win2k>false</win2k>
+      <winxp>false</winxp>
+      <vista>false</vista>
+      <linux>false</linux>
+      <solaris>false</solaris>
+      <osver>10.0</osver>
+      <os32>false</os32>
+      <os64>true</os64>
+      <arch>win64</arch>
+      <matlab>true</matlab>
+    </platform>
+  </configuration>
+</deployment-project>
