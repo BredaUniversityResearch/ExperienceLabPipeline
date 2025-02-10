@@ -211,8 +211,8 @@ if ~isempty(added_pp_idx)
     end
     question = [question, ' are in the excel file but not in the project. See ', path_filename];
     question2 = '\nWould you like me to add those to the project too?\n';
-    opts.Default = 'No';
-    answer = questdlg({question, sprintf(question2)}, dlgtitle, 'Yes','No', opts.Default);
+    default_answer = 'No';
+    answer = questdlg({question, sprintf(question2)}, dlgtitle, 'Yes','No', default_answer);
     % Handle response
     switch answer
         case 'Yes' % User chose 'Yes' to add the participants to the project
