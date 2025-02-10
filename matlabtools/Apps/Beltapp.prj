@@ -8,7 +8,15 @@
     <param.email />
     <param.company />
     <param.summary>Still a Beta version.</param.summary>
-    <param.description>New features:
+    <param.description>New features and bugfixes
+======================
+
+Verion 0.4
+--------------
+Now catching some data errors in segmenting shimmer data and displaying informative warnings in the log window.
+
+Version 0.3
+--------------:
 - An export function. Currently only exports in long format.
 - Update participant data function. Updates the project data to the latest version of the excel file ParticipantData.xlsx
 - Phasic driver. The data now includes the phasic driver
