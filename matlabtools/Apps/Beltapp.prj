@@ -1,15 +1,24 @@
 <deployment-project plugin="plugin.ezdeploy" plugin-version="1.0">
-  <configuration build-checksum="1825684698" file="C:\Hans\ExperienceLabPipeline\matlabtools\Apps\Beltapp.prj" location="C:\Hans\ExperienceLabPipeline\matlabtools\Apps" name="Beltapp" preferred-package-location="C:\Hans\ExperienceLabPipeline\matlabtools\Apps\Beltapp\for_redistribution" preferred-package-type="package.type.exe" target="target.ezdeploy.standalone" target-name="Application Compiler">
+  <configuration build-checksum="3802078077" file="C:\Hans\ExperienceLabPipeline\matlabtools\Apps\Beltapp.prj" location="C:\Hans\ExperienceLabPipeline\matlabtools\Apps" name="Beltapp" preferred-package-location="C:\Hans\ExperienceLabPipeline\matlabtools\Apps\Beltapp\for_redistribution" preferred-package-type="package.type.exe" target="target.ezdeploy.standalone" target-name="Application Compiler">
     <param.appname>Beltapp</param.appname>
-    <param.icon />
-    <param.icons />
-    <param.version>0.4</param.version>
+    <param.icon>${PROJECT_ROOT}\Beltapp_resources\icon.ico</param.icon>
+    <param.icons>
+      <file>${PROJECT_ROOT}\Beltapp_resources\icon_48.png</file>
+      <file>${PROJECT_ROOT}\Beltapp_resources\icon_32.png</file>
+      <file>${PROJECT_ROOT}\Beltapp_resources\icon_24.png</file>
+      <file>${PROJECT_ROOT}\Beltapp_resources\icon_16.png</file>
+    </param.icons>
+    <param.version>0.5</param.version>
     <param.authnamewatermark>Hans Revers</param.authnamewatermark>
     <param.email />
     <param.company />
     <param.summary>Still a Beta version.</param.summary>
     <param.description>New features and bugfixes
 ======================
+Version 0.5
+---------------
+bugfix: deconvolution did not work anymore. Apparently not all required Ledalb files were included.
+
 
 Verion 0.4
 --------------
@@ -39,7 +48,7 @@ Version 0.3
     <param.web.mcr>true</param.web.mcr>
     <param.package.mcr>false</param.package.mcr>
     <param.no.mcr>false</param.no.mcr>
-    <param.web.mcr.name>MyAppInstaller_web</param.web.mcr.name>
+    <param.web.mcr.name>BeltAppInstaller_v0.5</param.web.mcr.name>
     <param.package.mcr.name>MyAppInstaller_mcr</param.package.mcr.name>
     <param.no.mcr.name>MyAppInstaller_app</param.no.mcr.name>
     <param.windows.command.prompt>true</param.windows.command.prompt>
@@ -53,21 +62,8 @@ Version 0.3
 	 
  Input Arguments 
 	 -?  print help on how to use the application 
-	 input arguments 
- Description 
- 	 New features and bug fixes:
-
-version 0.4
-- now catching some data error and displaying informative warnings
-
-version 0.3
-- An export function. Currently only exports in long format.
-- Update participant data function. Updates the project data to the latest version of the excel file ParticipantData.xlsx
-- Phasic driver. The data now includes the phasic driver
-- Graphs now lets you choose which data to display</param.help.text>
+	 input arguments</param.help.text>
     <unset>
-      <param.icon />
-      <param.icons />
       <param.email />
       <param.company />
       <param.guid />
@@ -86,7 +82,6 @@ version 0.3
       <param.web.mcr />
       <param.package.mcr />
       <param.no.mcr />
-      <param.web.mcr.name />
       <param.package.mcr.name />
       <param.no.mcr.name />
       <param.windows.command.prompt />
@@ -99,11 +94,21 @@ version 0.3
     <fileset.main>
       <file>${PROJECT_ROOT}\BeltApp.mlapp</file>
     </fileset.main>
-    <fileset.resources />
-    <fileset.package>
+    <fileset.resources>
       <file>${PROJECT_ROOT}\BELTapp_icon.png</file>
+      <file>${PROJECT_ROOT}\Beltapp_resources\icon.ico</file>
+      <file>${PROJECT_ROOT}\Beltapp_resources\icon_16.png</file>
+      <file>${PROJECT_ROOT}\Beltapp_resources\icon_24.png</file>
+      <file>${PROJECT_ROOT}\Beltapp_resources\icon_32.png</file>
+      <file>${PROJECT_ROOT}\Beltapp_resources\icon_48.png</file>
       <file>${PROJECT_ROOT}\BELTapp_splash.png</file>
-    </fileset.package>
+      <file>${PROJECT_ROOT}\BeltAppDeconvolution.html</file>
+      <file>${PROJECT_ROOT}\BeltAppHome.html</file>
+      <file>${PROJECT_ROOT}\BeltAppProject.html</file>
+      <file>${PROJECT_ROOT}\BeltAppSegmentation.html</file>
+      <file>${PROJECT_ROOT}\Logo BUas_RGB.png</file>
+    </fileset.resources>
+    <fileset.package />
     <fileset.depfun>
       <file>${PROJECT_ROOT}\BeltArtifactCorrectionComponent.mlapp</file>
       <file>${PROJECT_ROOT}\CreateNewProjectApp.mlapp</file>
@@ -128,14 +133,6 @@ version 0.3
       <file>C:\Hans\ExperienceLabPipeline\matlabtools\PsychoPhysiology\deconvolve_eda.m</file>
       <file>C:\Hans\ExperienceLabPipeline\matlabtools\PsychoPhysiology\save_deconvolved_data.m</file>
       <file>C:\Hans\ExperienceLabPipeline\matlabtools\ShimmerTools\shimmer2matlab.m</file>
-      <file>C:\Tools\fieldtrip-20230908\utilities\ft_error.m</file>
-      <file>C:\Tools\fieldtrip-20230908\utilities\ft_platform_supports.m</file>
-      <file>C:\Tools\fieldtrip-20230908\utilities\ft_version.m</file>
-      <file>C:\Tools\fieldtrip-20230908\utilities\ft_warning.m</file>
-      <file>C:\Tools\fieldtrip-20230908\utilities\istrue.m</file>
-      <file>C:\Tools\fieldtrip-20230908\utilities\private\defaultId.m</file>
-      <file>C:\Tools\fieldtrip-20230908\utilities\private\ft_notification.m</file>
-      <file>C:\Tools\ledalab-349\Ledalab.m</file>
     </fileset.depfun>
     <build-deliverables>
       <file location="${PROJECT_ROOT}\Beltapp\for_testing" name="splash.png" optional="false">C:\Hans\ExperienceLabPipeline\matlabtools\Apps\Beltapp\for_testing\splash.png</file>
