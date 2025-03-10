@@ -28,6 +28,7 @@ function plot_timeseries_data(cfg, varargin)
 %        Whether to perform smoothing on the data before plotting
 %   cfg.smoothing_window        = length of the smoothing window (default = 20)
 %   cfg.smoothing_method        = 'movmean|gaussian' (default = 'movmean')
+%   cfg.linewidth               = (default = 1.5)
 %
 %   Some figure configuration is done, but these can be overruled by simply adding
 %   the desired settings after calling the plot_ERPs function
@@ -110,7 +111,12 @@ elseif ~(height(cfg.colours) == nof_datasets)
 end
 if ~isfield(cfg, 'parameter')
     error('No parameter was specified. Unclear what you want plotted. Please specify a parameter. Type "help plot_timeseries_data" for more info');
-    cfg.parameter = 'phasic';
+    % cfg.parameter = 'phasic';
+end
+if ~isfield(cfg, 'linewidth')
+    cfg.linewidth = 1.5;
+elseif ~isnumeric(cfg.linewidth)
+    cfg.linewidth = 1.5;
 end
 
 % internal defaults
@@ -222,11 +228,11 @@ set(y_axis_line, 'color', 'k','linewidth',1.0);
 
 % finally draw the mean amplitudes of each dataset
 for dataset_i=numel(varargin):-1:1
-    erp(dataset_i) = line(x,y(dataset_i).mean); % mean amplitude 
+    data(dataset_i) = line(x,y(dataset_i).mean); % mean amplitude 
     if size(cfg.colours, 1) == 0
-        set(erp(dataset_i), 'linewidth', 1.5); 
+        set(data(dataset_i), 'linewidth', cfg.linewidth); 
     else
-        set(erp(dataset_i), 'color', cfg.colours(dataset_i, :),'linewidth', 1.5); 
+        set(data(dataset_i), 'color', cfg.colours(dataset_i, :),'linewidth', cfg.linewidth); 
     end
 end
 
@@ -234,7 +240,7 @@ end
 if strcmp(cfg.legend, 'yes')
     legenddata = zeros(1, numel(varargin));
     for dataset_i=1:numel(varargin)
-        legenddata(dataset_i) = erp(dataset_i);
+        legenddata(dataset_i) = data(dataset_i);
     end
     legend(legenddata, cfg.legendlabels,'FontSize',10, 'Orientation', 'vertical', 'Location', cfg.legendposition, 'NumColumns', cfg.legendnumcolumns);
 end
