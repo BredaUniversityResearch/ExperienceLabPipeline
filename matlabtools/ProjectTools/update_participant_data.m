@@ -50,8 +50,9 @@ if ~exist(path_filename, "file")
         'Please check. I expected it here: '] path_filename]);
 else
     % read the Excel file 
-    opts = detectImportOptions(path_filename);
-    participantData_new = readtable(path_filename, opts); % without these opts, readtable returns NaNs for empty columns, which cause issues on updating the ParticipantData
+    options = detectImportOptions(path_filename);
+    participantData_new = readtable(path_filename, options); % without these opts, readtable returns NaNs for empty columns, which cause issues on updating the ParticipantData
+    clear options;
 end
 % === TODO: we should check the column names 
 
@@ -111,8 +112,8 @@ if ~isempty(removed_pp_idx)
     end
     question = [question, ' are not in the participant data excel file "' path_filename '".'];
     question2 = '\nWould you like me to remove those from the project too?\n';
-    opts.Default = 'No';
-    answer = questdlg({question, sprintf(question2)}, dlgtitle, 'Yes','No', opts.Default);
+    options.Default = 'No';
+    answer = questdlg({question, sprintf(question2)}, dlgtitle, 'Yes','No', options.Default);
     % Handle response
     switch answer
         case 'Yes' % User chose 'Yes' to remove the participants from the project
@@ -166,8 +167,8 @@ if ~isempty(segments_removed)
     end
     question = [question, ' are no longer in the ParticipantData excel file.\n'];
     question2 = 'Would you like me to remove those from the project?\n';
-    opts.Default = 'No';
-    answer = questdlg({question, question2}, dlgtitle, 'Yes','No', opts.Default);
+    options.Default = 'No';
+    answer = questdlg({question, question2}, dlgtitle, 'Yes','No', options.Default);
     % Handle response
     switch answer
         case 'Yes' % User chose 'Yes' to remove the segments from the project
@@ -272,8 +273,8 @@ end
         end
         question = [question, ' are in the ParticipantData excel file but not in the project.'];
         question2 = 'Would you like me to add those to the project?';
-        opts.Default = 'No';
-        answer = questdlg({question, question2}, dlgtitle, 'Yes','No', opts.Default);
+        options.Default = 'No';
+        answer = questdlg({question, question2}, dlgtitle, 'Yes','No', options.Default);
         % Handle response
         switch answer
             case 'Yes' % User chose 'Yes' to remove the segments from the project
@@ -369,8 +370,8 @@ if ~isempty(changed_pp)
         pp_count = pp_count + 1;
     end
     question = [question, '\n\nWould you like me to update the start/end times for these participants?'];
-    opts.Default = 'No';
-    answer = questdlg({question0, sprintf(question)}, dlgtitle, 'Yes','No', opts.Default);
+    options.Default = 'No';
+    answer = questdlg({question0, sprintf(question)}, dlgtitle, 'Yes','No', options.Default);
     % Handle response
     switch answer
         case 'Yes' % User chose 'Yes' to update the start/end times of the project
