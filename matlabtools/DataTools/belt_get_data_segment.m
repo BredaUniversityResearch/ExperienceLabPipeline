@@ -94,8 +94,8 @@ if project.segment(segment_nr).include(pp_nr)
     end
 
     %  check starttime and endtime are provided
-    starttime  = project.segment(segment_nr).starttime(pp_nr);
-    endtime    = project.segment(segment_nr).endtime(pp_nr);
+    starttime  = project.segment(segment_nr).starttime{pp_nr};
+    endtime    = project.segment(segment_nr).endtime{pp_nr};
 
     % If not both the start and end times are present, abort processing
     % with a warning
