@@ -1,4 +1,4 @@
-function project = add_participant_data(cfg, project)
+function [project, msg] = add_participant_data(cfg, project)
 %% ADD_PARTICIPANT_DATA
 %  function project = get_participant_data(cfg, project)
 % 
@@ -42,9 +42,12 @@ function project = add_participant_data(cfg, project)
 
 
 %% Check input
+msg = [];
+
 % project
 if ~isfield(project, 'raw_data_directory')
-    error('The project does not have the correct format. For instance, it has no raw_data_directory field. Type help check_project_directories for info on the project struct.');
+    msg = [msg, 'ERROR: The project does not have the correct format. For instance, it has no raw_data_directory field. Type help check_project_directories for info on the project struct.'];
+    return;
 end
 
 
@@ -62,9 +65,8 @@ end
 path_filename = fullfile(cfg.participant_data_dir, cfg.participant_data_filename);
 if ~exist(path_filename, "file")
     % the datafile is not in the specified location
-    error(['The participant datafile cannot be found. ' ...
-        ['This is an Excel file that contains the starttime and duration per participant. ' ...
-        'Please check. I expected it here: '] path_filename]);
+    msg = [msg, 'ERROR: The participant datafile cannot be found. This is an Excel file that contains the starttime and duration per participant. Please check. I expected it here: ', path_filename];
+    return;
 else
     % read the Excel file 
     opts = detectImportOptions(path_filename);
@@ -90,13 +92,16 @@ end
 
 %  check whether these column names exist before using them
 if ~any(cfg.participants == string(participantData.Properties.VariableNames))
-    error('The participant datafile does not have a participants column ''%s'', please check ''%s''.', cfg.participants, path_filename);
+    msg = [msg, 'ERROR: The participant datafile does not have a participants column ''', cfg.participants, ''', please check ''', path_filename, '''.'];
+    return;
 end
 if ~any(cfg.timeformat == string(participantData.Properties.VariableNames))
-    error('The participant datafile does not have a timeformat column ''%s'', please check ''%s''.', cfg.timeformat, path_filename);
+    msg = [msg, 'ERROR: The participant datafile does not have a timeformat column ''', cfg.timeformat, ''', please check ''', path_filename, '''.'];
+    return;
 end
 if ~any(cfg.timezone == string(participantData.Properties.VariableNames))
-    error('The participant datafile does not have a timezone column ''%s'', please check ''%s''.', cfg.timezone, path_filename);
+    msg = [msg, 'ERROR: The participant datafile does not have a timezone column ''', cfg.timezone, ''', please check ''', path_filename, '''.'];
+    return;
 end
 
 % Participant labels
@@ -118,7 +123,8 @@ if ~isfield(cfg, 'segment_names') % segment names have not been provided
     if sum(field_starttimes_idx) == 0 || sum(field_endtimes_idx) == 0 % no start or no end times were found
         % TODO: perhaps we should use the whole segment if no start/end
         % times are provided. For now, trigger an error.
-        error('The participant datafile has no start or end times. Please add a column containing the start and end-times of each condition in columns with header ''StartTime<name of the condition>'' and  ''EndTime<name of the condition>'' for each condition (e.g. StartTimeCondition1).');
+        msg = [msg, 'ERROR: The participant datafile has no start or end times. Please add a column containing the start and end-times of each condition in columns with header ''StartTime<name of the condition>'' and  ''EndTime<name of the condition>'' for each condition (e.g. StartTimeCondition1).'];
+        return;
     end
     starttime_fieldnames = fields(field_starttimes_idx); % make an array of those header names
     endtime_fieldnames = fields(field_endtimes_idx);

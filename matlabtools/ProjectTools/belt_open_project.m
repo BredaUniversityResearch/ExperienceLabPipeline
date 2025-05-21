@@ -98,7 +98,7 @@ if isfile(path_filename) % file already exists
     % check for removed or added participants, and for changed start/end times
     fprintf('Checking for changes in the ParticipantData ...\n');
     [project, msg] = update_participant_data(cfg, project);
-    fprintf(msg);
+    disp(msg); % display feedback, errors, warnings
 
 
 else % no project bookkeeping file found at location, create a new one
@@ -108,6 +108,8 @@ else % no project bookkeeping file found at location, create a new one
     
     % Add the relevant participant data to the project struct
     [project, msg] = add_participant_data(cfg, project);
+    [project, msg] = update_participant_data(cfg, project);
+    disp(msg); % display feedback, errors, warnings
     
     % add the bookkeeping part to the project
     for segment_i = 1:project.nof_segments

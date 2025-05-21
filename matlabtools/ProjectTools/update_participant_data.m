@@ -378,8 +378,8 @@ if ~isempty(changed_pp)
             for changed_i = 1:size(changed_pp, 2) % for each changed times, remove the bookkeeping of that pp
                 segment_i = changed_pp(changed_i).segment_i;
                 pp_i      = changed_pp(changed_i).pp_i;
-                project.segment(segment_i).starttime(pp_i) = {changed_pp(changed_i).starttime_excel};
-                project.segment(segment_i).endtime(pp_i)   = {changed_pp(changed_i).endtime_excel};
+                project.segment(segment_i).starttime(pp_i) = changed_pp(changed_i).starttime_excel;
+                project.segment(segment_i).endtime(pp_i)   = changed_pp(changed_i).endtime_excel;
                 project.segment(segment_i).segmented(pp_i)          = false;
                 project.segment(segment_i).artifact_corrected(pp_i) = false;
                 project.segment(segment_i).deconvolved(pp_i)        = false;
