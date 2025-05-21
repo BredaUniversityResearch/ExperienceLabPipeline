@@ -1,0 +1,59 @@
+New features and bugfixes
+======================
+
+Version 0.8
+-----------------
+Added configuration options for the Graph
+Menu > Settings > Graph 
+  > Latency (all, truncate, specific range)
+  > Normalize (yes, no)
+  > Legend (top right, ..., none)
+  > Smooting (none, 20, 40)
+Note: Latency>truncate will truncate all data to the durection of the shortest dataset
+Smoothing uses a movmean method with windowlength as indicated (20 or 40)
+
+A list of all segments is now displayed next to the figure. Segments can be checked/unchecked to include/exclude from the graph 
+
+
+Version 0.7
+-----------------
+Fixed a bug in the update Participant Data functionality
+
+
+Version 0.6
+---------------
+Exporting the data is now also possible when 'startfile' is used as the start of a segment.
+
+Version 0.5
+---------------
+bugfix: deconvolution did not work anymore. Apparently not all required Ledalb files were included.
+
+
+Verion 0.4
+--------------
+Now catching some data errors in segmenting shimmer data and displaying informative warnings in the log window.
+
+Version 0.3
+--------------:
+- An export function. Currently only exports in long format.
+- Update participant data function. Updates the project data to the latest version of the excel file ParticipantData.xlsx
+- Phasic driver. The data now includes the phasic driver
+- Graphs now lets you choose which data to displayBelt app
+- Recent projects are now displayed in the Home screen.
+
+Bugfix:
+- Small segments would sometimes cause the app to not respond after loading or saving. Changes to the 'Loading ...'/'Saving ...' messages seems to have solved this.
+
+
+============================================
+Version 0.2 (still beta)
+
+New features:
+- An export function. Currently only exports in long format.
+- Update participant data function. Updates the project data to the latest version of the excel file ParticipantData.xlsx
+- Phasic driver. The data now includes the phasic driver
+- Graphs now lets you choose which data to display
+
+============================================
+Version 0.1 (beta)
+- demo version for lab training day (24 Sep 2024)

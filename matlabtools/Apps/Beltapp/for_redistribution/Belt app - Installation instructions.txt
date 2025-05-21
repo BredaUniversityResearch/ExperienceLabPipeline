@@ -1,0 +1,18 @@
+The installation of the BeltApp can be performed by using "Run with elevated access" rights on the laptops.
+
+Follow these steps to do so:
+
+1) Download the BelatAppInstaller.exe file
+2) Rightclick on the file and select "Run with elevated access"
+3) Provide a reason for elevation rights and fill in your BUas user credentials
+4) Follow the installation steps shown in the installer
+5) The application is installed and is ready to use.
+
+
+To install new versions of this application follow the same steps and run the installer with elevated access rights.
+
+
+Kind regards,
+
+Marco Bogers
+ICT Systeembeheer

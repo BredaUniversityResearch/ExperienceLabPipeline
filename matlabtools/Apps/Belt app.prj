@@ -1,0 +1,187 @@
+<deployment-project plugin="plugin.apptool" plugin-version="1.0">
+  <configuration build-checksum="2556195409" file="C:\Hans\ExperienceLabPipeline\matlabtools\Apps\Belt app.prj" location="C:\Hans\ExperienceLabPipeline\matlabtools\Apps" name="Belt app" target="target.mlapps" target-name="Package App">
+    <param.appname>Belt app</param.appname>
+    <param.authnamewatermark>Hans Revers</param.authnamewatermark>
+    <param.email />
+    <param.company />
+    <param.icon />
+    <param.icons />
+    <param.summary>Still a Beta version.</param.summary>
+    <param.description>New features and bugfixes
+======================
+Version 0.7
+-----------------
+Fixed a bug in the update Participant Data functionality
+
+
+Version 0.6
+---------------
+Exporting the data is now also possible when 'startfile' is used as the start of a segment.
+
+Version 0.5
+---------------
+bugfix: deconvolution did not work anymore. Apparently not all required Ledalb files were included.
+
+
+Verion 0.4
+--------------
+Now catching some data errors in segmenting shimmer data and displaying informative warnings in the log window.
+
+Version 0.3
+--------------:
+- An export function. Currently only exports in long format.
+- Update participant data function. Updates the project data to the latest version of the excel file ParticipantData.xlsx
+- Phasic driver. The data now includes the phasic driver
+- Graphs now lets you choose which data to display</param.description>
+    <param.screenshot>C:\Users\revers.j\AppData\Local\Temp\tp821ae90e_fb55_49d7_b067_405d2e3d5a68.png</param.screenshot>
+    <param.version>0.7</param.version>
+    <param.products.name />
+    <param.products.id />
+    <param.products.version />
+    <param.platforms />
+    <param.output>${PROJECT_ROOT}</param.output>
+    <param.guid>1a72610c-f6c9-4c3d-8771-bc55f8f28e6c</param.guid>
+    <unset>
+      <param.email />
+      <param.company />
+      <param.icon />
+      <param.icons />
+      <param.products.name />
+      <param.products.id />
+      <param.products.version />
+      <param.platforms />
+      <param.output />
+    </unset>
+    <fileset.main>
+      <file>${PROJECT_ROOT}\BeltApp.mlapp</file>
+    </fileset.main>
+    <fileset.depfun>
+      <file>${PROJECT_ROOT}\BELTapp_icon.png</file>
+      <file>${PROJECT_ROOT}\BeltArtifactCorrectionComponent.mlapp</file>
+      <file>${PROJECT_ROOT}\CreateNewProjectApp.mlapp</file>
+      <file>${PROJECT_ROOT}\icons\add.png</file>
+      <file>${PROJECT_ROOT}\icons\remove.png</file>
+      <file>${PROJECT_ROOT}\icons\undo.png</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\ArtifactTools\artifact_correction_is_possible.m</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\ArtifactTools\get_potential_artifacts.m</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\ArtifactTools\save_artifact_corrected_data.m</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\DataTools\belt_get_data_segment.m</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\DataTools\clamp.m</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\DataTools\resample_generic.m</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\DataTools\segment_generic.m</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\EmpaticaTools\e4eda2matlab.m</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\ProjectTools\add_participant_data.m</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\ProjectTools\check_directory.m</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\ProjectTools\check_project_directories.m</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\ProjectTools\create_new_project.m</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\ProjectTools\save_project.m</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\ProjectTools\update_participant_data.m</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\PsychoPhysiology\deconvolution_is_possible.m</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\PsychoPhysiology\deconvolve_eda.m</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\PsychoPhysiology\save_deconvolved_data.m</file>
+      <file>C:\Hans\ExperienceLabPipeline\matlabtools\ShimmerTools\shimmer2matlab.m</file>
+      <file>C:\Tools\ledalab-349\analyze\cg\cgd.m</file>
+      <file>C:\Tools\ledalab-349\analyze\cg\cgd_get_gradient.m</file>
+      <file>C:\Tools\ledalab-349\analyze\cg\cgd_linesearch.m</file>
+      <file>C:\Tools\ledalab-349\analyze\deconvolution\deconv_analysis.m</file>
+      <file>C:\Tools\ledalab-349\analyze\deconvolution\deconv_optimize.m</file>
+      <file>C:\Tools\ledalab-349\analyze\deconvolution\deverror.m</file>
+      <file>C:\Tools\ledalab-349\analyze\deconvolution\interimpulsefit.m</file>
+      <file>C:\Tools\ledalab-349\analyze\deconvolution\longdiv.m</file>
+      <file>C:\Tools\ledalab-349\analyze\deconvolution\nndeco.m</file>
+      <file>C:\Tools\ledalab-349\analyze\deconvolution\sdeco.m</file>
+      <file>C:\Tools\ledalab-349\analyze\deconvolution\sdeco_interimpulsefit.m</file>
+      <file>C:\Tools\ledalab-349\analyze\deconvolution\sdeconv_analysis.m</file>
+      <file>C:\Tools\ledalab-349\analyze\deconvolution\segment_driver.m</file>
+      <file>C:\Tools\ledalab-349\analyze\deconvolution\succnz.m</file>
+      <file>C:\Tools\ledalab-349\analyze\fiterror.m</file>
+      <file>C:\Tools\ledalab-349\analyze\template\bateman.m</file>
+      <file>C:\Tools\ledalab-349\analyze\template\bateman_gauss.m</file>
+      <file>C:\Tools\ledalab-349\analyze\trough2peak_analysis.m</file>
+      <file>C:\Tools\ledalab-349\graphics\change_range.m</file>
+      <file>C:\Tools\ledalab-349\graphics\export_era_dialog.m</file>
+      <file>C:\Tools\ledalab-349\graphics\export_scrlist_dialog.m</file>
+      <file>C:\Tools\ledalab-349\graphics\ledalogo.jpg</file>
+      <file>C:\Tools\ledalab-349\graphics\ledalogo.m</file>
+      <file>C:\Tools\ledalab-349\graphics\plot_data.m</file>
+      <file>C:\Tools\ledalab-349\graphics\refresh_data.m</file>
+      <file>C:\Tools\ledalab-349\graphics\refresh_fitinfo.m</file>
+      <file>C:\Tools\ledalab-349\graphics\refresh_fitoverview.m</file>
+      <file>C:\Tools\ledalab-349\graphics\showdriver.m</file>
+      <file>C:\Tools\ledalab-349\graphics\showfit.m</file>
+      <file>C:\Tools\ledalab-349\Ledalab.m</file>
+      <file>C:\Tools\ledalab-349\main\add2log.m</file>
+      <file>C:\Tools\ledalab-349\main\close_ledafile.m</file>
+      <file>C:\Tools\ledalab-349\main\delete_fit.m</file>
+      <file>C:\Tools\ledalab-349\main\export_era.m</file>
+      <file>C:\Tools\ledalab-349\main\export_scrlist.m</file>
+      <file>C:\Tools\ledalab-349\main\file_changed.m</file>
+      <file>C:\Tools\ledalab-349\main\import\getBiopacData.m</file>
+      <file>C:\Tools\ledalab-349\main\import\getBiopacMatData.m</file>
+      <file>C:\Tools\ledalab-349\main\import\getBiotraceData.m</file>
+      <file>C:\Tools\ledalab-349\main\import\getcassydata.m</file>
+      <file>C:\Tools\ledalab-349\main\import\getPortilabData.m</file>
+      <file>C:\Tools\ledalab-349\main\import\getPsychlabData.m</file>
+      <file>C:\Tools\ledalab-349\main\import\gettext2data.m</file>
+      <file>C:\Tools\ledalab-349\main\import\gettext3data.m</file>
+      <file>C:\Tools\ledalab-349\main\import\gettextdata.m</file>
+      <file>C:\Tools\ledalab-349\main\import\getuserdefdata.m</file>
+      <file>C:\Tools\ledalab-349\main\import\getVarioportData.m</file>
+      <file>C:\Tools\ledalab-349\main\import\getVisionanalyzerData.m</file>
+      <file>C:\Tools\ledalab-349\main\import\getVitaportData.m</file>
+      <file>C:\Tools\ledalab-349\main\import\import_data.m</file>
+      <file>C:\Tools\ledalab-349\main\import\load_acq.m</file>
+      <file>C:\Tools\ledalab-349\main\leda_batchanalysis.m</file>
+      <file>C:\Tools\ledalab-349\main\ledagui.m</file>
+      <file>C:\Tools\ledalab-349\main\open_ledafile.m</file>
+      <file>C:\Tools\ledalab-349\main\rebuilddata.m</file>
+      <file>C:\Tools\ledalab-349\main\save_ledafile.m</file>
+      <file>C:\Tools\ledalab-349\main\save_ledamem.m</file>
+      <file>C:\Tools\ledalab-349\main\settings\ledapreset.m</file>
+      <file>C:\Tools\ledalab-349\main\subrange.m</file>
+      <file>C:\Tools\ledalab-349\main\update_prevfilelist.m</file>
+      <file>C:\Tools\ledalab-349\main\util\divisors.m</file>
+      <file>C:\Tools\ledalab-349\main\util\downsamp.m</file>
+      <file>C:\Tools\ledalab-349\main\util\get_peaks.m</file>
+      <file>C:\Tools\ledalab-349\main\util\maxfig.p</file>
+      <file>C:\Tools\ledalab-349\main\util\normpdf.m</file>
+      <file>C:\Tools\ledalab-349\main\util\onoffstr.m</file>
+      <file>C:\Tools\ledalab-349\main\util\powerset.m</file>
+      <file>C:\Tools\ledalab-349\main\util\readEventSignal.m</file>
+      <file>C:\Tools\ledalab-349\main\util\smooth.m</file>
+      <file>C:\Tools\ledalab-349\main\util\smooth_adapt.m</file>
+      <file>C:\Tools\ledalab-349\main\util\subrange_idx.m</file>
+      <file>C:\Tools\ledalab-349\main\util\time_idx.m</file>
+      <file>C:\Tools\ledalab-349\main\util\withinlimits.m</file>
+      <file>C:\Tools\ledalab-349\preprocessing\adaptive_smoothing.m</file>
+      <file>C:\Tools\ledalab-349\preprocessing\leda_downsample.m</file>
+      <file>C:\Tools\ledalab-349\preprocessing\leda_filter.m</file>
+      <file>C:\Tools\ledalab-349\preprocessing\smooth_data.m</file>
+    </fileset.depfun>
+    <fileset.resources />
+    <fileset.package />
+    <build-deliverables>
+      <file location="C:\Hans\ExperienceLabPipeline\matlabtools" name="Apps" optional="false">C:\Hans\ExperienceLabPipeline\matlabtools\Apps</file>
+    </build-deliverables>
+    <workflow />
+    <matlab>
+      <root>C:\Program Files\MATLAB\R2024a</root>
+      <toolboxes />
+    </matlab>
+    <platform>
+      <unix>false</unix>
+      <mac>false</mac>
+      <windows>true</windows>
+      <win2k>false</win2k>
+      <winxp>false</winxp>
+      <vista>false</vista>
+      <linux>false</linux>
+      <solaris>false</solaris>
+      <osver>10.0</osver>
+      <os32>false</os32>
+      <os64>true</os64>
+      <arch>win64</arch>
+      <matlab>true</matlab>
+    </platform>
+  </configuration>
+</deployment-project>
