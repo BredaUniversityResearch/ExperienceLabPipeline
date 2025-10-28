@@ -186,7 +186,7 @@ else
     out.phasic_z = analysis.phasicData';
     out.phasicDriver_z = analysis.driver';
     out.tonic_z = analysis.tonicData';
-    eval(sprintf('delete %s\\matData.mat', cfg.tempdir));
+    eval(sprintf('delete ''%s\\matData.mat''', cfg.tempdir));
     eval(sprintf('delete batchmode_protocol.mat'));
     eval(sprintf('delete matData_scrlist.mat'));
     clear analysis fileinfo;
