@@ -50,10 +50,21 @@ if ~exist(path_filename, "file")
         'Please check. I expected it here: '] path_filename]);
 else
     % read the Excel file 
-    options = detectImportOptions(path_filename);
-    participantData_new = readtable(path_filename, options); % without these opts, readtable returns NaNs for empty columns, which cause issues on updating the ParticipantData
-    clear options;
+    try
+        options = detectImportOptions(path_filename);
+    catch exception
+        msg = 'I was not able to open ParticipantData.xlsx. Make sure that it is in the 0.RawData folder and that it is not open in Excel.';
+        return;
+        
+    end
 end
+try
+    participantData_new = readtable(path_filename, options); % without these opts, readtable returns NaNs for empty columns, which cause issues on updating the ParticipantData
+catch exception
+    msg = 'I was not able to open ParticipantData.xlsx. Make sure that it is in the 0.RawData folder and that it is not open in Excel.';
+    return;
+end
+clear options;
 % === TODO: we should check the column names 
 
 
@@ -333,9 +344,9 @@ for segment_i = 1:project.nof_segments
             % check the start/end times for each segment
             starttimes_column = ['StartTime' project.segment(segment_i).name]; % the name of the column in excel
             endtimes_column   = ['EndTime' project.segment(segment_i).name]; % the name of the column in excel
-            starttime_project = project.segment(segment_i).starttime(pp_i);
+            starttime_project = project.segment(segment_i).starttime{pp_i}; % note (4 July 2025) changed (pp_i) to {pp_i} for the ArtExp project, having a deja vu. If this causes issues again, investigate further
             starttime_excel   = participantData_new.(starttimes_column)(pp_i_excel);
-            endtime_project   = project.segment(segment_i).endtime(pp_i);
+            endtime_project   = project.segment(segment_i).endtime{pp_i};
             endtime_excel   = participantData_new.(endtimes_column)(pp_i_excel);
             if ~(strcmp(starttime_project, starttime_excel) && strcmp(endtime_project, endtime_excel))
                 changed_i = changed_i + 1;
