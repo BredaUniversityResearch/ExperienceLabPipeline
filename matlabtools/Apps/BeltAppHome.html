@@ -98,16 +98,17 @@ button.recent:hover {
 	color:#00406b;
 	font-weight: 500;
 	line-height: 1.4;
-	font-feature-settings: "kern","calt";
-	font-variant-ligatures: common-ligatures;
 	font-size:1.6rem;
 	margin-bottom:.625rem
 }
 
 </style>
 
-<script type="text/javascript">      
-   function setup(htmlComponent) {           
+<script type="text/javascript"> 
+
+	function setup(htmlComponent) {         
+	   
+
 
        function createOnclickFunction(number) {
          return function() {
@@ -128,8 +129,9 @@ button.recent:hover {
 		   {
 			   children[recent_i].onclick = createOnclickFunction(recent_i+1)
 		   }
-      });     
+       });     
        
+   
        let button_open = document.getElementById("openProject");
        button_open.addEventListener("click", function(event) {
            htmlComponent.sendEventToMATLAB("OpenProject", 1);
@@ -144,6 +146,7 @@ button.recent:hover {
        button_recent.addEventListener("click", function(event) {
            htmlComponent.sendEventToMATLAB("RecentProject", 1);
        });
+	   
    }
 </script>
 
