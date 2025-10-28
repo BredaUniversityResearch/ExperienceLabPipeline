@@ -54,7 +54,7 @@ end
 
 
 %%
-
+msg = '';
 pp_nr = cfg.pp_nr;
 pp_label = project.pp_labels{pp_nr};
 segment_nr = cfg.segment_nr;
@@ -69,8 +69,8 @@ if project.segment(segment_nr).include(pp_nr)
         switch cfg.handle_already_segmented_data
             case 'skip'
                 % Provide some feedback
-                path_filename = fullfile(project.processed_data_directory, ['segment_raw_' project.segment(segment_nr).name  '_' pp_label '.mat']);
-                msg = sprintf('Data of participant %s was already segmented and saved as %s', pp_label, path_filename);
+                % path_filename = fullfile(project.processed_data_directory, ['segment_raw_' project.segment(segment_nr).name  '_' pp_label '.mat']);
+                % msg = sprintf('Data of participant %s was already segmented and saved as %s', pp_label, path_filename);
                 return;
             case 'redo'
                 % process the data again
@@ -84,8 +84,8 @@ if project.segment(segment_nr).include(pp_nr)
                 switch answer
                     case 'Skip'
                         % Provide some feedback
-                        path_filename = fullfile(project.processed_data_directory, ['segment_raw_' project.segment(segment_nr).name  '_' pp_label '.mat']);
-                        msg = sprintf('Data of participant %s was already segmented and saved as %s', pp_label, path_filename);
+                        % path_filename = fullfile(project.processed_data_directory, ['segment_raw_' project.segment(segment_nr).name  '_' pp_label '.mat']);
+                        % msg = sprintf('Data of participant %s was already segmented and saved as %s', pp_label, path_filename);
                         return;
                     case 'Redo'
                         % process the data again
@@ -100,7 +100,7 @@ if project.segment(segment_nr).include(pp_nr)
     % If not both the start and end times are present, abort processing
     % with a warning
     if isempty(starttime) || isempty(endtime)
-        msg = sprintf('Warning: Start or endtime for participant %s, segment %s was not provided. Could not process this segment.', pp_label, segment_name);
+        msg = sprintf('Warning: Start or endtime for participant %s, segment %s was not provided.', pp_label, segment_name);
         return;
     end
 
@@ -124,11 +124,11 @@ if project.segment(segment_nr).include(pp_nr)
         cfg.columnname.hr    = 'ignore'; % ignore hr
         [raw_data, msg] = shimmer2matlab(cfg); % get the raw data
         if isempty(raw_data)
-            msg = sprintf('%s The Shimmer data for %s, segment %s could not be read. Please check the file format.', msg, pp_label, segment_name);
+            msg = sprintf('%s Shimmer data for %s, segment %s could not be read.', msg, pp_label, segment_name);
             return;
         end
     else % Neither a Shimmer nor an Empatica datafile was found
-        msg = sprintf('Warning: No datafile found for %s, segment %s. Please check! There should either be a ''EDA.csv'' or ''physiodata.csv'' file.', pp_label, segment_name);
+        msg = sprintf('Warning: No datafile found for %s, segment %s.', pp_label, segment_name);
         return;
     end
 
@@ -191,7 +191,7 @@ if project.segment(segment_nr).include(pp_nr)
 else % this segment should not be included in analysis
 
     % Provide some feedback
-    msg = sprintf('Data of segment %s for participant %s is indicated to not include.', segment_name, pp_label);
+    msg = sprintf('Segment %s for participant %s is set to not include.', segment_name, pp_label);
     return;
 end
 
