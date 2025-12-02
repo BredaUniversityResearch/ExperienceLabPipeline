@@ -179,7 +179,7 @@ else
             starttime = starttime - data.initial_time_stamp;
         end
     else
-        if cfg.starttime == "startfile"
+        if strcmp(cfg.starttime, "startfile")
             starttime = 0;
         elseif isfield(data,'initial_time_stamp_mat')
             try
