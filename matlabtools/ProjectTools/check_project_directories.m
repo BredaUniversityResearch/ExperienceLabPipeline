@@ -38,6 +38,9 @@ end
 if ~isfield(project, 'output_directory')
     project.output_directory       = fullfile(project.project_directory, '3.Output');
 end
+if ~isfield(cfg, 'ask_create_directory')
+    cfg.ask_create_directory = 'create';
+end
 if ~isfield(cfg, 'create_directory')
     cfg.create_directory = true;
 end
