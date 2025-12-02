@@ -28,7 +28,15 @@ function plot_timeseries_data(cfg, varargin)
 %        Whether to perform smoothing on the data before plotting
 %   cfg.smoothing_window        = length of the smoothing window (default = 20)
 %   cfg.smoothing_method        = 'movmean|gaussian' (default = 'movmean')
-%   cfg.linewidth               = (default = 1.5)
+%   cfg.linewidth               = [linewidth1, linewidth2, ...] Either specify linewidth as a scalar 
+%                                 if every line has the same width, or as an array of scalars to 
+%                                 specify the width of each line seperately(default linewidth = 1.5)
+%   cfg.linestyle               = {style1, style2, ...} (default style = '-'). Style options are 
+%                                                       "-" Solid line, 
+%                                                       "--" Dashed line, 
+%                                                       ":" Dotted line, 
+%                                                       "-." Dash-dotted line 
+%                                 If only a single style is provided, each line will have that style 
 %
 %   Some figure configuration is done, but these can be overruled by simply adding
 %   the desired settings after calling the plot_ERPs function
@@ -48,14 +56,8 @@ function plot_timeseries_data(cfg, varargin)
 % assume varargin{i} is a timelocked dataset
 nof_datasets  = numel(varargin);
 
-% In case we need them, these are matlab default colours
-default_colours(1, 1:3) = [0.0000 0.4470 0.7410]; % dark blue
-default_colours(2, 1:3) = [0.8500 0.3250 0.0980]; % orange
-default_colours(3, 1:3) = [0.9290 0.6940 0.1250]; % yellow
-default_colours(4, 1:3) = [0.4940 0.1840 0.5560]; % prurple
-default_colours(5, 1:3) = [0.4660 0.6740 0.1880]; % green
-default_colours(6, 1:3) = [0.3010 0.7450 0.9330]; % light blue
-default_colours(7, 1:3) = [0.6350 0.0780 0.1840]; % red
+% In case we need them, gem12 is a set of matlab default colours
+default_colours = orderedcolors("gem12");
 nof_default_colours     = length(default_colours);
 
 %  If not specified, set the defaults
@@ -114,10 +116,25 @@ if ~isfield(cfg, 'parameter')
     % cfg.parameter = 'phasic';
 end
 if ~isfield(cfg, 'linewidth')
-    cfg.linewidth = 1.5;
-elseif ~isnumeric(cfg.linewidth)
-    cfg.linewidth = 1.5;
+    for dataset_i = 1:nof_datasets
+        cfg.linewidth(dataset_i, :) = 1.5; % default value if linewidth is not provided
+    end
+elseif length(cfg.linewidth) < nof_datasets
+    for dataset_i = 1:nof_datasets
+        cfg.linewidth(dataset_i, :) = cfg.linewidth(1, :); % all linewidths are the same
+    end
 end
+if ~isfield(cfg, 'linestyle')
+    for dataset_i = 1:nof_datasets
+        cfg.linestyle(dataset_i, :) = '-'; % default value if linewidth is not provided
+    end
+elseif length(cfg.linestyle) < nof_datasets
+    for dataset_i = 1:nof_datasets
+        cfg.linestyle(dataset_i, :) = cfg.linestyle(1, :); % all linestyles are the same
+    end
+end
+
+
 
 % internal defaults
 shaded_alpha     = .2;
@@ -230,9 +247,9 @@ set(y_axis_line, 'color', 'k','linewidth',1.0);
 for dataset_i=numel(varargin):-1:1
     data(dataset_i) = line(x,y(dataset_i).mean); % mean amplitude 
     if size(cfg.colours, 1) == 0
-        set(data(dataset_i), 'linewidth', cfg.linewidth); 
+        set(data(dataset_i), 'linewidth', cfg.linewidth(dataset_i), 'linestyle',cfg.linestyle(dataset_i)); 
     else
-        set(data(dataset_i), 'color', cfg.colours(dataset_i, :),'linewidth', cfg.linewidth); 
+        set(data(dataset_i), 'color', cfg.colours(dataset_i, :),'linewidth', cfg.linewidth(dataset_i), 'linestyle', cfg.linestyle(dataset_i)); 
     end
 end
 
