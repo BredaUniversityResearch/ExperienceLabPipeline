@@ -24,7 +24,7 @@ function out = stravatcx2matlab(cfg)
 %fsample = 1;
 %time
 %lat
-%long
+%lon
 %altitude
 %distance
 %speed = NA
@@ -117,7 +117,7 @@ end
 
 data.time = linspace(0,max(offsets),max(offsets)+1)';
 data.lat = NaN(max(offsets)+1,1);
-data.long = NaN(max(offsets)+1,1);
+data.lon = NaN(max(offsets)+1,1);
 data.altitude = NaN(max(offsets)+1,1);
 data.distance = NaN(max(offsets)+1,1);
 data.speed = zeros(max(offsets)+1,1);
@@ -127,13 +127,13 @@ data.power = zeros(max(offsets)+1,1);
 %% PLACE DATA IN STRUCTURE
 for i = 1:length(trackdata)
     data.lat(offsets(i)+1) = trackdata(i).Position.LatitudeDegrees;
-    data.long(offsets(i)+1) = trackdata(i).Position.LongitudeDegrees;
+    data.lon(offsets(i)+1) = trackdata(i).Position.LongitudeDegrees;
     data.altitude(offsets(i)+1) = trackdata(i).AltitudeMeters;
     data.distance(offsets(i)+1) = trackdata(i).DistanceMeters;
 end
 
 data.lat = fillmissing(data.lat,'previous');
-data.long = fillmissing(data.long,'previous');
+data.lon = fillmissing(data.lon,'previous');
 data.altitude = fillmissing(data.altitude,'previous');
 data.distance = fillmissing(data.distance,'previous');
 
@@ -149,7 +149,7 @@ out.initial_time_stamp_mat = data.initial_time_stamp_mat;
 out.fsample = 1;
 out.time = data.time;
 out.lat = data.lat;
-out.long = data.long;
+out.lon = data.lon;
 out.altitude = data.altitude;
 out.distance = data.distance;
 out.speed = data.speed;
