@@ -66,7 +66,7 @@ button.recent:hover {
   padding: 1.9rem 0 1.5rem .625rem;
   top: 0;
   position: absolute;
-  width:600px;
+  width:500px;
   left: 250px;
 }
 .header__slogan:after{
@@ -104,49 +104,57 @@ button.recent:hover {
 
 </style>
 
+
+ 
+
 <script type="text/javascript"> 
 
+
 	function setup(htmlComponent) {         
-	   
-
-
-       function createOnclickFunction(number) {
-         return function() {
-           //alert("This is button number " + number);
-		   htmlComponent.sendEventToMATLAB("RecentProject", number);
-         }
-       }
-
-       htmlComponent.addEventListener("DataChanged", function(event) {
-           var element = document.getElementById("dataDisplay");
-		   var children = element.children;
-		   for (let recent_i = 0; recent_i < htmlComponent.Data.length; recent_i++)
-		   {
-			   var newbutton = "<button class='recent'>" + htmlComponent.Data[recent_i] + "</button>" //creates string from data
-			   element.insertAdjacentHTML('beforeend', newbutton);
-		   }
-		   for (let recent_i = 0; recent_i < htmlComponent.Data.length; recent_i++)
-		   {
-			   children[recent_i].onclick = createOnclickFunction(recent_i+1)
-		   }
-       });     
-       
-   
-       let button_open = document.getElementById("openProject");
-       button_open.addEventListener("click", function(event) {
-           htmlComponent.sendEventToMATLAB("OpenProject", 1);
-       });
-
-       let button_new = document.getElementById("newProject");
-       button_new.addEventListener("click", function(event) {
-           htmlComponent.sendEventToMATLAB("NewProject", 1);
-       });
-       
-       let button_recent = document.getElementById("recentProject");
-       button_recent.addEventListener("click", function(event) {
-           htmlComponent.sendEventToMATLAB("RecentProject", 1);
-       });
-	   
+//
+//   
+//	   function sendButtonClick(event, whichbutton){
+//			htmlComponent.sendEventToMATLAB(whichbutton, 1);
+//			}
+//
+//       function createOnclickFunction(number) {
+//         return function() {
+//           //alert("This is button number " + number);
+//		   htmlComponent.sendEventToMATLAB("RecentProject", number);
+//         }
+//       }
+//
+//       htmlComponent.addEventListener("DataChanged", function(event) {
+//           var element = document.getElementById("dataDisplay");
+//		   var children = element.children;
+//		   for (let recent_i = 0; recent_i < htmlComponent.Data.length; recent_i++)
+//		   {
+//			   var newbutton = "<button class='recent'>" + htmlComponent.Data[recent_i] + "</button>" //creates string from data
+//			   element.insertAdjacentHTML('beforeend', newbutton);
+//		   }
+//		   for (let recent_i = 0; recent_i < htmlComponent.Data.length; recent_i++)
+//		   {
+//			   children[recent_i].onclick = createOnclickFunction(recent_i+1)
+//		   }
+//       });     
+//       
+//	   let button_open = document.getElementById("openProject");
+//	   button_open.addEventListener("click", function(event) {
+//		   htmlComponent.sendEventToMATLAB("OpenProject", 1);
+//		   
+//	   });
+//	   
+//
+//       let button_new = document.getElementById("newProject");
+//       button_new.addEventListener("click", function(event) {
+//           htmlComponent.sendEventToMATLAB("NewProject", 1);
+//       });
+//       
+//       let button_recent = document.getElementById("recentProject");
+//       button_recent.addEventListener("click", function(event) {
+//           htmlComponent.sendEventToMATLAB("RecentProject", 1);
+//       });
+//	   
    }
 </script>
 
@@ -163,17 +171,17 @@ button.recent:hover {
 <br>
 
 <div class="h2_title">Home</div>
-The Breda Experience Lab Toolbox (BELT) is an app for processing skin conductance data. It is being developed by <a href="https://www.buas.nl/en/research/labs-and-studios#experience" target="_blank">The Experience Lab</a> at <a href="https://www.buas.nl/" target="_blank">Breda University of applied sciences</a> (BUas). 
+The Breda Experience Lab Toolbox (BELT) is an app for processing skin conductance data.<br>
+It is being developed by <a href="https://www.buas.nl/en/research/labs-and-studios#experience" target="_blank">The Experience Lab</a> at 
+<a href="https://www.buas.nl/" target="_blank">Breda University of applied sciences</a> (BUas). 
 <br>
 
 <div class="h2_subtitle">Project</div>
-Processing skin conductance data starts with creating a new project or opening an existing  project. 
+Start a new project or open an existing one. 
 <br>
-
-<button id="newProject">New project</button> 
+<!--<button id="newProject">New project</button> 
 <button id="openProject">Open existing project</button> <br>
 <button id="recentProjects">Recent projects :</button>
-<div id ="dataDisplay"></div>
-
+<div id ="dataDisplay"></div>-->
 </body>
 </html>
