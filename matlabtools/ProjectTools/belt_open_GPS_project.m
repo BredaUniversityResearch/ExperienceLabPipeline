@@ -108,13 +108,16 @@ else % no project bookkeeping file found at location, create a new one
     
     % add the bookkeeping part to the project
     for segment_i = 1:project.nof_segments
-        project.segment(segment_i).segmented          = zeros(size(project.pp_labels));
-        project.segment(segment_i).artifact_corrected = zeros(size(project.pp_labels));
-        project.segment(segment_i).snapped_to_model   = zeros(size(project.pp_labels));
-        project.segment(segment_i).include            = ones(size(project.pp_labels));
+        project.segment(segment_i).segmented      = zeros(size(project.pp_labels));
+        project.segment(segment_i).cleaned        = zeros(size(project.pp_labels));
+        project.segment(segment_i).snapped2model  = zeros(size(project.pp_labels));
+        project.segment(segment_i).include        = ones(size(project.pp_labels));
     end
     
 end
+
+% add the initial setting for the base map type
+project.basemap = 'streets-light';
 
 % save the project struct as a matlab datafile
 save(path_filename, 'project');
