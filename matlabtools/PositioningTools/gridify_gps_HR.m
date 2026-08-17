@@ -1,4 +1,4 @@
-function out = gridify_gps(cfg,data)
+function out = gridify_gps_HR(cfg,data)
 %% GRIDIFY GPS
 % function out = gridify (cfg,data)
 %
@@ -7,7 +7,7 @@ function out = gridify_gps(cfg,data)
 % to perform calculations over number-based colums on a grid with
 % configurable size. By default all additional number-based columns will
 % return the mean value for the position, unless the desired calculations
-% are defined in cfg.variables.
+% are defined in cfg.calculations_per_pp.
 %
 % For a single table, the function will output a table with the calculations
 % performed over that file. For a structure with multiple tables, the
@@ -29,7 +29,7 @@ function out = gridify_gps(cfg,data)
 % cfg.spheroid = (OPTIONAL) type of sphere used for reprojecting the data
 %   from lat/lon
 %   default = wgs84Ellipsoid("m");
-% cfg.variables = (OPTIONAL) table with calculations performed over the
+% cfg.calculations_per_pp = (OPTIONAL) table with calculations performed over the
 %   selected data, colums must be: 'in', 'out', 'calculation', where in is
 %   the name of the data-column, out is the name in the output column, and
 %   calculation is the calculation to perform over the data inside that
@@ -92,14 +92,14 @@ if ~isfield(cfg,'spheroid')
     cfg.spheroid = wgs84Ellipsoid("m");
 end
 
-%Check table specific data and variables
+%Check table specific data and calculations_per_pp
 if isa(data,'table')
-    if ~isfield(cfg,'variables')
-        cfg.variables = gridify_identify_variables(data);
+    if ~isfield(cfg,'calculations_per_pp')
+        cfg.calculations_per_pp = gridify_identify_calculations_per_pp(data); % TODO
     end
 end
 
-%Check structure specific data and variables
+%Check structure specific data and calculations_per_pp
 if isstruct(data)
     %Check if struct contains a filed with correct name (data)
     if ~max(any("data"==string(fieldnames(data))))
@@ -113,25 +113,25 @@ if isstruct(data)
         end
     end
 
-    % Check if variables calculation exist, if not setup new based on the first participant
-    if ~isfield(cfg,'variables')
-        cfg.variables = gridify_identify_variables(data(1).data);
+    % Check if calculations_per_pp calculation exist, if not setup new based on the first participant
+    if ~isfield(cfg,'calculations_per_pp')
+        cfg.calculations_per_pp = gridify_identify_calculations_per_pp(data(1).data); % TODO
     end
 
     % Add participant count variable if we expect several participants
     if max(size(data))>=1
         pcount_v = table({'participant'},{'participantcount'},{'unique'},'VariableNames',{'in','out','calculation'});
-        cfg.variables = vertcat(cfg.variables,pcount_v);
+        cfg.calculations_per_pp = vertcat(cfg.calculations_per_pp,pcount_v);
     end
 
-    % Check individual participants in struct on available variables,
+    % Check individual participants in struct on available calculations_per_pp,
     % remove any that are not found in other participants
     for samp_i = 1:max(size(data))
         labels = fieldnames(data(samp_i).data);
-        valid = contains(cfg.variables.in,labels);
-        for jsamp =height(cfg.variables):-1:1
+        valid = contains(cfg.calculations_per_pp.in,labels);
+        for jsamp =height(cfg.calculations_per_pp):-1:1
             if ~valid(jsamp)
-                cfg.variables(2,:)=[]; % TODO: check this!!! Now row=2, regardless. That should be jsamp, I guess, but then the rows get shifted within a loop, so that would go wrong. Beter remove them all at once.
+                cfg.calculations_per_pp(2,:)=[]; % TODO: check this!!! Now row=2, regardless. That should be jsamp, I guess, but then the rows get shifted within a loop, so that would go wrong. Beter remove them all at once.
             end
         end
     end
@@ -143,7 +143,7 @@ end
 if isa(data,'table')
     cfg.multipleparticipants = 0;
 
-    data_grid = gridify_table(cfg,data);
+    data_grid = gridify_table(cfg,data); 
     out=data_grid;
     return;
 end
@@ -157,7 +157,7 @@ if max(size(data))==1
     end
 
     cfg.multipleparticipants = 0;
-    data_grid = gridify_table(cfg,data(1).data);
+    data_grid = gridify_table(cfg,data(1).data); 
     out=data_grid;
     warning("ONLY ONE PARTICIPANT IN STRUCT, RETURNING GRIDDED DATA FOR THIS PARTICIPANT");
     return;
@@ -179,10 +179,10 @@ data_t = vertcat(data_c{:});
 % Index combined data table
 [data_g,~,idx] = unique(data_t(:,1:3),'rows');
 
-% Calculate variables over combined table.
+% Calculate calculations_per_pp over combined table.
 % The COUNT calculation is hereby changed to @sum, as a second length index would not work.
 cfg.multipleparticipants = 1;
-data_g = gridify_perform_variable_calculations(cfg,data_t,data_g,idx);
+data_g = gridify_perform_variable_calculations_over_tables(cfg,data_t,data_g,idx);
 
 % Add final lat/lon/alt
 [data_g.lat,data_g.lon,data_g.alt] = ecef2geodetic(cfg.spheroid,data_g.x,data_g.y,data_g.z);
@@ -192,50 +192,74 @@ out = data_g;
 
 end
 
+
+
+
+
 %% FUNCTION TO PERFORM THE IDENTIFIED VARABLIE CALCULATIONS
 %Loop over all variable cfgs, and use the data_t vs data_g to perfrom the
 %identified calculation. Uses @sum instead of @length on
 %multipleparticipants to get the total count, instead of the count of
 %counts
-function out = gridify_perform_variable_calculations(cfg,data_t,data_g,idx)
-    for samp_v = 1:height(cfg.variables)
-        if strcmp(cfg.variables.calculation{samp_v},'mean')
-            data_g.(cfg.variables.out{samp_v}) = accumarray(idx,data_t.(cfg.variables.in{samp_v}),[],@mean);
-        elseif strcmp(cfg.variables.calculation{samp_v},'unique')
-            data_g.(cfg.variables.out{samp_v}) = groupsummary(data_t.(cfg.variables.in{samp_v}),idx,"numunique");
-        elseif strcmp(cfg.variables.calculation{samp_v},'count')
-            if cfg.multipleparticipants
-                data_g.(cfg.variables.out{samp_v}) = accumarray(idx,data_t.(cfg.variables.in{samp_v}),[],@sum); 
-            else
-                data_g.(cfg.variables.out{samp_v}) = accumarray(idx,data_t.(cfg.variables.in{samp_v}),[],@length);
-            end
-        elseif strcmp(cfg.variables.calculation{samp_v},'sum')
-            data_g.(cfg.variables.out{samp_v}) = accumarray(idx,data_t.(cfg.variables.in{samp_v}),[],@sum);
-        elseif strcmp(cfg.variables.calculation{samp_v},'min')
-            data_g.(cfg.variables.out{samp_v}) = accumarray(idx,data_t.(cfg.variables.in{samp_v}),[],@min);
-        elseif strcmp(cfg.variables.calculation{samp_v},'max')
-            data_g.(cfg.variables.out{samp_v}) = accumarray(idx,data_t.(cfg.variables.in{samp_v}),[],@max);
+function out = gridify_perform_variable_calculations_per_table(cfg,data_t,data_g,idx)
+    for samp_v = 1:height(cfg.calculations_per_pp)
+        if strcmp(cfg.calculations_per_pp.calculation{samp_v},'mean')
+            data_g.(cfg.calculations_per_pp.out{samp_v}) = accumarray(idx,data_t.(cfg.calculations_per_pp.in{samp_v}),[],@mean);
+        elseif strcmp(cfg.calculations_per_pp.calculation{samp_v},'unique')
+            data_g.(cfg.calculations_per_pp.out{samp_v}) = groupsummary(data_t.(cfg.calculations_per_pp.in{samp_v}),idx,"numunique");
+        elseif strcmp(cfg.calculations_per_pp.calculation{samp_v},'count')
+            data_g.(cfg.calculations_per_pp.out{samp_v}) = accumarray(idx,data_t.(cfg.calculations_per_pp.in{samp_v}),[],@length);
+        elseif strcmp(cfg.calculations_per_pp.calculation{samp_v},'sum')
+            data_g.(cfg.calculations_per_pp.out{samp_v}) = accumarray(idx,data_t.(cfg.calculations_per_pp.in{samp_v}),[],@sum);
+        elseif strcmp(cfg.calculations_per_pp.calculation{samp_v},'min')
+            data_g.(cfg.calculations_per_pp.out{samp_v}) = accumarray(idx,data_t.(cfg.calculations_per_pp.in{samp_v}),[],@min);
+        elseif strcmp(cfg.calculations_per_pp.calculation{samp_v},'max')
+            data_g.(cfg.calculations_per_pp.out{samp_v}) = accumarray(idx,data_t.(cfg.calculations_per_pp.in{samp_v}),[],@max);
         end
     end
     out = data_g;
 end
 
-%% FUNCTION TO IDENTIFY THE VARIABLES TO GRIDIFY
-function out = gridify_identify_variables(data)
-    warning('Variables and calculations have not been defined, calculating MEAN for ALL variables apart from lat/lon');
+function out = gridify_perform_variable_calculations_over_tables(cfg,data_t,data_g,idx) % TODO: combine these two functions and differentiate through the calculations_per_pp
+    for samp_v = 1:height(cfg.calculations_over_pp)
+        if strcmp(cfg.calculations_over_pp.calculation{samp_v},'mean')
+            data_g.(cfg.calculations_over_pp.out{samp_v}) = accumarray(idx,data_t.(cfg.calculations_over_pp.in{samp_v}),[],@mean);
+        elseif strcmp(cfg.calculations_over_pp.calculation{samp_v},'unique')
+            data_g.(cfg.calculations_over_pp.out{samp_v}) = groupsummary(data_t.(cfg.calculations_over_pp.in{samp_v}),idx,"numunique");
+        elseif strcmp(cfg.calculations_over_pp.calculation{samp_v},'count')
+            data_g.(cfg.calculations_over_pp.out{samp_v}) = accumarray(idx,data_t.(cfg.calculations_over_pp.in{samp_v}),[],@length); 
+        elseif strcmp(cfg.calculations_over_pp.calculation{samp_v},'sum')
+            data_g.(cfg.calculations_over_pp.out{samp_v}) = accumarray(idx,data_t.(cfg.calculations_over_pp.in{samp_v}),[],@sum);
+        elseif strcmp(cfg.calculations_over_pp.calculation{samp_v},'min')
+            data_g.(cfg.calculations_over_pp.out{samp_v}) = accumarray(idx,data_t.(cfg.calculations_over_pp.in{samp_v}),[],@min);
+        elseif strcmp(cfg.calculations_over_pp.calculation{samp_v},'max')
+            data_g.(cfg.calculations_over_pp.out{samp_v}) = accumarray(idx,data_t.(cfg.calculations_over_pp.in{samp_v}),[],@max);
+        end
+    end
+    out = data_g;
+end
+
+
+
+
+%% FUNCTION TO IDENTIFY THE calculations_per_pp TO GRIDIFY
+function out = gridify_identify_calculations_per_pp(data)
+    warning('calculations_per_pp and calculations have not been defined, calculating MEAN for ALL calculations_per_pp apart from lat/lon');
     
-    %Add all variables apart from Lat & Lon to the list of variables to calculate
+    %Add all calculations_per_pp apart from Lat & Lon to the list of calculations_per_pp to calculate
     varCount = 1;
     for isamp = 1:length(data.Properties.VariableNames)
         if max(strcmp(data.Properties.VariableNames{isamp},{'lat';'lon';'long';'alt';'z';'y';'x';'participant'})) == 0
-            cfg.variables(varCount) = struct('in',data.Properties.VariableNames{isamp},'out',data.Properties.VariableNames{isamp},'calculation','mean');
+            cfg.calculations_per_pp(varCount) = struct('in',data.Properties.VariableNames{isamp},'out',data.Properties.VariableNames{isamp},'calculation','mean');
             varCount = varCount+1;
         end
     end
-    cfg.variables(varCount) = struct('in','lat','out','count','calculation','count');
+    cfg.calculations_per_pp(varCount) = struct('in','lat','out','count','calculation','count');
     
-    out = struct2table(cfg.variables);
+    out = struct2table(cfg.calculations_per_pp);
 end
+
+
 
 
 %% FUNCTION TO SMOOTH GRIDDED GPS DATA
@@ -244,7 +268,7 @@ end
 %POSITION EITHER, AND IS PRETTY SLOW, PREFERRED METHOD IS TO SMOOTH WHEN 
 % VISUALIZING USING GEODENSITYPLOT
 function out = gridify_smooth_data (cfg,data)
-    %Get variables required for setting up the grid
+    %Get calculations_per_pp required for setting up the grid
     x = data.x;
     y = data.y;
     dataPoints = height(data);
@@ -252,11 +276,11 @@ function out = gridify_smooth_data (cfg,data)
     gridsize.x = max(x)-min(x);
     gridsize.y = max(y)-min(y);
     
-    %Run over all variables, skipping the ones for latg/long
+    %Run over all calculations_per_pp, skipping the ones for latg/long
     for samp_v = 1:length(data.Properties.VariableNames)
         if max(strcmp(data.Properties.VariableNames{samp_v},{'z';'y';'x';'lat';'lon';'alt';'participant'})) == 0
     
-            %Make a grid out of the existing variables data, with zeros
+            %Make a grid out of the existing calculations_per_pp data, with zeros
             %where no data exists
             v = data.(data.Properties.VariableNames{samp_v});
             variableGrid=zeros(gridsize.x,gridsize.y);
@@ -276,7 +300,7 @@ function out = gridify_smooth_data (cfg,data)
         end
     end
     
-    %Retrieve and setup struct with available variables
+    %Retrieve and setup struct with available calculations_per_pp
     gridFields = fieldnames(variableGrids);
     data_smoothened = [];
     data_smoothened.x = [];
@@ -288,7 +312,7 @@ function out = gridify_smooth_data (cfg,data)
     %Loop over all grid points
     for samp_x = 1:gridsize.x
         for samp_y = 1:gridsize.y
-            %Check if any of the variables have non-zero values at that
+            %Check if any of the calculations_per_pp have non-zero values at that
             %position
             sampleFound = false;
             for samp_v = 1:length(gridFields)
@@ -311,6 +335,8 @@ function out = gridify_smooth_data (cfg,data)
     %Convert back to table for further processing
     out = struct2table(data_smoothened);
 end
+
+
 
 %% FUNCTION RUN THE GRIDDING CALCULATIONS ON A PER-TABLE BASIS
 function out = gridify_table(cfg,data)
@@ -341,8 +367,8 @@ function out = gridify_table(cfg,data)
     
     % PERFORM VARIABLE CALCULATIONS
     % Use the defined calculation method to calculate the gridded data over the
-    % defined variables, and store them using the preferred output name
-    data_g = gridify_perform_variable_calculations(cfg,data,data_g,idx);
+    % defined calculations_per_pp, and store them using the preferred output name
+    data_g = gridify_perform_variable_calculations_per_table(cfg,data,data_g,idx);
     
     % SMOOTH DATA
     %If smoothing is enabled, run the smooth Data function

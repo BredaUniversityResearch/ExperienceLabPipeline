@@ -54,16 +54,23 @@ else
 end
 
 
-data.initial_time_stamp_mat = GPStable.timestamp_utc(1);
-data.initial_time_stamp_mat = string(data.initial_time_stamp_mat);
 
 %% Interpolate the data to 1 datapoint per second
 
+% the gps data from the BUas gpstracker app is not always in chronological order
+% some datapackages arive late. Sort the data according to the timestamp to
+% prevent issues further on.
+% Sort the GPStable table by timestamp to ensure chronological order
+GPStable = sortrows(GPStable, 'timestamp_utc');
+
+% get the start time of the data
+data.initial_time_stamp_mat = GPStable.timestamp_utc(1);
+data.initial_time_stamp_mat = string(data.initial_time_stamp_mat);
 % get the elapsed time from the start
 GPStable.time_elapsed = GPStable.timestamp_utc - GPStable.timestamp_utc(1);
 % extract the number of seconds that have elapsed since start
 GPStable.nof_seconds_elapsed = round(seconds(GPStable.time_elapsed));
-max_time_elapsed = GPStable.nof_seconds_elapsed(end);
+max_time_elapsed = max(GPStable.nof_seconds_elapsed);
 
 % build the data struct
 data.time = linspace(0, max_time_elapsed, max_time_elapsed + 1)';

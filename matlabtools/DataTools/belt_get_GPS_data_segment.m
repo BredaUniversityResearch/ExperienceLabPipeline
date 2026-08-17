@@ -105,7 +105,6 @@ if project.segment(segment_nr).include(pp_nr)
     % check data source: Strava or the BUas GPS app
     filename = [pp_label '_gps.csv'];
     if  isfile(fullfile(cfg.datafolder, filename)) % BUas GPS app data
-        % TODO write a read data procedure
         % read in the GPS data.
         cfg = [];
         cfg.gpsfile = filename;
@@ -117,7 +116,20 @@ if project.segment(segment_nr).include(pp_nr)
             return;
         end
 
-    elseif  isfile(fullfile(cfg.datafolder, 'strava.tcx')) % Strava data
+     elseif  isfile(fullfile(cfg.datafolder, 'gps_array.csv')) % ANWB data
+    
+        % read in the GPS data.
+        cfg = [];
+        cfg.gpsfile = 'gps_array.csv';
+        cfg.datafolder = fullfile(project.project_directory, '0.RawData', project.pp_labels{pp_nr});
+        raw_data = anwbgps2matlab(cfg);
+
+        if isempty(raw_data)
+            msg = sprintf('%s ANWB GPS data for %s, segment %s could not be read.', msg, pp_label, segment_name);
+            return;
+        end
+
+   elseif  isfile(fullfile(cfg.datafolder, 'strava.tcx')) % Strava data
     
         % read in the GPS data.
         cfg = [];

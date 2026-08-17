@@ -15,9 +15,28 @@
         1,
         1028,
         598
+      ],
+      "avatarDark": ""
+    },
+    {
+      "className": "BeltGPSArtifactCorrectionComponent",
+      "componentName": "BeltGPSArtifactCorrectionComponent",
+      "description": "Provides a graph of the GPS data and options to clean artifacts",
+      "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAAsSAAALEgHS3X78AAABGUlEQVRIiWNsaGj4z0ACqK+vZwSp7ujouPPz509lbDrZ2dnvVlRUqIDYLAwQTUTZsHz5cjgbZDgufY2NjXCLWWAMR0cnnAbv378Pq/i3b98IOgpuAS5DcAFQMHR3d+MMIpJ8gM0BsDCmmQ9IimQGMuKA5Egm1QcMpEYyqXFALBgcqQib5TRPRcQCiuKA1bUVazn2e3c1I9V80NWRicIvq5iOwmdRU1NDKcSoDVgiIyMZaWY6AwMDEy0NBwHG9vZ2nGUKCCCXKyCgWMaJNWIrV//Bqp8FX5kCAsjlCgy0Fbeh8Kt6q8B0SOsUFPE11TmQVERMmUIuoHkc0NwCFnyFFgggF1wwAAtzdAAKc3TA+P8/Sa0W0gADAwMAacOCsonAW8UAAAAASUVORK5CYII=",
+      "category": "My Components",
+      "authorName": "Hans Revers",
+      "authorEmail": "revers.j@buas.nl",
+      "version": "0.1",
+      "avatar": "",
+      "avatarDark": "",
+      "defaultPosition": [
+        1,
+        1,
+        1028,
+        598
       ]
     }
   ],
-  "schema": 2,
-  "MATLABRelease": "R2024a"
+  "schema": 3,
+  "MATLABRelease": "R2025b"
 }
