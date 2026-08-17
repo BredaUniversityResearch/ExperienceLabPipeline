@@ -60,7 +60,7 @@ end
 
 if cfg.show_input_window % Open the app to create a new project
 
-    NewProjectApp = CreateNewProjectApp(cfg, project); % open the app
+    NewProjectApp = CreateNewProjectSimpleApp(cfg, project); % open the app
     waitfor(NewProjectApp,'closeapplication',1) % wait until the app closes
     if NewProjectApp.save_project % if the [Create] button was pressed
         newproject = NewProjectApp.project; % store the project struct

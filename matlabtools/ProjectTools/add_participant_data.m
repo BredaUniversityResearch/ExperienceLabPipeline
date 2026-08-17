@@ -109,7 +109,7 @@ project.pp_labels = participantData.(cfg.participants);
 % time properties
 project.timeformat  = participantData.(cfg.timeformat);
 project.timezone    = participantData.(cfg.timezone);
-
+project.nof_segments = 0;
 
 %% Add the segment data (the conditions)
 
@@ -121,8 +121,7 @@ if ~isfield(cfg, 'segment_names') % segment names have not been provided
     field_starttimes_idx = startsWith(fields, 'StartTime', 'IgnoreCase',true); % find the indices of headers starting with 'StartTime'
     field_endtimes_idx = startsWith(fields, 'EndTime', 'IgnoreCase',true); % find the indices of headers starting with 'EndTime'
     if sum(field_starttimes_idx) == 0 || sum(field_endtimes_idx) == 0 % no start or no end times were found
-        % TODO: perhaps we should use the whole segment if no start/end
-        % times are provided. For now, trigger an error.
+        % TODO: perhaps we should use the whole segment if no start/end times are provided. For now, trigger an error.
         msg = [msg, 'ERROR: The participant datafile has no start or end times. Please add a column containing the start and end-times of each condition in columns with header ''StartTime<name of the condition>'' and  ''EndTime<name of the condition>'' for each condition (e.g. StartTimeCondition1).'];
         return;
     end
@@ -130,7 +129,11 @@ if ~isfield(cfg, 'segment_names') % segment names have not been provided
     endtime_fieldnames = fields(field_endtimes_idx);
     starttime_segmentnames = extractAfter(starttime_fieldnames, length('StartTime')); % remove the 'StartTime' part so that the segment/condition names remain
     endtime_segmentnames = extractAfter(endtime_fieldnames, length('EndTime'));
-    cfg.segment_names = intersect(starttime_segmentnames, endtime_segmentnames); % get the segment names that have bot a start and an end time
+    cfg.segment_names = intersect(starttime_segmentnames, endtime_segmentnames); % get the segment names that have both a start and an end time
+    if isempty(cfg.segment_names) % there are no segment names that have a matching start and end times column
+        msg = [msg, 'ERROR: there are no segment names that have a matching start and end times column (e.g. StartTimeCondition1 and EndTimeCondition1).'];
+        return;
+    end
 end
 
 % get the number of segments
@@ -138,16 +141,17 @@ project.nof_segments = length(cfg.segment_names);
 
 % names of the columns that hold the start and end times of each segment
 for segment_i = 1:project.nof_segments
-    if ~isfield(cfg, ['segment(' num2str(segment_i) ')'])
+% commenting out some lines that seem to have no purpose
+%    if ~isfield(cfg, ['segment(' num2str(segment_i) ')'])
         cfg.segment(segment_i).starttimes = ['StartTime' cfg.segment_names{segment_i}];
-    else    
-        if ~isfield(cfg.segment(segment_i), 'starttimes')
-            cfg.segment(segment_i).starttimes = ['StartTime' cfg.segment_names{segment_i}];
-        end
-    end
-    if ( ~isfield(cfg.segment(segment_i), 'endtimes') || isempty(cfg.segment(segment_i).endtimes) )
+%    else    
+%        if ~isfield(cfg.segment(segment_i), 'starttimes')
+%            cfg.segment(segment_i).starttimes = ['StartTime' cfg.segment_names{segment_i}];
+%        end
+%    end
+%    if ( ~isfield(cfg.segment(segment_i), 'endtimes') || isempty(cfg.segment(segment_i).endtimes) )
         cfg.segment(segment_i).endtimes = ['EndTime' cfg.segment_names{segment_i}];
-    end
+%    end
 end
 
 
